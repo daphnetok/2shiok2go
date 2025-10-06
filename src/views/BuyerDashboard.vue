@@ -1,4 +1,16 @@
+<template>
+  <div class="container mt-4">
+    <h2>Buyer Dashboard</h2>
+    <p>Track your past orders, points, and rewards here.</p>
+  </div>
+</template>
+
 <script>
+export default { name: "BuyerDashboard" };
+</script>
+
+
+<!-- <script>
 import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -24,4 +36,4 @@ export default {
 
 <template>
   <Bar :data="chartData" :options="chartOptions" />
-</template>
+</template> -->

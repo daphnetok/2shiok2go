@@ -1,15 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import DashboardChart from '../components/Dashboard.vue'
+
+import Home from '../views/Home.vue'
+import BuyerListing from '../views/BuyerListing.vue'
+import CreateListing from '../views/CreateListing.vue'
+import BuyerDashboard from '../views/BuyerDashboard.vue'
+import HawkerDashboard from '../views/HawkerDashboard.vue'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 
 const routes = [
-  { path: '/', name: 'home', component: HomeView },
-  { path: '/dashboard', name: 'dashboard', component: DashboardChart }
+  { path: '/', component: Home },
+  { path: '/buyer-listings', component: BuyerListing },
+  { path: '/create-listing', component: CreateListing },
+  { path: '/buyer-dashboard', component: BuyerDashboard },
+  { path: '/hawker-dashboard', component: HawkerDashboard },
+  { path: '/login', component: Login },
+  { path: '/register', component: Register },
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  history: createWebHistory(),
+  routes,
 })
 
 export default router
