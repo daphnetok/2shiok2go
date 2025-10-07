@@ -23,9 +23,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { auth } from '@/firebase/config'
-import { signInWithGoogle, logout } from '@/firebase/auth'
-import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../../../firebase/config'
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth'
 
 const user = ref(null)
 
@@ -37,7 +36,8 @@ onMounted(() => {
 
 const handleSignIn = async () => {
   try {
-    await signInWithGoogle()
+    const provider = new GoogleAuthProvider()
+    await signInWithPopup(auth, provider)
   } catch (error) {
     alert('Sign in failed: ' + error.message)
   }
