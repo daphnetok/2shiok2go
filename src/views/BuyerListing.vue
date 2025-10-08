@@ -9,8 +9,9 @@
 
       <!-- Font Awesome Icons aligned to the right -->
       <div class="col-2 d-flex justify-content-end">
-        <font-awesome-icon icon="user" class="me-3" />
-        <font-awesome-icon icon="shopping-cart"/>
+        <a href=""><font-awesome-icon icon="user" size="lg" /></a>
+        <div class="me-3"></div>
+        <a href=""><font-awesome-icon icon="shopping-cart" size="lg"/></a>
       </div>
     </div>
 
