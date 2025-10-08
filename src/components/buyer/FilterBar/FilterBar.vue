@@ -1,41 +1,61 @@
- <template>
-  <div class="filter-bar container my-3">
-    <div class="row align-items-center">
-      <div class="col-md-3 mb-2">
-        <label for="priceRange" class="form-label fw-bold">Price Range</label>
-        <select id="priceRange" class="form-select">
-          <option value="">All</option>
-          <option value="low">Below $3</option>
-          <option value="mid">$3 - $5</option>
-          <option value="high">Above $5</option>
-        </select>
+<template>
+  <!-- hamburger not working, page overflow idk why -->
+
+  <!-- Hamburger icon for small screens -->
+  <button class="navbar-toggler" type="button" @click="togglePanel" aria-controls="filter-panel" aria-expanded="isCollapsed" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <!-- Sidebar Filter Panel -->
+  <div id="filter-panel" class="navbar-collapse">
+    <div class="d-flex flex-column p-3 bg-light" style="height: 100vh;">
+
+      <h2>Filter</h2>
+
+      <!-- Price Section -->
+      <div class="container">
+        <div class="row">
+          <div class="col-10">
+            <h4>Price</h4>
+          </div>
+          <div class="col-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="togglePriceExpand">
+            {{ isPriceExpanded ? '-' : '+' }}
+          </button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col" v-show="isPriceExpanded">
+            <button type="button" class="btn btn-outline-success btn-sm mb-2">Lowest to Highest</button><br>
+            <button type="button" class="btn btn-outline-success btn-sm mb-2">Highest to Lowest</button><br>
+            <div class="d-flex align-items-center">
+              <span class="me-2">Below:</span> 
+              <input type="text" class="form-control mb-2" placeholder="Price" >
+            </div>
+          </div>
+        </div>
+
+        <!-- Dietary Restriction Section -->
+        <div class="filterItem row">
+          <div class="col-10">
+            <h4>Dietary Restriction</h4>
+          </div>
+          <div class="col-2">
+            <button type="button" class="btn btn-outline-success btn-sm" @click="toggleDietaryExpand">
+            {{ isDietaryExpanded ? '-' : '+' }}
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <div v-show="isDietaryExpanded">
+            <input type="checkbox" id="halal"> Halal<br>
+            <input type="checkbox" id="vegetarian"> Vegetarian<br>
+            <input type="checkbox" id="seafood"> Seafood<br>
+            <input type="checkbox" id="dairy-free"> Dairy-free<br>
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-3 mb-2">
-        <label for="dietary" class="form-label fw-bold">Dietary Preference</label>
-        <select id="dietary" class="form-select">
-          <option value="">All</option>
-          <option value="vegetarian">Vegetarian</option>
-          <option value="halal">Halal</option>
-          <option value="non-halal">Non-halal</option>
-        </select>
-      </div>
-
-      <div class="col-md-3 mb-2">
-        <label for="distance" class="form-label fw-bold">Distance</label>
-        <select id="distance" class="form-select">
-          <option value="">Any</option>
-          <option value="1">Within 1km</option>
-          <option value="3">Within 3km</option>
-          <option value="5">Within 5km</option>
-        </select>
-      </div>
-
-      <div class="col-md-3 text-center mb-2">
-        <button class="btn btn-success w-100">
-          Apply Filters
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -43,12 +63,43 @@
 <script>
 export default {
   name: "FilterBar",
-  props: {
-    // You can later use these to bind filter values from parent component (Listings.vue)
-    filters: Object,
+  data() {
+    return {
+      isCollapsed: true, // For controlling the visibility of the whole filter panel
+      isPriceExpanded: true, // Control whether the Price section is expanded or collapsed
+      isDietaryExpanded: true, // Control whether the Dietary Restriction section is expanded or collapsed
+    };
   },
-  emits: ["updateFilters"], // emit event to parent when filters change
+  methods: {
+    // Toggle the visibility of the filter panel
+    togglePanel() {
+      this.isCollapsed = !this.isCollapsed;
+    },
+
+    // Toggle the visibility of the Price section
+    togglePriceExpand() {
+      this.isPriceExpanded = !this.isPriceExpanded;
+    },
+
+    // Toggle the visibility of the Dietary Restriction section
+    toggleDietaryExpand() {
+      this.isDietaryExpanded = !this.isDietaryExpanded;
+    },
+  },
 };
 </script>
 
-<!-- <style src="../../assets/css/FilterBar.css"></style> -->
+<style scoped>
+#filter-panel {
+  transition: all 0.3s ease;
+}
+
+.filterItem{
+  margin-top: 10%;
+}
+
+h2{
+  color: rgb(71, 153, 71);
+}
+
+</style>

@@ -4,11 +4,42 @@
   <div class="container mt-4">
     <h2>Buyer Listings</h2>
     <p>Coming soon...</p>
+
+      <div class="row">
+        <div class="col-md-4" v-for="listing in listings">
+            
+            <!-- BS card: Start --> 
+            <div class="card">
+               <img src="../../../assets/img/chicken_rice.jpg" class="card-img-top" alt="an image">
+               <div class="card-body">
+                 <p class="card-title stallName">{{ listing.stallName }}</p>
+                 <p class="card-text inline"> <img class="clock" src="../../../assets/img/clock.jpg" alt=""> until {{ listing.open }}</p>
+                 <p class="card-text inline"> <img class="pin" src="../../../assets/img/map_pin.jpg" alt=""> {{ listing.distance }}km away</p>
+               </div>
+             </div> 
+            <!-- BS card: End --> 
+            
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
-export default { name: "Listings" };
+export default { 
+  name: "Listings",
+  data(){
+    return{
+      listings: [
+        {stallName: "Ah Meng Chicken Rice", open:"8pm", distance:"0.6"},
+        {stallName: "Roti Boy", open:"8pm", distance:"1.0"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"}
+      ]
+    }
+  }
+  };
 </script>
 
-<style src="../ListingCard.css"></style>
+<style>
+  @import './ListingCard.css';
+</style>

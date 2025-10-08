@@ -1,0 +1,15 @@
+.clock, .pin{
+    width: 6%;
+}
+
+
+.stallName{
+    font-weight: bold;
+    font-size: large;
+}
+
+.inline{
+    display: inline;
+    vertical-align: middle;
+    margin-right: 5%;
+}
