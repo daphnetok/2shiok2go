@@ -29,8 +29,9 @@
             <button type="button" class="btn btn-outline-success btn-sm mb-2">Lowest to Highest</button><br>
             <button type="button" class="btn btn-outline-success btn-sm mb-2">Highest to Lowest</button><br>
             <div class="d-flex align-items-center">
-              <span class="me-2">Below:</span> 
-              <input type="text" class="form-control mb-2" placeholder="Price" >
+              <!-- <span class="me-2">Below:</span> 
+              <input type="text" class="form-control mb-2" placeholder="Price" > -->
+              <Slider :style="{ width: '80%'}" />
             </div>
           </div>
         </div>
@@ -61,6 +62,8 @@
 </template>
 
 <script>
+import { Colors } from 'chart.js';
+import Slider from '../Slider/Slider.vue';
 export default {
   name: "FilterBar",
   data() {
@@ -86,6 +89,9 @@ export default {
       this.isDietaryExpanded = !this.isDietaryExpanded;
     },
   },
+  components: {
+    Slider
+  }
 };
 </script>
 

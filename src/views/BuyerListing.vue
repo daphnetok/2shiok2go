@@ -1,10 +1,17 @@
 <template>
   <div class="container mt-4">
-    <h2>Buyer Listings</h2>
-    <p>View nearby hawker stalls offering surplus meals.</p>
 
-    <div class="row">
-      <SearchBar />
+    <div class="row d-flex align-items-center mb-4">
+      <!-- Search Bar aligned to the left -->
+      <div class="col-10">
+        <SearchBar/>
+      </div>
+
+      <!-- Font Awesome Icons aligned to the right -->
+      <div class="col-2 d-flex justify-content-end">
+        <font-awesome-icon icon="user" class="me-3" />
+        <font-awesome-icon icon="shopping-cart"/>
+      </div>
     </div>
 
     <div class="row">
@@ -14,9 +21,10 @@
       </div>
 
       <div class="col-md-9">
+        <h2 id="near">Near Me</h2>
         <ListingCard />
       </div>
-      
+
     </div>
   </div>
 </template>
@@ -37,4 +45,4 @@ export default {
 };
 </script>
 
-<style src="src\assets\css\BuyerDashboard.css"></style>
+<style src="@/assets/css/BuyerListing.css"></style>

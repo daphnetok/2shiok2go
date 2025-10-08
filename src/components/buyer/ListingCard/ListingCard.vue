@@ -2,8 +2,6 @@
  
 <template>
   <div class="container mt-4">
-    <h2>Buyer Listings</h2>
-    <p>Coming soon...</p>
 
       <div class="row">
         <div class="col-md-4" v-for="listing in listings">
@@ -42,4 +40,5 @@ export default {
 
 <style>
   @import './ListingCard.css';
+  
 </style>

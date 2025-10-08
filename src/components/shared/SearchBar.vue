@@ -42,7 +42,7 @@ export default {
 .search-icon {
   margin-left: 2%;  /* Adjust space between icon and input text */
   font-size: 18px; /* Adjust the size of the icon */
-  color: #888;  /* Icon color */
+  color: #509180;  /* Icon color */
 }
 
 </style>
