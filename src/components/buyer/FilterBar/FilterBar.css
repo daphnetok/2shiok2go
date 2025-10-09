@@ -1,0 +1,14 @@
+
+#filter-panel {
+  transition: all 0.3s ease;
+  background-color: grey;
+}
+
+.filterItem {
+  margin-top: 10%;
+}
+
+h2 {
+  color: rgb(71, 153, 71);
+}
+

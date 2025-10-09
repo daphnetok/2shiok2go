@@ -2,3 +2,46 @@
     margin-top: 20px;
 }
 
+/* Style for user icon container */
+.user-icon-container {
+  position: relative;
+}
+
+/* Hide the dropdown by default */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 150px;
+  z-index: 10;
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown ul li {
+  padding: 10px;
+}
+
+.user-dropdown ul li a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+}
+
+/* Change background color when hovering over the options */
+.user-dropdown ul li a:hover {
+  background-color: #f0f0f0;
+}
+
+/* Show dropdown when hovering over the user icon */
+.user-icon-container:hover .user-dropdown {
+  display: block;
+}

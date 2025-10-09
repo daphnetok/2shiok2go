@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import VueSlider from "vue-3-slider-component";
 
-const value = ref(0);
+const value = ref(10);
 const maxValue = 10;
 </script>
 

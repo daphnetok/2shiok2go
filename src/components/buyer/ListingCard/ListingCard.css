@@ -12,4 +12,20 @@
     display: inline;
     vertical-align: middle;
     margin-right: 5%;
+
+}
+
+.stallName {
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide the overflow */
+  text-overflow: ellipsis; /* Show "..." when text overflows */
+  width: 100%; /* Ensure the text fits within the container */
+}
+
+.stallName:hover {
+  white-space: normal; /* Allow text to wrap when hovering */
+  overflow: visible; /* Show the full text when hovering */
+  background-color: #f0f0f0; /* Optional: Add background on hover */
+  transition: all 0.3s ease;
+  z-index: 1; /* Bring text to front when hovered */
 }
