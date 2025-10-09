@@ -1,31 +1,53 @@
-.clock, .pin{
-    width: 6%;
+.card {
+  border: none;
+  border-radius: 15px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  transition: all 0.3s ease; /* Smooth hover transition */
 }
 
-
-.stallName{
-    font-weight: bold;
-    font-size: large;
+.card:hover {
+  transform: translateY(-5px); /* Slight lift effect on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
 }
 
-.inline{
-    display: inline;
-    vertical-align: middle;
-    margin-right: 5%;
+.card-img-top {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  object-fit: cover;
+  height: 180px; /* Control image height */
+}
 
+.card-body {
+  padding: 15px;
+  background-color: #fff; /* Light background */
 }
 
 .stallName {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #333;
+  margin-bottom: 10px; /* Space between name and other details */
   white-space: nowrap; /* Prevent text from wrapping */
-  overflow: hidden; /* Hide the overflow */
+  overflow: hidden;
   text-overflow: ellipsis; /* Show "..." when text overflows */
-  width: 100%; /* Ensure the text fits within the container */
+  width: 100%;
 }
 
 .stallName:hover {
+  background-color: #f0f0f0; /* Add subtle hover effect */
   white-space: normal; /* Allow text to wrap when hovering */
-  overflow: visible; /* Show the full text when hovering */
-  background-color: #f0f0f0; /* Optional: Add background on hover */
-  transition: all 0.3s ease;
-  z-index: 1; /* Bring text to front when hovered */
+  overflow: visible;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #666; /* Slightly lighter text color for details */
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.card-text img {
+  width: 16px;
+  margin-right: 8px;
 }

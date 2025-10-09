@@ -1,7 +1,7 @@
 <template>
   <div class="container mt-4">
 
-    <div class="row d-flex align-items-center mb-4">
+    <div class="row d-flex align-items-center mb-4" >
       <!-- Search Bar aligned to the left -->
       <div class="col-10">
         <SearchBar/>
@@ -12,7 +12,7 @@
         <a href=""><font-awesome-icon icon="shopping-cart" size="lg"/></a>
         <div class="me-3"></div>
         <!-- <a href=""><font-awesome-icon icon="user" size="lg" /></a> -->
-         <div class="user-icon-container position-relative">
+        <div class="user-icon-container position-relative">
           <a href="" class="user-icon">
             <font-awesome-icon icon="user" size="lg" />
           </a>
@@ -24,18 +24,15 @@
             </ul>
           </div>
         </div>
-        
       </div>
     </div>
 
-    <div class="row">
-
-      <div class="col-lg-3 col-md-4">
+    <div class="row" >
+      <div class="col-lg-3 col-md-4" >
         <FilterBar />
       </div>
 
-      <div class="col-lg-9 col-md-8">
-        <h2 id="near">Near Me</h2>
+      <div class="col-lg-9 col-md-8" >
         <ListingCard />
       </div>
 

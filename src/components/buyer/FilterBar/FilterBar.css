@@ -1,14 +1,80 @@
-
+/* Filter Bar Background and General Styling */
 #filter-panel {
   transition: all 0.3s ease;
-  background-color: grey;
-}
-
-.filterItem {
-  margin-top: 10%;
+  background-color: #f8f9fa; /* Light background */
 }
 
 h2 {
-  color: rgb(71, 153, 71);
+  color: rgb(71, 153, 71); /* Green for the heading */
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
+/* Container for the filter bar items */
+.colour {
+  background-color: #e8f5e9; /* Light green background for filter */
+  border-radius: 10px;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+/* Toggler Button */
+.custom-btn-success {
+  background-color: #28a745;  
+  color: white; 
+  border: none;  
+  height: 60px;
+  width: 120px;
+  font-size: 25px;
+  margin-bottom: 7px;
+}
+
+.custom-btn-success:hover {
+  background-color: #218838;  /* Darker shade on hover */
+}
+
+/* Filter Sections */
+.filterItem h4 {
+  font-size: 1.1rem;
+  color: #388e3c;  /* Dark green */
+  margin-bottom: 5px;
+}
+
+.filterItem button {
+  font-size: 1rem;
+  color: #388e3c;
+  border-radius: 5px;
+}
+
+/* ensure spacing between the buttons */
+.filterItem{
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+.filterItem button:hover {
+  background-color: #c8e6c9;  /* Light green on hover */
+}
+
+/* Price Slider */
+.row .d-flex {
+  margin-top: 10px;
+}
+
+/* Checkbox and Label Styling */
+input[type="checkbox"] {
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+/* Dietary Restriction Section */
+.pb-3 {
+  padding-bottom: 1rem;
+}
+
+.card-text {
+  color: #666;
+  font-size: 0.9rem;
+}

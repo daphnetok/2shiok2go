@@ -1,13 +1,15 @@
 <!-- logic for reserving, handling stock -->
  
 <template>
-  <div class="container mt-4">
-
+  
+  <div class="container-fluid mt-2">
+    <h2>Near Me</h2>
       <div class="row">
         <div class="col-lg-4 col-md-6 col-12" v-for="listing in listings">
             
             <!-- BS card: Start --> 
             <div class="card mb-3">
+                <!-- why cannot work when i try to add dynamically -->
                <img src="../../../assets/img/chicken_rice.jpg" class="card-img-top" alt="an image">
                <div class="card-body">
                  <p class="card-title stallName">{{ listing.stallName }}</p>
@@ -29,15 +31,15 @@ export default {
   data(){
     return{
       listings: [
-        {stallName: "Ah Meng Chicken Rice", open:"8pm", distance:"0.6"},
-        {stallName: "Roti Boy", open:"8pm", distance:"1.0"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5"}
+        {stallName: "Ah Meng Chicken Rice", open:"8pm", distance:"0.6", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Roti Boy", open:"8pm", distance:"1.0", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"}
       ]
     }
   }
