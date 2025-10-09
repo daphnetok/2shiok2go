@@ -1,0 +1,57 @@
+#uploadImg{
+height: 150px;
+background-color:lightgrey;
+border-radius: 10px;
+display: flex;
+align-items: center;
+cursor: pointer;
+}
+.price-input-container{
+position: relative;
+}
+.price-input-container::before{
+content: "$";
+position: absolute;
+left: 25px;
+top: 60%;
+transform: translateY(-60%);
+color: #555;
+}
+.price-input{
+padding-left: 30px;
+}
+#discountedPrice{
+font-weight: bold;
+}
+
+input[type=checkbox]{
+margin-right: 10px;
+}
+/* original input style */
+input[type=file]{
+display: none;
+}
+#uploadImg label{
+display: block;
+margin: auto;
+text-align: center;
+cursor: pointer;
+}
+#image{
+max-width: 100%;
+height: auto;
+display: block;
+}
+#img-container{
+position: relative;
+padding:10px;
+border: 2px dashed grey;
+}
+.remove-btn{
+position: absolute;
+font-size: 15px;
+top: 5px;
+right:5px;
+background-color: #eee;
+border-radius: 30%;
+}
