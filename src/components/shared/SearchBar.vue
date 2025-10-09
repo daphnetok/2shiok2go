@@ -1,10 +1,26 @@
 <!-- need to change pic and ensure it stays in same place even when screen size changes -->
 <template>
     <div class="search-container">
-    <div class="search-box">
-      <font-awesome-icon icon="search" class="search-icon" />
-      <input type="text" placeholder="Search for Food or Location..." class="search-input" />
-    </div>
+      <div class="search-box">
+        <i class="fa-solid fa-search search-icon"></i>
+        <input type="text" placeholder="Search for Food or Location..." class="search-input" />
+      </div>
+      
+      <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      <div class="me-3"></div>
+      <div class="user-icon-container position-relative">
+        <a href="" class="user-icon user">
+          <i class="fa-solid fa-user"></i>
+        </a>
+        <div class="user-dropdown">
+          <ul>
+            <li><a href="#"><i class="fa-solid fa-bookmark icon"></i>Saved</a></li>
+            <li><a href="#"><i class="fa-solid fa-clock icon"></i>Recent Orders</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear icon"></i>Settings</a></li>
+          </ul>
+        </div>
+      </div>
+      
   </div>
 </template>
 
@@ -16,7 +32,6 @@ export default {
 <style scoped>
 
 .search-container {
-  width: 100%;
   display: flex;
   align-items: center;
 }
@@ -27,7 +42,12 @@ export default {
   border: 1px solid #ccc;
   border-radius: 20px;
   padding: 5px;
-  width: 100%;
+  width: 90%;
+  margin-right: 5%;
+}
+
+.search-box:hover {
+  box-shadow: 0px 0px 10px 4px rgba(0, 128, 0, 0.6); /* Green box-shadow */
 }
 
 .search-input {
@@ -44,5 +64,67 @@ export default {
   font-size: 18px; /* Adjust the size of the icon */
   color: #509180;  /* Icon color */
 }
+
+/* Style for user icon container */
+.user-icon-container {
+  position: relative;
+}
+
+/* Hide the dropdown by default */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 170px;
+  z-index: 10;
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+}
+
+.user-dropdown ul li {
+  padding: 5px;
+  
+}
+
+.user-dropdown ul li a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+/* Change background color when hovering over the options */
+.user-dropdown ul li a:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0px 0px 10px 4px rgba(95, 208, 25, 0.245);
+}
+
+/* Show dropdown when hovering over the user icon */
+.user-icon-container:hover .user-dropdown {
+  display: block;
+}
+
+.icon{
+  color: green;
+  padding-right: 7px ;
+  font-size: 20px;
+}
+
+.shopping, .user{
+  font-size: 24px;
+}
+
 
 </style>
