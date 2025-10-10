@@ -108,7 +108,6 @@ export default {
 /* Change background color when hovering over the options */
 .user-dropdown ul li a:hover {
   background-color: #f0f0f0;
-  box-shadow: 0px 0px 10px 4px rgba(95, 208, 25, 0.245);
 }
 
 /* Show dropdown when hovering over the user icon */
