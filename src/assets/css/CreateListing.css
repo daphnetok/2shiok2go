@@ -41,11 +41,13 @@ cursor: pointer;
 max-width: 100%;
 height: auto;
 display: block;
+border-radius: 10px;
 }
 #img-container{
 position: relative;
 padding:10px;
 border: 2px dashed grey;
+border-radius: 10px;
 }
 .remove-btn{
 position: absolute;
@@ -54,4 +56,25 @@ top: 5px;
 right:5px;
 background-color: #eee;
 border-radius: 30%;
+}
+.form-label {
+    font-weight: bold;
+}
+
+.active{
+    background-color: rgb(241, 255, 241);
+    border-radius: 10px;
+    padding: 20px;
+}
+.non-active{
+    background-color: rgb(244, 244, 244);
+    border-radius: 10px;
+    padding: 20px;
+}
+.list-img-container img{
+    height: 60px;
+    width: 60px;
+    object-fit: cover;
+    margin: 10px;
+    
 }
