@@ -1,22 +1,50 @@
+<script setup>
+import { RouterView } from 'vue-router'
+import Navbar from './components/shared/Navbar.vue'
+
+</script>
+
 <template>
   <div id="app">
-    <h1>Test v1.1</h1>
-    <img src="/funny-cat.jpg" width="200px" height="200px"></img>
-    <AuthComponent />
-    <ListingComponent />
+    <Navbar />
+    <main class="main-content">
+      <RouterView />
+    </main>
   </div>
 </template>
 
-<script setup>
-import AuthComponent from './components/AuthComponent.vue';
-import ListingComponent from './components/ListingComponent.vue';
-</script>
-
 <style>
+body, #app, .main-content, .offcanvas, .offcanvas-body, .offcanvas-header {
+  background: #fff;
+  color: #222;
+  
+}
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #fff; /* white background */
+  color: #222;            /* dark text for contrast */
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.offcanvas {
+  background: #fff !important;
+  color: #222;
 }
 </style>
