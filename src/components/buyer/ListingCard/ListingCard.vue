@@ -43,8 +43,8 @@ export default {
       ],
 
       icons: {
-        clock: "src/assets/image/clock.jpg",
-        pin: "src/assets/image/map_pin.jpg"
+        clock: "src/assets/img/clock.jpg",
+        pin: "src/assets/img/map_pin.jpg"
       },
     }
   }
