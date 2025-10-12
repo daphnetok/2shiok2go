@@ -3,10 +3,12 @@
 <template>
   
   <div class="container-fluid mt-2">
+    <div class="row">&nbsp;</div>
     <h2>Near Me</h2>
       <div class="row">
-        <div class="col-lg-4 col-md-6 col-12" v-for="listing in listings">
-            
+        <div class="col-lg-4 col-md-6 col-12" v-for="listing in listings" :key="listing.stallName">
+        <!-- Make card clickable by wrapping it in a router-link -->
+        <router-link to="/buyer-view-stall">
             <!-- BS card: Start --> 
             <div class="card mb-3">
                 <!-- why cannot work when i try to add dynamically -->
@@ -18,10 +20,11 @@
                </div>
              </div> 
             <!-- BS card: End --> 
+        </router-link>
             
       </div>
-    </div>
 
+    </div>
   </div>
 </template>
 

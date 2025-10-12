@@ -7,6 +7,7 @@ import BuyerDashboard from '../views/BuyerDashboard.vue'
 import HawkerDashboard from '../views/HawkerDashboard.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import BuyerViewStall from '../views/BuyerViewStall.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -16,6 +17,7 @@ const routes = [
   { path: '/hawker-dashboard', component: HawkerDashboard },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/buyer-view-stall', component: BuyerViewStall},
 ]
 
 const router = createRouter({
