@@ -78,3 +78,8 @@ input[type="checkbox"] {
   color: #666;
   font-size: 0.9rem;
 }
+
+.sticky{
+  position: sticky;
+  top: 60px;
+}
