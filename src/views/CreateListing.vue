@@ -2,16 +2,17 @@
   <div class="container mt-4">
     <h2>Create Listing</h2>
     <p>Hawkers can upload surplus food items here.</p>
-    <ListingForm />
+    <CreateAListing/>
   </div>
 </template>
 
 <script>
-import ListingForm from '@/components/hawker/CreateListing/CreateListing.vue';
+import CreateAListing from '../components/hawker/CreateListing/CreateListing.vue';
+
 export default { 
-  name: "CreateListing",
-  components: {
-    ListingForm
+  name: "CreateListing" ,
+  components:{
+    CreateAListing
   }
 };
 </script>

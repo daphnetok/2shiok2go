@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { ref, onUnmounted } from 'vue';
 
-const listingsCollection = collection(db, 'listings');
+const listingsCollection = collection(db, 'itemListings');
 
 // db crud functions
 export const createListing = listing => {
@@ -20,18 +20,18 @@ export const createListing = listing => {
 }
 
 export const getListing = async id => {
-  const docRef = doc(db, 'listings', id);
+  const docRef = doc(db, 'itemListings', id);
   const docSnap = await getDoc(docRef);
   return docSnap.exists() ? docSnap.data() : null;
 }
 
 export const updateListing = (id, listing) => {
-  const docRef = doc(db, 'listings', id);
+  const docRef = doc(db, 'itemListings', id);
   return updateDoc(docRef, listing);
 }
 
 export const deleteListing = id => {
-  const docRef = doc(db, 'listings', id);
+  const docRef = doc(db, 'itemListings', id);
   return deleteDoc(docRef);
 }
 
