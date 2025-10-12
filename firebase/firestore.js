@@ -43,3 +43,13 @@ export const useLoadListings = () => {
   onUnmounted(unsubscribe);
   return listings;
 }
+
+export const useLoadHawkers = () => {
+  const hawkers = ref([]);
+  const hawkersCollection = collection(db, 'hawkerListings');
+  const unsubscribe = onSnapshot(hawkersCollection, snapshot => {
+    hawkers.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  });
+  onUnmounted(unsubscribe);
+  return hawkers;
+}

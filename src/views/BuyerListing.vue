@@ -7,7 +7,7 @@
 
       <div class="col-lg-9 col-md-8" >
         <SearchBar/>
-        <ListingCard />
+        <ListingGrid />
       </div>
 
     </div>
@@ -19,17 +19,19 @@
 // Import the FilterBar component
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
-import ListingCard from '../components/buyer/ListingCard/ListingCard.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
+import ListingGrid from '@/components/buyer/ListingGrid/ListingGrid.vue';
+import filterLogic from '../components/buyer/FilterBar/FilterBar.js';
 
 export default { 
   name: "BuyerListings",
   components: {
     FilterBar, // Register the FilterBar component to use it in this file
     SearchBar,
-    ListingCard,
+    ListingGrid,
     BackToTop
-  }
+  },
+  mixins: [filterLogic],
 };
 </script>
 
