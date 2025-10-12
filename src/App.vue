@@ -1,7 +1,8 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import Navbar from './components/shared/Navbar.vue'
-import AuthComponent from './components/shared/AuthComponent.vue'
+import '@fortawesome/fontawesome-free/css/all.css';
+
 </script>
 
 <template>
@@ -9,7 +10,6 @@ import AuthComponent from './components/shared/AuthComponent.vue'
     <Navbar />
     <main class="main-content">
       <RouterView />
-      <AuthComponent />
     </main>
   </div>
 </template>
