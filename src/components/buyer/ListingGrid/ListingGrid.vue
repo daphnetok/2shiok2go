@@ -1,6 +1,6 @@
 <template>
   <div class="listings-container">
-    <h2>{{ title }}</h2>
+    <h2>Near Me</h2>
     
     <!-- Loading state -->
     <div v-if="loading" class="loading">
@@ -8,34 +8,26 @@
     </div>
     
     <!-- Empty state -->
-    <div v-else-if="!listings || listings.length === 0" class="empty-state">
+    <div v-else-if="!hawkers || hawkers.length === 0" class="empty-state">
       <p>No listings available</p>
     </div>
     
     <!-- Listings grid -->
     <div v-else class="listings-grid">
       <ListingCard 
-        v-for="listing in listings" 
-        :key="listing.id"
-        :listing="listing"
-      >
-        <!-- Optional: Pass action buttons through slot -->
-        <!-- <template #actions>
-          <div class="action-buttons">
-            <button @click="handleEdit(listing.id)" class="btn btn-primary">
-              Edit
-            </button>
-            <button @click="handleDelete(listing.id)" class="btn btn-danger">
-              Delete
-            </button>
-          </div>
-        </template> -->
-      </ListingCard>
+        v-for="hawker in hawkers" 
+        :key="hawker.id"
+        :hawker="hawker"
+      />
     </div>
   </div>
 </template>
 
-<script src="./ListingGrid.js"></script>
+<script src="./ListingGrid.js">
+export default {
+  name: ListingGrid
+}
+</script>
 
 <style scoped>
 .listings-container {
@@ -71,37 +63,5 @@ h2 {
   .listings-grid {
     grid-template-columns: 1fr;
   }
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #0056b3;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c82333;
 }
 </style>
