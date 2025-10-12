@@ -15,11 +15,11 @@ import '@fortawesome/fontawesome-free/css/all.css';
 </template>
 
 <style>
-body, #app, .main-content, .offcanvas, .offcanvas-body, .offcanvas-header {
+/* body, #app, .main-content, .offcanvas, .offcanvas-body, .offcanvas-header {
   background: #fff;
   color: #222;
   
-}
+} */
 
 #app {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -45,7 +45,7 @@ body, #app, .main-content, .offcanvas, .offcanvas-body, .offcanvas-header {
 }
 
 .offcanvas {
-  background: #fff !important;
+  background: #fff;
   color: #222;
 }
 </style>
