@@ -21,6 +21,7 @@ import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import ListingCard from '../components/buyer/ListingCard/ListingCard.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
+import filterLogic from '../components/buyer/FilterBar/FilterBar.js';
 
 export default { 
   name: "BuyerListings",
@@ -29,7 +30,8 @@ export default {
     SearchBar,
     ListingCard,
     BackToTop
-  }
+  },
+  mixins: [filterLogic],
 };
 </script>
 
