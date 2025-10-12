@@ -1,39 +1,189 @@
-.stallImg{
-    border-radius: 25px;
-    width: 100%;
-    margin-top: 15px;
+/* Stall Card Outer */
+.stall-card {
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  margin: 30px auto;
+  max-width: 1100px;
+  padding: 32px 24px;
 }
-
+.reset-style {
+  all: unset;
+}
+/* Top Stall Info */
+.stall-info {
+  align-items: center;
+}
+.stallImg {
+  width: 100%;
+  border-radius: 25px;
+}
+.stall-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  right: 5%;
+  top: 4%;
+}
 .saveIcon {
-    color: #bbb;
-    font-size: 1.7em;
-    transition: color 0.2s;
+  color: gray; 
+  font-size: 1.7em;
+  transition: color 0.2s;
 }
-
 .savedIcon {
-    color: rgb(195, 67, 67);
-    font-size: 1.7em;
-    transition: color 0.2s;
+  color: red;
+  font-size: 1.7em;
+  transition: color 0.2s;
+}
+.stall-address, .stall-distance {
+  margin: 5px 0;
+  color: black;
+}
+.map-btn {
+  margin: 5px 0;
+  border: 2px solid green;
+  border-radius: 20px;
+  color: green;
+  background-color: rgb(236, 255, 234);
+  padding: 3px 8px;
+}
+.stall-address, .map-btn{
+    display: inline;
+}
+.pinIcon{
+    color: rgb(235, 86, 86);
 }
 
-.pinIcon {
-    color: rgb(236, 52, 52);
-    margin-left: 10px;
-}
-
+/* Listing Card */
 .listing-card {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: relative;
+  border-radius: 15px;
+  background: #fafafa;
+  padding: 10px;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.3s ease;
+}
+.listing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+  background: #f5f5f5;
+}
+.img-container {
+  position: relative;
+}
+.foodImg {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.starIcon {
-    color: rgb(255, 215, 0);
-    margin-right: 10px;
+/* Counter Button */
+.counter-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap; /* Ensure the content doesn't wrap */
+  height: 40px;  /* Fix height */
+  min-width: 40px;  /* Fix minimum width to maintain circle shape when only one element */
+  border-radius: 50%;  /* Makes it a circle when only quantity or "+" is displayed */
 }
 
-h2{
-    color: black;
+.counter-btn.square {
+  width: auto;  /* Make width adjust to content when both quantity and '+' are visible */
+  border-radius: 20px;  /* Remove full circle when both quantity and '+' are displayed */
 }
 
-img{
-    width: 100%;
+.counter-btn:hover {
+  background: #45a049;
+}
+
+.hover-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 80px;
+}
+
+.hover-controls button {
+  border: none;
+  background-color: #45a049;
+  color: white;
+  font-size: 1.2em;
+}
+
+/* Adjust button text size and alignment */
+.counter-btn div {
+  font-size: 1em;  /* Adjust size of quantity */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;  /* Space between quantity and "+" */
+}
+
+.card-content {
+  margin-top: 10px;
+  display: flex;
+}
+
+.item-name {
+  font-size: 1.15em;
+  font-weight: 600;
+  color: #222;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #aaa;
+  font-size: 1em;
+  margin-right: 8px;
+}
+
+.discounted-price {
+  font-weight: bold;
+  color: #2e8b57;
+  font-size: 1.08em;
+}
+
+.item-stock {
+  font-size: 0.98em;
+  color: #444;
+}
+
+.low-stock {
+  color: red;
+  font-weight: bold;
+}
+
+@media (max-width: 991px) {
+  .item-name {
+    font-size: 1.08em;
+    margin-bottom: 2px;
+  }
+  .original-price {
+    font-size: 0.98em;
+    margin-right: 6px;
+  }
+  .discounted-price {
+    font-size: 1em;
+  }
+  .item-stock {
+    font-size: 0.95em;
+    margin-top: 2px;
+  }
 }
