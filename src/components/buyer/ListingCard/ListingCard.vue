@@ -10,11 +10,11 @@
             <!-- BS card: Start --> 
             <div class="card mb-3">
                 <!-- why cannot work when i try to add dynamically -->
-               <img src="../../../assets/img/chicken_rice.jpg" class="card-img-top" alt="an image">
+               <img :src=listing.image class="card-img-top" alt="an image">
                <div class="card-body">
                  <p class="card-title stallName">{{ listing.stallName }}</p>
-                 <p class="card-text m-0"> <img class="clock" src="../../../assets/img/clock.jpg" alt=""> until {{ listing.open }}</p>
-                 <p class="card-text m-0"> <img class="pin" src="../../../assets/img/map_pin.jpg" alt=""> {{ listing.distance }}km away</p>
+                 <p class="card-text m-0"> <img class="clock" :src=icons.clock alt=""> until {{ listing.open }}</p>
+                 <p class="card-text m-0"> <img class="pin" :src=icons.pin alt=""> {{ listing.distance }}km away</p>
                </div>
              </div> 
             <!-- BS card: End --> 
@@ -31,16 +31,21 @@ export default {
   data(){
     return{
       listings: [
-        {stallName: "Ah Meng Chicken Rice", open:"8pm", distance:"0.6", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Roti Boy", open:"8pm", distance:"1.0", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"},
-        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"../../../assets/img/chicken_rice.jpg"}
-      ]
+        {stallName: "Ah Meng Chicken Rice", open:"8pm", distance:"0.6", image:"/img/chicken_rice.jpg"},
+        {stallName: "Roti Boy", open:"8pm", distance:"1.0", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"},
+        {stallName: "Prawn Noodles", open:"8pm", distance:"2.5", image:"/img/chicken_rice.jpg"}
+      ],
+
+      icons: {
+        clock: "src/assets/img/clock.jpg",
+        pin: "src/assets/img/map_pin.jpg"
+      },
     }
   }
   };

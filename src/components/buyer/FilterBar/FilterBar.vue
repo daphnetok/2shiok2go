@@ -1,9 +1,9 @@
 <template>
-  <nav class="navbar navbar-expand-md">
+  <nav class="navbar navbar-expand-md sticky" >
     <div class="container-fluid">
         
         <!-- Navbar Toggler Button -->
-        <button class="navbar-toggler custom-btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler custom-btn-success " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="d-md-none">Filter</span> <!-- 'Filter' text only for md screens -->
             <span class="d-none d-md-block">Filter</span> <!-- 'Filter' text only for md screens -->
         </button>
