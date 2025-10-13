@@ -1,7 +1,10 @@
 // logic for add/update listing
-import { reactive, ref, onBeforeUnmount, computed } from 'vue';
+import { reactive, ref, onBeforeUnmount, onMounted, computed } from 'vue';
 import { createListing, updateListing, deleteListing, useLoadListings } from '/firebase/firestore';
 import { uploadImage, deleteImage } from '/firebase/storage';
+import { auth } from '/firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '/firebase/config';
 
 export default {
     setup() {
@@ -25,6 +28,10 @@ export default {
         const successMsg = ref("");
         let unsubscribe = null;
         const fileInput = ref(null); 
+        const currentUser = ref(null);
+        const hawkerName = ref("");
+        const userRole = ref("");
+        const isHawker = ref(false);
 
         // computed properties
         const discountedPrice = computed(() => {
@@ -40,6 +47,34 @@ export default {
         const inactiveListings = computed(() => {
             return allListings.value.filter(listing => listing.makeActive === false);
         })
+
+        // Fetch current user and their info
+        const fetchUserInfo = async (uid) => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    hawkerName.value = userData.displayName || userData.email;
+                    userRole.value = userData.role;
+                    
+                    // Validate if user is a hawker
+                    if (userData.role === 'hawker') {
+                        isHawker.value = true;
+                    } else {
+                        isHawker.value = false;
+                        errorMsg.value = '⚠️ Access denied. Only hawkers can create listings.';
+                        console.warn('User is not a hawker. Role:', userData.role);
+                    }
+                    
+                    return userData;
+                } else {
+                    errorMsg.value = '⚠️ User profile not found. Please contact support.';
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+                errorMsg.value = '⚠️ Error loading user profile: ' + error.message;
+            }
+        };
 
         // methods
         const onFileSelected = (event) => {
@@ -69,8 +104,19 @@ export default {
         }
 
         const onSubmit = async () => {
+            // Validate hawker role
+            if(!isHawker.value) {
+                errorMsg.value = '⚠️ Only hawkers can create listings. Your role: ' + (userRole.value || 'unknown');
+                return;
+            }
+
             if(!selectedFile.value){
                 errorMsg.value = '* You must upload a photo';
+                return;
+            }
+
+            if(!currentUser.value) {
+                errorMsg.value = '* You must be logged in to create a listing';
                 return;
             }
 
@@ -82,14 +128,17 @@ export default {
                 // upload image
                 const imageData = await uploadImage(selectedFile.value, 'itemListings');
 
-                // create listing object
+                // create listing object with hawker info
                 const listingData = {
                     ...form,
                     discountedPrice: parseFloat(discountedPrice.value),
                     imageUrl: imageData.url,
                     imageName: imageData.name,
                     imagePath: imageData.path,
-                    orders: 0
+                    orders: 0,
+                    hawkerId: currentUser.value.uid,  // Add hawker's UID
+                    hawkerName: hawkerName.value,      // Add hawker's name
+                    createdAt: new Date()              // Add timestamp
                 };
 
                 // add to firestore
@@ -150,25 +199,28 @@ export default {
             if (!confirm('Create a duplicate of this listing?')) return;
             
             try {
-            const duplicateData = {
-                itemName: listing.itemName + " (Copy)",
-                itemPrice: listing.itemPrice,
-                discount: listing.discount,
-                discountedPrice: listing.discountedPrice,
-                itemQty: listing.itemQty,
-                allergens: listing.allergens,
-                tags: listing.tags,
-                imageUrl: listing.imageUrl,
-                imageName: listing.imageName,
-                imagePath: listing.imagePath,
-                makeActive: false, // Duplicates start as inactive
-                orders: 0,
-            };
-            await createListing(duplicateData);
-            alert("Listing duplicated successfully!");
+                const duplicateData = {
+                    itemName: listing.itemName + " (Copy)",
+                    itemPrice: listing.itemPrice,
+                    discount: listing.discount,
+                    discountedPrice: listing.discountedPrice,
+                    itemQty: listing.itemQty,
+                    allergens: listing.allergens,
+                    tags: listing.tags,
+                    imageUrl: listing.imageUrl,
+                    imageName: listing.imageName,
+                    imagePath: listing.imagePath,
+                    makeActive: false, // Duplicates start as inactive
+                    orders: 0,
+                    hawkerId: listing.hawkerId,      // Keep same hawker info
+                    hawkerName: listing.hawkerName,
+                    createdAt: new Date()
+                };
+                await createListing(duplicateData);
+                alert("Listing duplicated successfully!");
             } catch (error) {
-            console.error("Error duplicating listing: ", error);
-            alert("Error duplicating listing: " + error.message);
+                console.error("Error duplicating listing: ", error);
+                alert("Error duplicating listing: " + error.message);
             }
         };
 
@@ -195,9 +247,13 @@ export default {
         };
         
         // Lifecycle hooks
-        // onMounted(() => {
-        //     useLoadListings();
-        // })
+        onMounted(() => {
+            // Get current authenticated user
+            currentUser.value = auth.currentUser;
+            if (currentUser.value) {
+                fetchUserInfo(currentUser.value.uid);
+            }
+        });
 
         onBeforeUnmount(() => {
             // Clean up the listener when component is destroyed
@@ -223,6 +279,10 @@ export default {
             successMsg,
             errorMsg,
             fileInput,
+            currentUser,
+            hawkerName,
+            userRole,
+            isHawker,
             onFileSelected,
             removeFile,
             onSubmit,
