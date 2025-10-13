@@ -1,0 +1,39 @@
+.stallImg{
+    border-radius: 25px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.saveIcon {
+    color: #bbb;
+    font-size: 1.7em;
+    transition: color 0.2s;
+}
+
+.savedIcon {
+    color: rgb(195, 67, 67);
+    font-size: 1.7em;
+    transition: color 0.2s;
+}
+
+.pinIcon {
+    color: rgb(236, 52, 52);
+    margin-left: 10px;
+}
+
+.listing-card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.starIcon {
+    color: rgb(255, 215, 0);
+    margin-right: 10px;
+}
+
+h2{
+    color: black;
+}
+
+img{
+    width: 100%;
+}

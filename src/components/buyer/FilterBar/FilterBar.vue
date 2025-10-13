@@ -15,46 +15,38 @@
                 <h2 class="d-none d-md-block">Filter</h2>
 
                 <div class="colour">
-                <!-- Price Section -->
-                    <div class="filterItem row pt-1">
-                        <div class="col-9">
-                            <h4><i class="fas fa-tag"></i> Price</h4>
-                        </div>
-                        <div class="col-3">
-                            <button type="button" class="btn btn-outline-success btn-sm" @click="togglePriceExpand">
-                                {{ isPriceExpanded ? '-' : '+' }}
-                            </button>
-                        </div>
+                  <!-- Price Section -->
+                  <div class="filterItem">
+                    <div class="filter-header">
+                      <h4><i class="fas fa-tag"></i> Price</h4>
+                      <button type="button" class="btn btn-outline-success btn-sm" @click="togglePriceExpand">
+                        {{ isPriceExpanded ? '-' : '+' }}
+                      </button>
                     </div>
-                    <div class="row">
-                        <div class="col" v-show="isPriceExpanded">
-                            <button type="button" class="btn btn-outline-success btn-sm mb-2">Lowest to Highest</button><br>
-                            <button type="button" class="btn btn-outline-success btn-sm mb-2">Highest to Lowest</button><br>
-                            <div class="d-flex align-items-center">
-                                <Slider :style="{ width: '80%'}" />
-                            </div>
-                        </div>
+                    <div v-show="isPriceExpanded">
+                      <button type="button" class="btn btn-outline-success btn-sm mb-2">Lowest to Highest</button><br>
+                      <button type="button" class="btn btn-outline-success btn-sm mb-2">Highest to Lowest</button><br>
+                      <div class="d-flex align-items-center">
+                        <Slider :style="{ width: '80%'}" />
+                      </div>
                     </div>
+                  </div>
 
-                    <!-- Dietary Restriction Section -->
-                    <div class="filterItem row">
-                        <div class="col-9">
-                            <h4><i class="fas fa-leaf"></i> Dietary Restriction</h4>
-                        </div>
-                        <div class="col-3">
-                            <button type="button" class="btn btn-outline-success btn-sm" @click="toggleDietaryExpand">
-                                {{ isDietaryExpanded ? '-' : '+' }}
-                            </button>
-                        </div>
+                  <!-- Dietary Restriction Section -->
+                  <div class="filterItem">
+                    <div class="filter-header">
+                      <h4><i class="fas fa-leaf"></i> Dietary Restriction</h4>
+                      <button type="button" class="btn btn-outline-success btn-sm" @click="toggleDietaryExpand">
+                        {{ isDietaryExpanded ? '-' : '+' }}
+                      </button>
                     </div>
-                    <div class="row">
-                        <div v-show="isDietaryExpanded" class="pb-1">
-                            <input type="checkbox" id="halal"> Halal<br>
-                            <input type="checkbox" id="vegetarian"> Vegetarian<br>
-                            <input type="checkbox" id="seafood"> Seafood<br>
-                            <input type="checkbox" id="dairy-free"> Dairy-free<br>
-                        </div>
+                    <div v-show="isDietaryExpanded" class="pb-1">
+                      <input type="checkbox" id="halal"> Halal<br>
+                      <input type="checkbox" id="vegetarian"> Vegetarian<br>
+                      <input type="checkbox" id="seafood"> Seafood<br>
+                      <input type="checkbox" id="dairy-free"> Dairy-free<br>
                     </div>
+                  </div>
                 </div> 
             </div>
         </div>
@@ -88,4 +80,23 @@ export default {
 
 <style>
 @import './FilterBar.css';
+
+@media (max-width: 600px) {
+  .filter-header h4 {
+    font-size: 0.95rem;
+  }
+  .filter-header .btn {
+    font-size: 0.9rem;
+    padding: 2px 6px;
+  }
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  width: 100%;
+}
 </style>

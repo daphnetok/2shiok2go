@@ -1,0 +1,48 @@
+body, #app, .main-content {
+  background: linear-gradient(120deg, #e8f5e9 60%, #c8e6c9 100%) !important;
+  color: #388e3c !important;
+}
+
+body {
+  background: linear-gradient(120deg, #e8f5e9 60%, #f8f9fa 100%);
+  min-height: 100vh;
+}
+
+.container {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(71,153,71,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  padding: 32px 24px;
+  margin-top: 32px;
+}
+
+.row {
+  gap: 0;
+}
+
+.col-lg-3, .col-md-4 {
+  border-right: 1px solid #e8f5e9;
+  padding-right: 0;
+}
+
+.col-lg-9, .col-md-8 {
+  padding-left: 32px;
+}
+
+.search-container {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 991px) {
+  .container {
+    padding: 18px 6px;
+    border-radius: 12px;
+  }
+  .col-lg-9, .col-md-8 {
+    padding-left: 0;
+  }
+  .col-lg-3, .col-md-4 {
+    border-right: none;
+    padding-right: 0;
+  }
+}
