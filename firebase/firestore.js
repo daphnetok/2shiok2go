@@ -8,7 +8,10 @@ import {
   getDoc, 
   updateDoc, 
   deleteDoc,
-  onSnapshot 
+  onSnapshot,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { ref, onUnmounted } from 'vue';
 
@@ -53,3 +56,35 @@ export const useLoadHawkers = () => {
   onUnmounted(unsubscribe);
   return hawkers;
 }
+
+export const getHawkerByName = async (hawkerName) => {
+  try {
+    // Reference to the 'hawkerListings' collection
+    const hawkersRef = collection(db, 'hawkerListings');
+
+    // Create a query to find hawkers with the specific hawkerName
+    const q = query(hawkersRef, where('hawkerName', '==', hawkerName));
+
+    // Fetch the documents matching the query
+    const querySnapshot = await getDocs(q);
+    
+    // If no matching hawkers are found
+    if (querySnapshot.empty) {
+      console.log('No hawker found with name:', hawkerName);
+      return null;
+    }
+
+    // Get the first document from the querySnapshot
+    const doc = querySnapshot.docs[0];
+
+    // Return the hawker data along with the document ID
+    return {
+      id: doc.id,
+      ...doc.data()  // Spread the data from the document
+    };
+  } catch (error) {
+    // Log the error if the query fails
+    console.error('Error fetching hawker by name:', error);
+    throw error;
+  }
+};

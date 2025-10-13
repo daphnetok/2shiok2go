@@ -1,7 +1,9 @@
-<!-- logic for reserving, handling stock -->
-
 <template>
-  <router-link class="nav-link" to="/buyer-view-stall" style="text-decoration: none; color: inherit;">
+  <router-link
+    :to="listingUrl"
+    class="card-link"
+    style="text-decoration: none; color: inherit;"
+  >
     <div class="card mb-3">
       <img :src="hawker.imageUrl" class="card-img-top" :alt="hawker.hawkerName">
       <div class="card-body">
@@ -22,6 +24,7 @@
 <script>
 import clockIcon from '@/assets/img/clock.jpg';
 import pinIcon from '@/assets/img/map_pin.jpg';
+
 export default {
   name: 'ListingCard',
   props: {
@@ -36,16 +39,15 @@ export default {
         clock: clockIcon,
         pin: pinIcon
       }
+    };
+  },
+  computed: {
+    listingUrl() {
+      // Navigate to buyer-view-stall with hawkerName as parameter
+      return `/buyer-view-stall/${encodeURIComponent(this.hawker.hawkerName)}`;
     }
   }
-  ,
-  // computed: {
-  //   listingUrl() {
-  //     // Example: /listing/<hawkerName> (replace with your actual route)
-  //     return `/listing/${encodeURIComponent(this.hawker.hawkerName)}`;
-  //   }
-  // }
-}
+};
 </script>
 
 <style>

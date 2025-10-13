@@ -17,7 +17,7 @@ const routes = [
   { path: '/hawker-dashboard', component: HawkerDashboard },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
-  { path: '/buyer-view-stall', component: BuyerViewStall},
+  { path: '/buyer-view-stall/:hawkerName', component: BuyerViewStall, props: true },
 ]
 
 const router = createRouter({

@@ -4,7 +4,7 @@
             <SearchBar/>
         </div>
         <div class="row">
-            <StallListing/>
+            <StallListing :foodItems="foodItems"/>
         </div>
     </div>
     <BackToTop />

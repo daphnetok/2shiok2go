@@ -13,13 +13,15 @@
     </div>
     
     <!-- Listings grid -->
-    <div v-else class="listings-grid">
-      <ListingCard 
-        v-for="hawker in hawkers" 
-        :key="hawker.id"
-        :hawker="hawker"
-      />
+      <div v-else class="listings-grid">
+        <!-- hawkers contain hawkerListing collection -->
+        <ListingCard 
+          v-for="hawker in hawkers" 
+          :key="hawker.hawkerName"
+          :hawker="hawker"
+        />
     </div>
+    
   </div>
 </template>
 
