@@ -8,7 +8,8 @@ import {
   getDoc, 
   updateDoc, 
   deleteDoc,
-  onSnapshot 
+  onSnapshot, 
+  setDoc 
 } from 'firebase/firestore';
 import { ref, onUnmounted } from 'vue';
 
@@ -52,4 +53,19 @@ export const useLoadHawkers = () => {
   });
   onUnmounted(unsubscribe);
   return hawkers;
+};
+
+export const assignRoleToGoogleUser = async (user, role) => {
+  try {
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      role,
+    });
+    return {success: true};
+  } catch (error) {
+    console.error('Error assigning role: ', error);
+    return { success: false, error: error.message};
+  }
 }
