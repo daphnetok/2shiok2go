@@ -18,15 +18,13 @@ export default {
       heartFilled: 'fa-solid fa-heart savedIcon'
     };
 
-    // Get hawker data from route
     const getHawkerData = async () => {
-      // First, try to get from route state (passed from ListingCard)
-      if (route.state?.hawker) {
-        hawker.value = route.state.hawker;
+      if (history.state?.hawker) {
+        hawker.value = history.state.hawker;
+        console.log('Hawker from state:', hawker.value);
         return;
       }
       
-      // If not in state (e.g., page refresh), fetch from Firestore
       if (route.params.hawkerName) {
         try {
           const hawkersRef = collection(db, 'hawkerListings');
@@ -39,6 +37,7 @@ export default {
               id: doc.id,
               ...doc.data()
             };
+            console.log('Hawker from Firestore:', hawker.value);
           } else {
             errorMsg.value = 'Hawker not found';
           }
@@ -49,7 +48,6 @@ export default {
       }
     };
 
-    // Fetch item listings based on hawker name
     const fetchItemListings = async () => {
       if (!hawker.value?.hawkerName) {
         errorMsg.value = 'No hawker name provided';
@@ -77,6 +75,9 @@ export default {
             hover: false
           };
         });
+        
+        console.log('Food items loaded:', foodItems.value);
+        console.log('First item:', foodItems.value[0]);
       } catch (error) {
         console.error('Error fetching item listings:', error);
         errorMsg.value = 'Error loading items: ' + error.message;
@@ -87,7 +88,6 @@ export default {
 
     const toggleSave = () => {
       saved.value = !saved.value;
-      console.log("Saved:", saved.value);
     };
 
     const increment = (item) => {
@@ -100,7 +100,6 @@ export default {
       if (item.count > 0) item.count--;
     };
 
-    // Initialize on mount
     onMounted(async () => {
       await getHawkerData();
       if (hawker.value) {
