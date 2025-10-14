@@ -10,7 +10,7 @@
         <span class="alert-icon" v-else-if="alert.type === 'error'">
           <i class="fas fa-exclamation-circle"></i>
         </span>
-        <!-- Message - full width -->
+        <!-- Message -->
         <div class="alert-message-wrapper">
           <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
         </div>
@@ -21,19 +21,20 @@
           <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
           <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
         </div>
-
-        <!-- Redirect Buttons (for post-listing creation) -->
+        <!-- Redirect Buttons -->
         <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
           <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
-          <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">View All Listings →</router-link>
+          <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">
+            View All Listings →
+          </router-link>
         </div>
-        
-        <!-- Close Button for Success/Error -->
+        <!-- Close Button -->
         <button v-else class="alert-close-btn" @click="closeAlert">
           <i class="fas fa-times"></i>
         </button>
       </div>
-    </div> 
+    </div>
+
 
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
 
