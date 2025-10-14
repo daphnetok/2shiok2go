@@ -1,43 +1,43 @@
 <template>
-
-<!-- Alert Box -->
-<div class="custom-alert-container" v-if="alert.show" :class="alert.type">
-  <div class="custom-alert-content">
-    <!-- Icon for success/error -->
-    <span class="alert-icon" v-if="alert.type === 'success'">
-      <i class="fas fa-check-circle"></i>
-    </span>
-    <span class="alert-icon" v-else-if="alert.type === 'error'">
-      <i class="fas fa-exclamation-circle"></i>
-    </span>
-    <!-- Message - full width -->
-    <div class="alert-message-wrapper">
-      <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
-    </div>
-    <br>
-    <!-- Confirmation Buttons -->
-    <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-      <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
-      <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
-      <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
-    </div>
-
-    <!-- Redirect Buttons (for post-listing creation) -->
-    <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
-      <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
-      <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">View All Listings →</router-link>
-    </div>
-    
-    <!-- Close Button for Success/Error -->
-    <button v-else class="alert-close-btn" @click="closeAlert">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-</div>
-
   <div class="container mt-4">
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
 
+    <!-- Alert Box -->
+    <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
+      <div class="custom-alert-content">
+        <!-- Icon for success/error -->
+        <span class="alert-icon" v-if="alert.type === 'success'">
+          <i class="fas fa-check-circle"></i>
+        </span>
+        <span class="alert-icon" v-else-if="alert.type === 'error'">
+          <i class="fas fa-exclamation-circle"></i>
+        </span>
+        <!-- Message - full width -->
+        <div class="alert-message-wrapper">
+          <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
+        </div>
+        <br>
+        <!-- Confirmation Buttons -->
+        <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
+          <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
+          <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
+          <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
+        </div>
+
+        <!-- Redirect Buttons (for post-listing creation) -->
+        <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
+          <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
+          <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">View All Listings →</router-link>
+        </div>
+        
+        <!-- Close Button for Success/Error -->
+        <button v-else class="alert-close-btn" @click="closeAlert">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Form -->
     <form id="form" @submit.prevent="onSubmit">
     <div class="row">
       
@@ -84,9 +84,20 @@
                 step="0.01" v-model.number="form.discount" name="discount">
           </div>
 
-          <p>Price after discount: $
-            <span v-if="form.itemPrice">{{ discountedPrice }}</span>
-          </p>
+          <div>
+            <div class="col">
+              <p>Price after discount: $
+                <span v-if="form.itemPrice">{{ discountedPrice }}</span>
+              </p>
+            </div>
+            <!-- Smart discount suggestion -->
+            <div class="col">
+              <span class="green-bg w-50"><font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/>
+                Smart Discount Suggestion: <b>20%</b>
+              </span>
+            </div>
+          </div>
+          
 
         </div>
 
