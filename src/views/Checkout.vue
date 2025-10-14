@@ -112,6 +112,9 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const selectedItem = reactive({
   id: 1,
@@ -156,8 +159,8 @@ function removeItem() {
   selectedItem.quantity = 0
 }
 function placeOrder() {
-  alert(`Order placed for collection at ${collectionTime.value || 'N/A'}! (Demo only)`)
-  // Here you would handle order submission to Firestore or your backend
+  // Optionally, validate or save order here
+  router.push('/order-receipt')
 }
 </script>
 
