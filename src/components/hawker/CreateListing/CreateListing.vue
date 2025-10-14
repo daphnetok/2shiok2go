@@ -61,13 +61,17 @@
       <form id="form" @submit.prevent="onSubmit">
         <div class="row">
 
-          <div class="col">
-            <img id="image" :src="previewSelectedFileSRC"> 
-            <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
-              <font-awesome-icon icon="remove" class="fa-lg icon-green" />
-            </span>
-          </div>
+        <!-- Image upload-->
+       <div class="col-md-4">
 
+        <div id="img-container" class="container mb-3" v-show="selectedFile"> 
+          <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
+          <img id="image" :src="previewSelectedFileSRC"> 
+          <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
+            <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+          </span>
+        </div>
+       
         <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4">
           <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg green" />
             <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo (1)</b></span>
@@ -76,41 +80,45 @@
           <input type="file" accept="image/jpeg, image/png, image/jpg" 
             @change="onFileSelected" ref="fileInput">
         </div>
+
+       </div>
+        
+        <div class="col-md-8 px-md-5">
+
+        <!-- Item Name field -->
+        <label class="form-label">Item Name</label>
+        <input type="text" class="form-control mb-3" required 
+            placeholder="Type food name here" v-model="form.itemName" name="itemName">
+
+        <!-- Price & Discount fields-->
+        <div class="row mb-3">
+            <div class="price-input-container col">
+              <label class="form-label">Original Price</label>
+              <input type="number" class="form-control mb-3 price-input" required 
+                  step="0.01" v-model.number="form.itemPrice" name="itemPrice">
+            </div>
+            <div class="col">
+              <label class="form-label">Discount (%)</label>
+              <input type="number" class="form-control mb-3" required 
+                  step="0.01" v-model.number="form.discount" name="discount">
+            </div>
+          </div>
           
-          <div class="price-input-container col">
-            <label class="form-label">Original Price</label>
-            <input type="number" class="form-control mb-3 price-input" required 
-                step="0.01" v-model.number="form.itemPrice" name="itemPrice">
-          </div>
-          <div class="col">
-            <label class="form-label">Discount (%)</label>
-            <input type="number" class="form-control mb-3" required 
-                step="0.01" v-model.number="form.discount" name="discount">
-          </div>
 
           <div>
-            <div class="col">
               <p>Price after discount: $
                 <span v-if="form.itemPrice">{{ discountedPrice }}</span>
               </p>
-            </div>
             <!-- Smart discount suggestion -->
-            <div class="col">
-              <span class="green-bg w-50"><font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/>
+              <span class="green-bg w-50 mb-3"><font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/>
                 Smart Discount Suggestion: <b>20%</b>
               </span>
-            </div>
           </div>
-          
-
-        </div>
-
 
         <!-- Quantity field -->
         <label class="form-label">Quantity</label>
         <input type="number" class="form-control mb-3 w-50" required 
            v-model.number="form.itemQty" name="itemQty">
-
 
         <!-- Allergen types checkboxes-->
         <label class="form-label">Allergens (select all that apply)</label>
@@ -180,6 +188,8 @@
         <p v-if="successMsg" class="fw-bold text-success">
           {{ successMsg }}
         </p>
+        </div>
+        </div>
       </form>
     </div>
   </div>
