@@ -183,6 +183,7 @@ export default {
         result = await signInWithEmail(email.value, password.value);
       } else {
         blocker.value = true;
+        successView.value = true;
         result = await registerWithEmail(email.value, password.value, displayName.value, role.value);
       }
 
@@ -193,10 +194,10 @@ export default {
         role.value = '';
         if(!isLogin.value) {
           successMessage.value = 'Account created successfully! Please log in.';
-          successView.value = true;
         }
       } else {
         errorMessage.value = result.error;
+        successView.value = false;
       }
       blocker.value = false;
       loading.value = false;
@@ -262,6 +263,9 @@ export default {
     // listen to auth state changes
     onMounted(() => {
       onAuthStateChanged(auth, async (authUser) => {
+        if (authUser && successView.value){
+          return;
+        }
         user.value = authUser;
         if (authUser) {
           // Fetch the user's role from Firestore

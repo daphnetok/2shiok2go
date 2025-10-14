@@ -2,7 +2,7 @@
 import { auth } from './config';
 // import functions
 import { db } from './config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
