@@ -18,7 +18,7 @@ a,
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
   }
 }
 
@@ -88,7 +88,12 @@ input:checked.toggle-slider {
 .btn:hover .hide {
   display: block;
 }
-
+.green-bg{
+  background-color: rgb(241, 255, 241);
+  display: flex;
+  padding: 5px;
+  align-items: center;
+}
 
 /* ALERTS */
 .custom-alert-container {

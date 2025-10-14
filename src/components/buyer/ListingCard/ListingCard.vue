@@ -1,20 +1,22 @@
 <!-- logic for reserving, handling stock -->
 
 <template>
-  <div class="card mb-3">
-    <img :src="hawker.imageUrl" class="card-img-top" :alt="hawker.hawkerName">
-    <div class="card-body">
-      <p class="card-title stallName">{{ hawker.hawkerName }}</p>
-      <p class="card-text m-0">
-        <img class="clock" :src="icons.clock" alt="clock"> 
-        until {{ hawker.openingTime }}
-      </p>
-      <p class="card-text m-0">
-        <img class="pin" :src="icons.pin" alt="pin"> 
-        {{ hawker.distance }} away
-      </p>
+  <router-link class="nav-link" to="/buyer-view-stall" style="text-decoration: none; color: inherit;">
+    <div class="card mb-3">
+      <img :src="hawker.imageUrl" class="card-img-top" :alt="hawker.hawkerName">
+      <div class="card-body">
+        <p class="card-title stallName">{{ hawker.hawkerName }}</p>
+        <p class="card-text m-0">
+          <img class="clock" :src="icons.clock" alt="clock"> 
+          until {{ hawker.openingTime }}
+        </p>
+        <p class="card-text m-0">
+          <img class="pin" :src="icons.pin" alt="pin"> 
+          {{ hawker.distance }} away
+        </p>
+      </div>
     </div>
-  </div>
+  </router-link>
 </template>
 
 <script>
@@ -36,6 +38,13 @@ export default {
       }
     }
   }
+  ,
+  // computed: {
+  //   listingUrl() {
+  //     // Example: /listing/<hawkerName> (replace with your actual route)
+  //     return `/listing/${encodeURIComponent(this.hawker.hawkerName)}`;
+  //   }
+  // }
 }
 </script>
 
