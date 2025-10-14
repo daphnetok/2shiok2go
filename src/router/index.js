@@ -19,7 +19,12 @@ const routes = [
   { path: '/hawker-dashboard', component: HawkerDashboard },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
-  { path: '/buyer-view-stall', component: BuyerViewStall },
+  { 
+    path: '/buyer-view-stall/:hawkerName', 
+    name: 'BuyerViewStall',
+    component: BuyerViewStall,
+    props: true 
+  },
   { path: '/checkout', component: Checkout },
   { path: '/order-receipt', component: OrderReceipt }, 
 ]
