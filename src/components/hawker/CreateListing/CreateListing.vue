@@ -127,8 +127,8 @@
           <input type="checkbox" value="Eggs" v-model="form.allergens">
             <label>Eggs</label>
           <br>
-          <input type="checkbox" value="Diary" v-model="form.allergens">
-            <label>Diary</label>
+          <input type="checkbox" value="Dairy" v-model="form.allergens">
+            <label>Dairy</label>
           <br>
           <input type="checkbox" value="Fish" v-model="form.allergens" >
             <label>Fish</label>
@@ -156,8 +156,8 @@
           <input type="checkbox" value="Seafood" v-model="form.tags" >
             <label>Seafood</label>
           <br>
-          <input type="checkbox" value="Diary-free" v-model="form.tags">
-            <label>Diary-free</label>
+          <input type="checkbox" value="Dairy-free" v-model="form.tags">
+            <label>Dairy-free</label>
           <br>
         </div>
 
