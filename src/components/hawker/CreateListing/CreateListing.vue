@@ -1,42 +1,68 @@
 <template>
+
+<!-- Alert Box -->
+<div class="custom-alert-container" v-if="alert.show" :class="alert.type">
+  <div class="custom-alert-content">
+    <!-- Icon for success/error -->
+    <span class="alert-icon" v-if="alert.type === 'success'">
+      <i class="fas fa-check-circle"></i>
+    </span>
+    <span class="alert-icon" v-else-if="alert.type === 'error'">
+      <i class="fas fa-exclamation-circle"></i>
+    </span>
+    <!-- Message - full width -->
+    <div class="alert-message-wrapper">
+      <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
+    </div>
+    <br>
+    <!-- Confirmation Buttons -->
+    <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
+      <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
+      <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
+      <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
+    </div>
+
+    <!-- Redirect Buttons (for post-listing creation) -->
+    <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
+      <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
+      <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">View All Listings →</router-link>
+    </div>
+    
+    <!-- Close Button for Success/Error -->
+    <button v-else class="alert-close-btn" @click="closeAlert">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+
   <div class="container mt-4">
-     <!-- Alert Box -->
-    <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
-      <div class="custom-alert-content">
-        <!-- Icon for success/error -->
-        <span class="alert-icon" v-if="alert.type === 'success'">
-          <i class="fas fa-check-circle"></i>
-        </span>
-        <span class="alert-icon" v-else-if="alert.type === 'error'">
-          <i class="fas fa-exclamation-circle"></i>
-        </span>
-        <!-- Message - full width -->
-        <div class="alert-message-wrapper">
-          <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
-        </div>
-        <br>
-        <!-- Confirmation Buttons -->
-        <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-          <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
-          <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
-          <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
-        </div>
-
-        <!-- Redirect Buttons (for post-listing creation) -->
-        <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
-          <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
-          <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">View All Listings →</router-link>
-        </div>
-        
-        <!-- Close Button for Success/Error -->
-        <button v-else class="alert-close-btn" @click="closeAlert">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div> 
-
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
 
+    <form id="form" @submit.prevent="onSubmit">
+    <div class="row">
+      
+      <!-- Image upload-->
+       <div class="col-md-4">
+
+        <div id="img-container" class="container mb-3" v-show="selectedFile"> 
+          <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
+          <img id="image" :src="previewSelectedFileSRC"> 
+          <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
+            <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+          </span>
+        </div>
+       
+        <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4">
+          <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg green" />
+            <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo (1)</b></span>
+            <span v-else class="green"><b>Change Photo (1)</b></span>
+              <br> by clicking here to browse or <br> drag and drop here </label>
+          <input type="file" accept="image/jpeg, image/png, image/jpg" 
+            @change="onFileSelected" ref="fileInput">
+        </div>
+
+       </div>
+    
     <!-- Loading State -->
     <div v-if="isLoading" class="alert alert-info">
       <p>Loading user information...</p>
@@ -153,9 +179,10 @@
         <p v-if="successMsg" class="fw-bold text-success">
           {{ successMsg }}
         </p>
-      </form>
     </div>
   </div>
+  </form>
+</div>
 </template>
 
 <script src="./CreateListing.js">
