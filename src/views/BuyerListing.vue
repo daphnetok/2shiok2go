@@ -2,12 +2,15 @@
   <div class="container mt-4">
     <div class="row" >
       <div class="col-lg-3 col-md-4" >
-        <FilterBar />
+        <FilterBar @filter-change="onFilterChange" />
       </div>
 
       <div class="col-lg-9 col-md-8" >
         <SearchBar/>
-        <ListingGrid />
+        <ListingGrid
+          :price-order="filters.priceOrder"
+          :dietary="filters.dietary"
+        />
       </div>
 
     </div>
@@ -16,22 +19,32 @@
 </template>
 
 <script>
-// Import the FilterBar component
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
 import ListingGrid from '@/components/buyer/ListingGrid/ListingGrid.vue';
-import filterLogic from '../components/buyer/FilterBar/FilterBar.js';
 
 export default { 
   name: "BuyerListings",
   components: {
-    FilterBar, // Register the FilterBar component to use it in this file
+    FilterBar,
     SearchBar,
     ListingGrid,
     BackToTop
   },
-  mixins: [filterLogic],
+  data() {
+    return {
+      filters: {
+        priceOrder: null,
+        dietary: []
+      }
+    };
+  },
+  methods: {
+    onFilterChange(payload) {
+      this.filters = { ...this.filters, ...payload };
+    }
+  }
 };
 </script>
 
