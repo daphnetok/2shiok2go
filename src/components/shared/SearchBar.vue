@@ -34,6 +34,8 @@ export default {
 .search-container {
   display: flex;
   align-items: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .search-box {
