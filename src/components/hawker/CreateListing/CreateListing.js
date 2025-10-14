@@ -1,4 +1,4 @@
-import { reactive, ref, onBeforeUnmount, computed } from 'vue';
+import { reactive, ref, onBeforeUnmount, computed, onMounted } from 'vue';
 import { createListing, updateListing, deleteListing, useLoadListings } from '/firebase/firestore';
 import { uploadImage, deleteImage } from '/firebase/storage';
 import { 
@@ -9,6 +9,9 @@ import {
   confirmationConfirm, 
   confirmationCancel 
 } from '@/components/hawker/useSharedListings';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../../../../firebase/config';
+import { getDoc, doc } from 'firebase/firestore';
 
 export default {
   setup() {
@@ -30,6 +33,10 @@ export default {
     const successMsg = ref("");
     const fileInput = ref(null);
     let unsubscribe = null;
+    const currentUser = ref(null);
+    const userRole = ref('');
+    const isLoading = ref(true);
+    const isHawker = computed(() => userRole.value === 'hawker');
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -112,7 +119,7 @@ export default {
       selectedFile.value = null;
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
-        fileInput.value.value = "";
+        fileInput.value = "";
       }
     };
 
@@ -136,6 +143,35 @@ export default {
         window.scrollTo(0, 0);
     };
 
+    // Fetch user role
+    const fetchUserRole = async (uid) => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+          return userDoc.data().role;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+    };
+
+    // Listen to auth state
+    onMounted(() => {
+      onAuthStateChanged(auth, async (user) => {
+        currentUser.value = user;
+        if (user) {
+          const role = await fetchUserRole(user.uid);
+          userRole.value = role || '';
+        } else {
+          userRole.value = '';
+        }
+        isLoading.value = false;
+      });
+    });
+
+
     return {
       form,
       selectedFile,
@@ -156,6 +192,10 @@ export default {
       confirmationCancel,
       goToHome,
       createNewListing,
+      currentUser,
+      userRole,
+      isHawker,
+      isLoading
     };
   }
 };
