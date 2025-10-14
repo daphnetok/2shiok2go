@@ -8,6 +8,8 @@ import HawkerDashboard from '../views/HawkerDashboard.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import BuyerViewStall from '../views/BuyerViewStall.vue'
+import Checkout from '../views/Checkout.vue'
+import OrderReceipt from '../views/OrderReceipt.vue' 
 
 const routes = [
   { path: '/', component: Home },
@@ -17,7 +19,9 @@ const routes = [
   { path: '/hawker-dashboard', component: HawkerDashboard },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
-  { path: '/buyer-view-stall', component: BuyerViewStall},
+  { path: '/buyer-view-stall', component: BuyerViewStall },
+  { path: '/checkout', component: Checkout },
+  { path: '/order-receipt', component: OrderReceipt }, 
 ]
 
 const router = createRouter({
