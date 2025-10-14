@@ -5,8 +5,9 @@
         <i class="fa-solid fa-search search-icon"></i>
         <input type="text" placeholder="Search for Food or Location..." class="search-input" />
       </div>
-      
-      <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      <router-link to="/cart">
+        <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      </router-link>
       <div class="me-3"></div>
       <div class="user-icon-container position-relative">
         <a href="" class="user-icon user">
@@ -25,8 +26,17 @@
 </template>
 
 <script>
+// ADD THIS IMPORT AT THE TOP
+import { mapGetters } from 'vuex';
+
 export default {
-  name: "SearchBar"}
+  name: "SearchBar",
+  
+  // ADD THIS COMPUTED SECTION
+  computed: {
+    ...mapGetters('cart', ['cartCount'])
+  }
+}
 </script>
 
 <style scoped>

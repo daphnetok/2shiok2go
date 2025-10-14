@@ -19,12 +19,13 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/vue-fontawesome": "^3.1.2",
     "chart.js": "^4.5.0",
-    "firebase": "^12.3.0", 
+    "firebase": "^12.3.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
     "vue-3-slider-component": "^1.0.2",
     "vue-chartjs": "^5.3.2",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
