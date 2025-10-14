@@ -1,5 +1,12 @@
 <template>
   <div class="auth-component">
+    <div v-if="showRoleModal" class="modal">
+      <div class="modal-content">
+        <h3>Select your role</h3>
+        <button @click="handleRoleSelect('buyer')" :disabled="loading">Buyer</button>
+        <button @click="handleRoleSelect('hawker')" :disabled="loading">Hawker</button>
+      </div>
+    </div>
     <!-- When signed out -->
     <section v-if="!user || successView">
       <!-- Error message -->
@@ -45,6 +52,14 @@
             minlength="6"
           />
         </div>
+        <div v-if='!isLogin' class="form-group">
+          <label for="role">Role</label>
+          <select id="role" v-model="role" :disabled="loading" required>
+            <option disabled value="">Select your role</option>
+            <option value="buyer">Buyer</option>
+            <option value="hawker">Hawker</option>
+          </select>
+        </div>
         <div class="button-group">
           <button type="submit" class="btn btn-primary" :disabled="loading">
             {{ loading ? 'Processing...' : (isLogin ? 'Log in' : 'Sign up') }}
@@ -81,6 +96,7 @@
     <section v-else-if="user && !successView">
       <div class="user-info">
         <h3>Welcome, {{ user.displayName }}!</h3>
+        <h2>Role: {{ userRole || 'Loading...' }}</h2>
         <p>{{ user.email }}</p>
       </div>
       <button @click="handleSignOut" class="btn btn-danger">
@@ -100,6 +116,9 @@ import {
   onAuthStateChanged,
   auth
 } from '/firebase/auth'
+import { assignRoleToGoogleUser } from '/firebase/firestore';
+import { db } from '/firebase/config'
+import { doc, getDoc } from 'firebase/firestore';
 
 export default {
   name: 'AuthComponent',
@@ -111,11 +130,29 @@ export default {
     const successMessage = ref('');
     const successView = ref(false); 
     const blocker = ref(false);
+    const showRoleModal = ref(false);
+    const tempUser = ref(null);
+    const userRole = ref('');
 
     // form fields
     const email = ref('');
     const password = ref('');
     const displayName = ref('');
+    const role = ref('');
+    
+    // fetch user role from firestore
+    const fetchUserRole = async (uid) => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+          return userDoc.data().role;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+    };
 
     // toggle between login and sign up
     const toggleMode = () => {
@@ -146,13 +183,14 @@ export default {
         result = await signInWithEmail(email.value, password.value);
       } else {
         blocker.value = true;
-        result = await registerWithEmail(email.value, password.value, displayName.value);
+        result = await registerWithEmail(email.value, password.value, displayName.value, role.value);
       }
 
       if(result.success) {
         email.value = '';
         password.value = '';
         displayName.value = '';
+        role.value = '';
         if(!isLogin.value) {
           successMessage.value = 'Account created successfully! Please log in.';
           successView.value = true;
@@ -171,8 +209,40 @@ export default {
       loading.value = true;
       
       const result = await signInWithGoogle();
-      if (!result.success) {
+      
+      if (result.error) {
         errorMessage.value = result.error;
+        loading.value = false;
+        return;
+      }
+      
+      if (result.newUser) {
+        // New user - show role modal (don't use blocker)
+        console.log('New Google user detected, showing role modal');
+        tempUser.value = result.user;
+        showRoleModal.value = true;
+      } else {
+        // Existing user - normal flow
+        console.log('Existing Google user, proceeding normally');
+      }
+      loading.value = false;
+    };
+
+    // role selection for first-time google users
+    const handleRoleSelect = async (selectedRole) => {
+      loading.value = true;
+      console.log('Assigning role:', selectedRole, 'to user:', tempUser.value);
+      
+      const res = await assignRoleToGoogleUser(tempUser.value, selectedRole);
+      console.log('Role assignment result:', res);
+      
+      if(res.success) {
+        userRole.value = selectedRole;
+        showRoleModal.value = false;
+        successMessage.value = 'Welcome! Your account has been created.';
+      } else {
+        console.error('Role assignment error:', res.error);
+        errorMessage.value = res.error || 'Failed to assign role. Please try again.';
       }
       loading.value = false;
     };
@@ -180,15 +250,26 @@ export default {
     // handle sign out
     const handleSignOut = async () => {
       loading.value = true;
+      showRoleModal.value = false;
+      tempUser.value = null;
+      userRole.value = '';
+      errorMessage.value = '';
+      successMessage.value = '';
       await logout();
       loading.value = false;
     };
 
     // listen to auth state changes
     onMounted(() => {
-      onAuthStateChanged(auth, (authUser) => {
-        if(!blocker.value){
-          user.value = authUser;
+      onAuthStateChanged(auth, async (authUser) => {
+        user.value = authUser;
+        if (authUser) {
+          // Fetch the user's role from Firestore
+          const fetchedRole = await fetchUserRole(authUser.uid);
+          userRole.value = fetchedRole || '';
+          console.log('User role fetched:', fetchedRole);
+        } else {
+          userRole.value = '';
         }
       });
     });
@@ -203,11 +284,16 @@ export default {
       email,
       password,
       displayName,
+      role,
+      userRole,
+      showRoleModal,
+      tempUser,
       toggleMode,
       handleEmailAuth,
       googleSignIn,
       handleSignOut,
-      handleProceedToLogin
+      handleProceedToLogin,
+      handleRoleSelect
     };
   }
 };
@@ -216,6 +302,36 @@ export default {
 <style scoped>
 .auth-component {
   padding: 20px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 20px;
+}
+
+.modal-content button {
+  margin: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
 }
 
 .user-info {
@@ -241,7 +357,7 @@ export default {
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input, .form-group select {
   width: 75%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -250,7 +366,7 @@ export default {
   box-sizing: border-box;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-group select:focus {
   outline: none;
   border-color: #4285f4;
 }
@@ -263,10 +379,16 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-google {
   background: white;
   color: #444;
   border: 1px solid #ddd;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -278,6 +400,11 @@ button {
   color: white;
 }
 
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
 .btn-danger {
   background: #dc3545;
   color: white;
@@ -286,12 +413,18 @@ button {
 .error-message {
   color: #dc3545;
   margin-bottom: 10px;
+  padding: 10px;
+  background: #f8d7da;
+  border-radius: 4px;
 }
 
 .success-message {
   color: #28a745;
   font-weight: 500;
   margin-bottom: 10px;
+  padding: 10px;
+  background: #d4edda;
+  border-radius: 4px;
 }
 
 .manual-toggle {
