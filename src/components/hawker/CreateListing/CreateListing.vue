@@ -1,8 +1,6 @@
 <template>
   <div class="container mt-4">
-    <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
-
-    <!-- Alert Box -->
+     <!-- Alert Box -->
     <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
       <div class="custom-alert-content">
         <!-- Icon for success/error -->
@@ -35,23 +33,41 @@
           <i class="fas fa-times"></i>
         </button>
       </div>
+    </div> 
+
+    <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
+
+    <!-- Loading State -->
+    <div v-if="isLoading" class="alert alert-info">
+      <p>Loading user information...</p>
     </div>
 
-    <!-- Form -->
-    <form id="form" @submit.prevent="onSubmit">
-    <div class="row">
-      
-      <!-- Image upload-->
-       <div class="col-md-4">
+    <!-- Not Logged In Message -->
+    <div v-else-if="!currentUser" class="alert alert-danger">
+      <h3>🔒 Authentication Required</h3>
+      <p>You must be logged in to access this page.</p>
+      <p>Please <strong>sign in</strong> or <strong>create an account</strong> to continue.</p>
+    </div>
 
-        <div id="img-container" class="container mb-3" v-show="selectedFile"> 
-          <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
-          <img id="image" :src="previewSelectedFileSRC"> 
-          <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
-            <font-awesome-icon icon="remove" class="fa-lg icon-green" />
-          </span>
-        </div>
-       
+    <!-- Access Denied Message for Non-Hawkers -->
+    <div v-else-if="currentUser && !isHawker" class="alert alert-warning">
+      <h3>⚠️ Access Denied</h3>
+      <p>Only hawkers can create listings. Your current role is: <strong>{{ userRole || 'unknown' }}</strong></p>
+      <p>If you believe this is an error, please contact support.</p>
+    </div>
+
+    <!-- Listing Form - Only for Hawkers -->
+    <div v-else-if="isHawker">
+      <form id="form" @submit.prevent="onSubmit">
+        <div class="row">
+
+          <div class="col">
+            <img id="image" :src="previewSelectedFileSRC"> 
+            <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
+              <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+            </span>
+          </div>
+
         <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4">
           <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg green" />
             <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo (1)</b></span>
@@ -60,18 +76,6 @@
           <input type="file" accept="image/jpeg, image/png, image/jpg" 
             @change="onFileSelected" ref="fileInput">
         </div>
-
-       </div>
-    
-    <div class="col-md-8 px-md-5">
-
-        <!-- Item Name field -->
-        <label class="form-label">Item Name</label>
-        <input type="text" class="form-control mb-3" required 
-            placeholder="Type food name here" v-model="form.itemName" name="itemName">
-
-        <!-- Price & Discount fields-->
-        <div class="row mb-3">
           
           <div class="price-input-container col">
             <label class="form-label">Original Price</label>
@@ -176,10 +180,9 @@
         <p v-if="successMsg" class="fw-bold text-success">
           {{ successMsg }}
         </p>
+      </form>
     </div>
   </div>
-  </form>
-</div>
 </template>
 
 <script src="./CreateListing.js">

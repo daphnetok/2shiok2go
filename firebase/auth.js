@@ -1,6 +1,8 @@
 // initialise auth
 import { auth } from './config';
 // import functions
+import { db } from './config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
@@ -17,7 +19,15 @@ const provider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, provider);
-    return { success: true, user: result.user };
+    const user = result.user;
+
+    // check if user exists in database
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if(!userSnap.exists()){
+      return { success: true, newUser: true, user }
+    }
+    return { success: true, user };
   } catch (error) {
     console.error('Sign in error:', error);
     return { success: false, error: error.message };
@@ -25,12 +35,22 @@ export const signInWithGoogle = async () => {
 };
 
 // sign up with email and password
-export const registerWithEmail = async (email, password, displayName) => {
+export const registerWithEmail = async (email, password, displayName, role) => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
-    await updateProfile(user, { displayName });
+
+    // update profile
+    await updateProfile(user, { displayName }); 
     await auth.currentUser.reload();
+
+    // create firestore document
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      email,
+      displayName,
+      role
+    });
     return { success: true, user: user };
   } catch (error) {
     console.error('Sign up error: ', error);
