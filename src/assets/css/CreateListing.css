@@ -1,61 +1,62 @@
 #uploadImg{
-height: 150px;
-background-color:lightgrey;
-border-radius: 10px;
-display: flex;
-align-items: center;
-cursor: pointer;
+    height: 150px;
+    background-color:rgb(241, 255, 241);
+    border: 1px dashed rgb(71, 153, 71);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
 }
 .price-input-container{
-position: relative;
+    position: relative;
 }
 .price-input-container::before{
-content: "$";
-position: absolute;
-left: 25px;
-top: 60%;
-transform: translateY(-60%);
-color: #555;
+    content: "$";
+    position: absolute;
+    left: 25px;
+    top: 60%;
+    transform: translateY(-60%);
+    color: #555;
 }
 .price-input{
-padding-left: 30px;
+    padding-left: 30px;
 }
 #discountedPrice{
-font-weight: bold;
+    font-weight: bold;
 }
 
 input[type=checkbox]{
-margin-right: 10px;
+    margin-right: 10px;
 }
 /* original input style */
 input[type=file]{
-display: none;
+    display: none;
 }
 #uploadImg label{
-display: block;
-margin: auto;
-text-align: center;
-cursor: pointer;
+    display: block;
+    margin: auto;
+    text-align: center;
+    cursor: pointer;
 }
 #image{
-max-width: 100%;
-height: auto;
-display: block;
-border-radius: 10px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
 }
 #img-container{
-position: relative;
-padding:10px;
-border: 2px dashed grey;
-border-radius: 10px;
+    position: relative;
+    padding:10px;
+    border: 1px dashed rgb(71, 153, 71);
+    border-radius: 10px;
 }
 .remove-btn{
-position: absolute;
-font-size: 15px;
-top: 5px;
-right:5px;
-background-color: #eee;
-border-radius: 30%;
+    position: absolute;
+    font-size: 15px;
+    top: 5px;
+    right:5px;
+    background-color: #eee;
+    border-radius: 30%;
 }
 .form-label {
     font-weight: bold;
@@ -72,8 +73,8 @@ border-radius: 30%;
     padding: 20px;
 }
 .list-img-container img{
-    height: 60px;
-    width: 60px;
+    height: 70px;
+    width: 120px;
     object-fit: cover;
     margin: 10px;
     
