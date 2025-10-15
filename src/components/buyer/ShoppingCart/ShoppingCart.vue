@@ -9,7 +9,7 @@
         <div class="cart-count">{{ cartCount }} {{ cartCount === 1 ? 'item' : 'items' }}</div>
       </div>
 
-      <!-- <div v-if="cartItems.length === 0" class="empty-cart">
+      <div v-if="cartItems.length === 0" class="empty-cart">
         <div class="empty-cart-icon">
           <i class="fa-solid fa-basket-shopping"></i>
         </div>
@@ -18,9 +18,9 @@
         <button @click="goBack" class="continue-shopping-btn">
           Continue Shopping
         </button>
-      </div> -->
+      </div>
 
-      <div  class="cart-content">
+      <div v-else class="cart-content">
         <div class="cart-items">
           <transition-group name="list" tag="div">
             <div v-for="item in cartItems" :key="`${item.hawkerName}-${item.itemName}`" class="cart-item">
