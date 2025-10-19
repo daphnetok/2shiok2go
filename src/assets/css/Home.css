@@ -1,0 +1,420 @@
+/* Base styles for consistency */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.homepage {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: linear-gradient(to top right, #d9ffd9, #ffffff); 
+}
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  
+  color: #333;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Keyframes for subtle bounce with impact at the bottom */
+@keyframes bounce {
+  0% {
+    transform: translateY(0); /* Start at the original position */
+  }
+  30% {
+    transform: translateY(-5px); /* Move up slightly */
+  }
+  100% {
+    transform: translateY(0); /* Return to the original position */
+  }
+}
+
+.action {
+  background-color: #a3f6bf59;
+  color: #3c763d;
+  border-radius: 30px;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+
+  /* Apply the bounce animation */
+  animation: bounce 1.5s ease-in-out infinite; /* Infinite bounce with smoother movement */
+}
+
+
+/* Hero Section with Gradient Background */
+.hero {
+  text-align: center;
+  padding: 100px 20px;
+  animation: fadeIn 1s ease-in-out;
+  background: linear-gradient(to top right, #d9ffd9, #ffffff);
+
+  /* Added Flexbox for centering content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+}
+
+.headline {
+  background: linear-gradient(45deg, #50C878, #008080, #32CD32); /* Emerald, Teal, Lime */
+  -webkit-background-clip: text;
+  color: transparent;
+  font-size: 3rem;
+  font-weight:800;
+  
+}
+
+.headline2 {
+  font-size: 3rem;
+  margin-top: 10px;
+  color: black;
+  font-weight: 800;
+  width: 70%;  /* Keeps the text width to 60% of the parent container */
+  text-align: center; /* Ensures text is centered within the width */
+}
+
+.subheading {
+  font-size: 1.3rem;
+  margin-top: 10px;
+  color: black;
+  letter-spacing: -1px; /* Decrease the letter spacing */
+}
+
+.buttons{
+    display: flex;
+    justify-content: center; 
+    width: 50%; 
+    align-items: center;
+}
+
+.signup1 {
+  background: linear-gradient(45deg, #50C878, #35a064, #018e61); /* Custom gradient */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.2rem;
+  margin: 10px;
+  border-radius: 50px;
+  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+  font-weight: bold;
+  background-clip: padding-box;
+  animation: fadeIn 0.8s ease-out; /* Fade-in animation */
+}
+
+/* Hover Effect */
+.signup1:hover {
+  background-color: white; /* Background turns white on hover */
+  color: transparent; /* Makes the text transparent to show the gradient */
+  background-image: linear-gradient(45deg, #50C878, #35a064, #018e61); /* Gradient applied to text */
+  -webkit-background-clip: text; /* For webkit-based browsers */
+  background-clip: text; /* For non-webkit browsers */
+  border: 3px solid #018e61; /* Border color matches the gradient */
+  transform: scale(1.05); /* Slightly increase the size on hover */
+}
+
+/* Fade-in animation for initial button load */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px); /* Starts below */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); /* Ends in normal position */
+  }
+}
+
+
+.browse {
+  background-color: transparent;
+  border: 2px solid #018e61; /* Border color */
+  color: #018e61; /* Text color */
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.2rem;
+  margin: 10px;
+  border-radius: 50px;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+  font-weight: bold;
+  position: relative; /* To enable pseudo-element positioning */
+  animation: fadeIn 0.8s ease-out; /* Fade-in animation when the button loads */
+}
+
+/* Hover Effect */
+.browse:hover {
+  background-color: #018e61; /* Background turns to green on hover */
+  color: white; /* Text color changes to white */
+  transform: scale(1.05); /* Slightly increase the size on hover */
+}
+
+/* Adding a shadow effect on hover */
+.browse:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(1, 142, 97, 0.3); 
+  border-radius: 40px;
+  z-index: -1; 
+}
+
+/* Fade-in animation when the button loads */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px); 
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); 
+  }
+}
+
+.stats{
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 50px;
+    width: 80%; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.stat{
+    align-items: center;
+}
+.stat h2{
+    font-size: 2.5rem;
+    color: #20b423;
+    margin-bottom: 10px;
+}
+
+.stat p{
+    font-size: 1.1rem;
+    color: black;
+}
+
+/* Key Benefits Section */
+.benefits {
+  padding: 50px 20px;
+  background-color: #f4f4f4;
+}
+
+.benefits h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  color: black;
+
+}
+
+.benefits span{
+    color: #147b36; /* Highlight color for "2Shiok2" */
+    font-weight: 700;
+}
+
+.benefit {
+  margin-bottom: 30px;
+  animation: slideUp 0.5s ease-out;
+}
+
+.benefit h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2e8b57;
+  text-transform: capitalize;
+}
+
+.benefit p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+/* CTA Section */
+.cta {
+  background-color: #3c763d;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.cta h2 {
+  font-size: 2.5rem;
+}
+
+.cta p {
+  font-size: 1.1rem;
+}
+
+.cta-button {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background-color: #ffffff;
+  color: #3c763d;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.cta-button:hover {
+  background-color: #2e8b57;
+  color: white;
+}
+
+/* About Section */
+.about {
+  padding-top: 80px;
+  padding-bottom: 80px;
+  text-align: center;
+  background-color: #f0fff0;
+
+}
+
+.about h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: black;
+  letter-spacing: -1px;
+}
+
+.about h2 span{
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+  /* color: #339966; */
+  /* color: linear-gradient(45deg, #50C878, #35a064, #018e61); */
+  background: linear-gradient(45deg, #50C878, #339966, #409d7f); /* Linear gradient */
+  -webkit-background-clip: text; /* Clip the background to text */
+  color: transparent;
+  letter-spacing: -1px;
+}
+
+.about p {
+  font-size: 1.25rem;
+  color: #555;
+  padding: 0 5%;
+}
+
+
+.about .leafIcon {
+  background-color: #339966; 
+  color: white; 
+  border-radius: 50%; 
+  padding: 20px;
+  font-size: 30px; 
+  display: block; 
+  margin: 0 auto; 
+  margin-bottom: 10px;
+}
+
+
+/* Testimonials Section */
+.testimonials {
+  background-color: #f0f0f0;
+  padding: 40px 20px;
+}
+.testimonials h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  color: black;
+}   
+.testimonials span{
+  background: linear-gradient(45deg, #50C878, #008040);
+  -webkit-background-clip: text; /* Clip the background to text */
+  color: transparent;
+  font-weight: 700;
+}
+
+.testimonial {
+  background: linear-gradient(to top left, #e6f5e1, #ffffff); /* White to light green gradient */
+  border-radius: 15px; /* Rounded corners */
+  padding: 20px; /* Padding inside the box */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for the box */
+  width: 80%;
+  margin: 20px auto; /* Optional: Center the box on the page */
+}
+
+.testimonial p {
+  font-family: 'Arial', sans-serif; /* Font style */
+  font-size: 16px; /* Text size */
+  color: #333333; /* Dark text color */
+  font-style: italic
+}
+
+.testimonial p:last-child {
+  font-weight: bold; /* Make the user's name bold */
+  color: #4CAF50; /* Green color for the name */
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile First */
+@media (max-width: 768px) {
+  .hero {
+    padding: 80px 10px; /* Adjust padding for smaller screens */
+  }
+
+  .headline {
+    font-size: 2.5rem; /* Smaller headline for mobile */
+  }
+
+  .subheading {
+    font-size: 1rem;
+  }
+
+  .benefits {
+    padding: 30px 10px;
+  }
+
+  .cta {
+    padding: 30px 10px;
+  }
+
+  .cta-button {
+    padding: 12px 25px;
+  }
+
+  .about {
+    padding: 30px 10px;
+  }
+
+  .testimonials {
+    padding: 30px 10px;
+  }
+}

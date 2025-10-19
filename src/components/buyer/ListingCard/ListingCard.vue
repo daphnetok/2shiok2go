@@ -14,7 +14,7 @@
         </p>
         <p class="card-text m-0">
           <img class="pin" :src="icons.pin" alt="pin"> 
-          {{ hawker.distance }} away
+          {{ hawker.distance }}km away
         </p>
       </div>
     </div>

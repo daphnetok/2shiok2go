@@ -23,7 +23,7 @@ const routes = [
     path: '/cart',
     name: 'ShoppingCart',
     component: ShoppingCart
-  }
+  },
 ]
 
 const router = createRouter({

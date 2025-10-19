@@ -7,24 +7,41 @@
       <!-- Top Stall Info -->
       <div class="container reset-style">
         <div class="row stall-info">
-          <div class="col-md-5">
+          <div class="col-md-5 stall-img" >
             <img :src="hawker.imageUrl || require('../../../assets/img/stall.jpg')" alt="" class="stallImg"/>
           </div>
           <div class="col-md-6">
             <div class="stall-header">
-              <h1>{{ hawker.hawkerName }}</h1>
+              <div class="stall-title">
+                <h1>{{ hawker.hawkerName }}</h1>
+              </div>
             </div>
             <p class="stall-address">
               <i class="fa-solid fa-map-pin pinIcon"></i> {{'Lau Pa Sat, 18 Raffles Quay, #01-10, Singapore 048582' }}
             </p>
             <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
-            <p class="stall-distance">{{ hawker.distance || '0.6km' }} away</p>
-            <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || '4.4' }} stars</p>
+            <p class="stall-distance">{{ hawker.distance}}km away</p>
+            <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating }} stars</p>
           </div>
           <div class="col-md-1">
-            <button @click="toggleSave" class="heart-btn">
+            <!-- <button @click="toggleSave" class="heart-btn">
                 <i :class="[saved ? saveIcons.heartFilled : saveIcons.heart]"></i>
-            </button>
+            </button> -->
+
+            <div class="heart-container">
+              <svg
+                @click="toggleLike"
+                :class="{ liked: isLiked }"
+                class="heart-icon"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                />
+              </svg>
+            </div>
+
           </div>
         </div>
       </div>
@@ -39,7 +56,7 @@
           <div v-for="item in hawker.itemsListing" :key="item.itemName" class="col-md-4">
             <div class="listing-card">
               <div class="img-container">
-                <img class="foodImg" :src="item.image || require('../../../assets/img/stall.jpg')" :alt="item.itemName"/>
+                <img class="foodImg" :src="item.imageUrl || require('../../../assets/img/stall.jpg')" :alt="item.itemName"/>
                 <!-- Floating Counter / Add Button -->
                 <div class="counter-btn"
                      :class="{ 'square': item.count > 0, 'adding': item.isAdding }"
@@ -190,7 +207,6 @@ export default {
     };
 
     return {
-      saved,
       hawkerName,
       hawker,
       showToast,
@@ -199,178 +215,20 @@ export default {
       increment,
       decrement
     };
+  },
+  data() {
+    return {
+      isLiked: false
+    };
+  },
+  methods: {
+    toggleLike() {
+      this.isLiked = !this.isLiked;
+    }
   }
 };
 </script>
 
-<style scoped>
+<style>
 @import './StallListing.css';
-
-/* Enhanced Counter Button Styles */
-.counter-btn {
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.counter-btn.adding {
-  animation: pop 0.3s ease;
-}
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-.hover-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-  animation: expandControls 0.3s ease;
-}
-
-@keyframes expandControls {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.control-btn {
-  background: white;
-  border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.control-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.minus-btn {
-  color: #ff4444;
-}
-
-.minus-btn:hover {
-  background: #fff0f0;
-}
-
-.plus-btn {
-  color: #44b544;
-}
-
-.plus-btn:hover {
-  background: #f0fff0;
-}
-
-.count-display {
-  font-weight: 600;
-  color: white;
-  min-width: 20px;
-  text-align: center;
-}
-
-.count-only {
-  font-weight: 600;
-  color: white;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Toast Notification */
-.toast-notification {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background: linear-gradient(135deg, #44b544, #3a9d3a);
-  color: white;
-  padding: 16px 24px;
-  border-radius: 50px;
-  box-shadow: 0 8px 24px rgba(68, 181, 68, 0.4);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 600;
-  z-index: 1000;
-}
-
-.toast-notification i {
-  font-size: 20px;
-  animation: checkPop 0.5s ease;
-}
-
-@keyframes checkPop {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3);
-  }
-}
-
-/* Toast transition */
-.slide-up-enter-active {
-  animation: slideUpBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.slide-up-leave-active {
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideUpBounce {
-  0% {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  60% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .toast-notification {
-    bottom: 20px;
-    right: 20px;
-    left: 20px;
-    justify-content: center;
-  }
-}
 </style>

@@ -11,7 +11,8 @@
   all: unset;
 }
 /* Top Stall Info */
-.stall-info {
+.stall-img {
+  display: flex;
   align-items: center;
 }
 .stallImg {
@@ -21,25 +22,46 @@
 .stall-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  width: 100%;
 }
-.heart-btn {
-  background: none;
-  border: none;
+ /* Heart icon */
+.heart-container {
+  display: inline-block;
+  padding: 20px;
+}
+
+.heart-icon {
+  width: 30px;
+  height: 30px;
   cursor: pointer;
-  position: absolute;
-  right: 5%;
-  top: 4%;
+  transition: all 0.3s ease;
+  fill: #d1d5db;
+
 }
-.saveIcon {
-  color: gray; 
-  font-size: 1.7em;
-  transition: color 0.2s;
+
+.heart-icon:hover {
+  transform: scale(1.1);
 }
-.savedIcon {
-  color: red;
-  font-size: 1.7em;
-  transition: color 0.2s;
+
+.heart-icon.liked {
+  fill: #ef4444;
+  animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+}
+
+.starIcon{
+  color: rgb(255, 215, 0);
+  margin-right: 10px;
 }
 .stall-address, .stall-distance {
   margin: 5px 0;
@@ -187,3 +209,173 @@
     margin-top: 2px;
   }
 }
+
+/* Enhanced Counter Button Styles */
+.counter-btn {
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.counter-btn.adding {
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.hover-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  animation: expandControls 0.3s ease;
+}
+
+@keyframes expandControls {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.control-btn {
+  background: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.minus-btn {
+  color: #ff4444;
+}
+
+.minus-btn:hover {
+  background: #fff0f0;
+}
+
+.plus-btn {
+  color: #44b544;
+}
+
+.plus-btn:hover {
+  background: #f0fff0;
+}
+
+.count-display {
+  font-weight: 600;
+  color: white;
+  min-width: 20px;
+  text-align: center;
+}
+
+.count-only {
+  font-weight: 600;
+  color: white;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #44b544, #3a9d3a);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 50px;
+  box-shadow: 0 8px 24px rgba(68, 181, 68, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  z-index: 1000;
+}
+
+.toast-notification i {
+  font-size: 20px;
+  animation: checkPop 0.5s ease;
+}
+
+@keyframes checkPop {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* Toast transition */
+.slide-up-enter-active {
+  animation: slideUpBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.slide-up-leave-active {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideUpBounce {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .toast-notification {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    justify-content: center;
+  }
+}
+
+

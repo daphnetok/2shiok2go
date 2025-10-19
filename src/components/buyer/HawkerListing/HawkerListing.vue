@@ -6,10 +6,18 @@
       </div>
       <div class="col-8">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <h2 style="margin: 0;">Maxwell Hainanese Chicken Rice</h2>
-          <button @click="toggleSave" style="background:none; border:none; cursor:pointer;">
-            <i :class="[saved ? 'fa-solid fa-heart savedIcon' : 'fa-regular fa-heart saveIcon']"></i>
-          </button>
+          <h2 style="margin: 0;">{{ hawkerName }}</h2>
+          <!-- heart -->
+          <div class="flex justify-center items-center min-h-screen bg-gray-100">
+            <div
+              :class="heartClass"
+              class="text-6xl cursor-pointer transition-colors duration-300"
+              @click="toggleHeart"
+            >
+              &#9825;
+            </div>
+          </div>
+
         </div>
         <p><i class="fa-solid fa-map-pin pinIcon"></i> Lau Pa Sat, 18 Raffles Quay, #01-10, Singapore 048582</p>
         <button>Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
@@ -37,30 +45,21 @@
 
 <script>
 export default {
-  name: "Listings",
   data() {
     return {
-      saved: true,
-      foodItems: [
-        {itemName: "Chicken Rice", price:"$3.00", stock:"5", image:"../img/chicken_rice.jpg"},
-        {itemName: "Roti Prata", price:"$1.00", stock:"10", image:"../img/chicken_rice.jpg"},
-        {itemName: "Prawn Noodles", price:"$4.00", stock:"2", image:"../img/chicken_rice.jpg"},
-        {itemName: "Laksa", price:"$3.50", stock:"0", image:"../img/chicken_rice.jpg"},
-        {itemName: "Nasi Lemak", price:"$3.00", stock:"7", image:"../img/chicken_rice.jpg"},
-        {itemName: "Mee Rebus", price:"$3.00", stock:"4", image:"../img/chicken_rice.jpg"},
-        {itemName: "Hainanese Chicken Chop", price:"$5.00", stock:"3", image:"../img/chicken_rice.jpg"},
-        {itemName: "Fried Kway Teow", price:"$3.00", stock:"6", image:"../img/chicken_rice.jpg"},
-        {itemName: "Char Siew Rice", price:"$3.50", stock:"8", image:"../img/chicken_rice.jpg"}
-      ],
-    }
+      isHeartRed: false, // Track if the heart is red
+    };
+  },
+  computed: {
+    heartClass() {
+      return this.isHeartRed ? 'text-red-500' : 'text-gray-500'; // Dynamically apply color
+    },
   },
   methods: {
-    
-    toggleSave() {
-      this.saved = !this.saved;
-      console.log("Saved:", this.saved);
-    }
-  }
+    toggleHeart() {
+      this.isHeartRed = !this.isHeartRed; // Toggle the color state
+    },
+  },
 };
 </script>
 
