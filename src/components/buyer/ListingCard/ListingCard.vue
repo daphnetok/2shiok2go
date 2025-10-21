@@ -1,7 +1,11 @@
 <template>
-  <router-link
-    :to="listingUrl"
-    class="card-link"
+  <router-link 
+    :to="{
+      name: 'BuyerViewStall',
+      params: { hawkerName: hawker.hawkerName },
+      state: { hawker: hawker }
+    }"
+    class="nav-link" 
     style="text-decoration: none; color: inherit;"
   >
     <div class="card mb-3">

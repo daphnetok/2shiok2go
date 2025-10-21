@@ -6,9 +6,15 @@
         <div class="row">
             <StallListing :foodItems="foodItems"/>
         </div>
+        <div class="row mt-4">
+            <div class="col text-center">
+                <router-link to="/checkout">
+                    <button class="btn btn-success">Go to Checkout</button>
+                </router-link>
+            </div>
+        </div>
     </div>
     <BackToTop />
-    
 </template>
 
 <script>
@@ -21,10 +27,26 @@ import BackToTop from '@/components/buyer/BackToTop/BackToTop.vue';
 export default { 
   name: "BuyerListings",
   components: {
-    FilterBar, // Register the FilterBar component to use it in this file
+    FilterBar,
     SearchBar,
     StallListing,
     BackToTop
   }
 };
 </script>
+
+<style scoped>
+.checkout-fab {
+  position: fixed;
+  left: 100px;
+  bottom: 30px;
+  z-index: 1000;
+  text-decoration: none;
+}
+.checkout-fab .btn {
+  border-radius: 50px;
+  padding: 16px 28px;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+</style>

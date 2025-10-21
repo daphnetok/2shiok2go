@@ -1,17 +1,13 @@
 <template>
   <nav class="navbar navbar-expand-md sticky" >
     <div class="container-fluid">
-        
-        <!-- Navbar Toggler Button -->
         <button class="navbar-toggler custom-btn-success " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="d-md-none">Filter</span> <!-- 'Filter' text only for md screens -->
-            <span class="d-none d-md-block">Filter</span> <!-- 'Filter' text only for md screens -->
+            <span class="d-md-none">Filter</span>
+            <span class="d-none d-md-block">Filter</span>
         </button>
 
-        <!-- Expanded Navbar Content -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <div class="container-flex">
-                <!-- Display 'Filter' as H2 for md screens -->
                 <h2 class="d-none d-md-block">Filter</h2>
 
                 <div class="colour">
@@ -24,8 +20,8 @@
                       </button>
                     </div>
                     <div v-show="isPriceExpanded">
-                      <button type="button" class="btn btn-outline-success btn-sm mb-2">Lowest to Highest</button><br>
-                      <button type="button" class="btn btn-outline-success btn-sm mb-2">Highest to Lowest</button><br>
+                      <button type="button" class="btn btn-outline-success btn-sm mb-2" @click="setPriceOrder('asc')">Lowest to Highest</button><br>
+                      <button type="button" class="btn btn-outline-success btn-sm mb-2" @click="setPriceOrder('desc')">Highest to Lowest</button><br>
                       <div class="d-flex align-items-center">
                         <Slider :style="{ width: '80%'}" />
                       </div>
@@ -41,10 +37,10 @@
                       </button>
                     </div>
                     <div v-show="isDietaryExpanded" class="pb-1">
-                      <input type="checkbox" id="halal"> Halal<br>
-                      <input type="checkbox" id="vegetarian"> Vegetarian<br>
-                      <input type="checkbox" id="seafood"> Seafood<br>
-                      <input type="checkbox" id="dairy-free"> Dairy-free<br>
+                      <label><input type="checkbox" value="halal" v-model="dietary" @change="emitFilters"> Halal</label><br>
+                      <label><input type="checkbox" value="vegetarian" v-model="dietary" @change="emitFilters"> Vegetarian</label><br>
+                      <label><input type="checkbox" value="seafood" v-model="dietary" @change="emitFilters"> Seafood</label><br>
+                      <label><input type="checkbox" value="dairy-free" v-model="dietary" @change="emitFilters"> Dairy-free</label><br>
                     </div>
                   </div>
                 </div> 
@@ -56,15 +52,17 @@
 
 <script>
 import Slider from '../Slider/Slider.vue';
+
 export default {
   name: "FilterBar",
-  components: {
-    Slider
-  },
+  components: { Slider },
+  emits: ['filter-change'],
   data() {
     return {
       isPriceExpanded: false,
       isDietaryExpanded: false,
+      priceOrder: null, // 'asc' | 'desc' | null
+      dietary: []       // e.g. ['halal', 'vegetarian']
     };
   },
   methods: {
@@ -73,6 +71,16 @@ export default {
     },
     toggleDietaryExpand() {
       this.isDietaryExpanded = !this.isDietaryExpanded;
+    },
+    setPriceOrder(order) {
+      this.priceOrder = order;
+      this.emitFilters();
+    },
+    emitFilters() {
+      this.$emit('filter-change', {
+        priceOrder: this.priceOrder,
+        dietary: this.dietary
+      });
     }
   }
 };
