@@ -14,6 +14,7 @@ import {
 import { ref, onUnmounted } from 'vue';
 
 const listingsCollection = collection(db, 'itemListings');
+const hawkerCollection = collection(db, 'hawkerListings');
 
 // db crud functions
 export const createListing = listing => {
@@ -54,6 +55,10 @@ export const useLoadHawkers = () => {
   onUnmounted(unsubscribe);
   return hawkers;
 };
+
+export const createHawker = hawkerData => {
+  return addDoc(hawkerCollection, hawkerData);
+}
 
 export const assignRoleToGoogleUser = async (user, role) => {
   try {
