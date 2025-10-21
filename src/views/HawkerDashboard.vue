@@ -39,7 +39,9 @@
             <a class="nav-link" href="#"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><font-awesome-icon icon="chart-simple" class="fa-lg px-1"/>Dashboard</a>
+            <router-link class="nav-link" to="/hawker-analytics">
+              <font-awesome-icon icon="chart-simple" class="fa-lg px-1"/>Dashboard
+            </router-link>
           </li>
         </ul>
       </div>

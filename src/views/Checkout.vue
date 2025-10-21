@@ -189,14 +189,14 @@ function placeOrder() {
   min-width: 40px;
 }
 .btn-success {
-  background-color: #198754 !important;
-  border-color: #198754 !important;
-  color: #fff !important;
+  background-color: #198754 ;
+  border-color: #198754 ;
+  color: #fff ;
 }
 .btn-success:active, .btn-success:focus, .btn-success:hover {
-  background-color: #157347 !important;
-  border-color: #157347 !important;
-  color: #fff !important;
+  background-color: #157347 ;
+  border-color: #157347 ;
+  color: #fff ;
 }
 .position-absolute {
   z-index: 2;
