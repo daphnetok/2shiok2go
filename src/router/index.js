@@ -10,6 +10,7 @@ import Register from '../views/Register.vue'
 import BuyerViewStall from '../views/BuyerViewStall.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderReceipt from '../views/OrderReceipt.vue' 
+import HawkerForm from '../views/HawkerForm.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -27,6 +28,7 @@ const routes = [
   },
   { path: '/checkout', component: Checkout },
   { path: '/order-receipt', component: OrderReceipt }, 
+  { path: '/hawker-form', component: HawkerForm }
 ]
 
 const router = createRouter({
