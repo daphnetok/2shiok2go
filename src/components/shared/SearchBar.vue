@@ -6,7 +6,9 @@
         <input type="text" placeholder="Search for Food or Location..." class="search-input" />
       </div>
       
-      <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      <router-link to="/cart">
+        <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      </router-link>
       <div class="me-3"></div>
       <div class="user-icon-container position-relative">
         <a href="" class="user-icon user">

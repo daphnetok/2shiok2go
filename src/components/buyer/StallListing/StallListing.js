@@ -12,6 +12,12 @@ export default {
     const foodItems = ref([]);
     const loading = ref(true);
     const errorMsg = ref(null);
+    const showToast = ref(false);
+
+    const triggerToast = (duration = 1500) => {
+      showToast.value = true;
+      setTimeout(() => { showToast.value = false; }, duration);
+    };
     
     const saveIcons = {
       heart: 'fa-regular fa-heart saveIcon',
@@ -113,10 +119,22 @@ export default {
       foodItems,
       loading,
       errorMsg,
+      showToast,
+      triggerToast,
       saveIcons,
       toggleSave,
       increment,
       decrement
     };
+  },
+  data() {
+    return {
+      isLiked: false
+    };
+  },
+  methods: {
+    toggleLike() {
+      this.isLiked = !this.isLiked;
+    }
   }
 };

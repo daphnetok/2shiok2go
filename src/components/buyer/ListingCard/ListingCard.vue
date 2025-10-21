@@ -16,7 +16,7 @@
         <p class="card-title stallName">{{ hawker.hawkerName }}</p>
         <p class="card-text m-0">
           <img class="clock" :src="icons.clock" alt="clock"> 
-          until {{ hawker.openingTime }}
+          until {{ hawker.closingTime }}
         </p>
         <p class="card-text m-0">
           <img class="pin" :src="icons.pin" alt="pin"> 
