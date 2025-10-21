@@ -1,7 +1,15 @@
 <!-- logic for reserving, handling stock -->
 
 <template>
-  <router-link class="nav-link" to="/buyer-view-stall" style="text-decoration: none; color: inherit;">
+  <router-link 
+    :to="{
+      name: 'BuyerViewStall',
+      params: { hawkerName: hawker.hawkerName },
+      state: { hawker: hawker }
+    }"
+    class="nav-link" 
+    style="text-decoration: none; color: inherit;"
+  >
     <div class="card mb-3">
       <img :src="hawker.imageUrl" class="card-img-top" :alt="hawker.hawkerName">
       <div class="card-body">

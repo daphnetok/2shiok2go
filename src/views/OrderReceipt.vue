@@ -3,7 +3,10 @@
     <!-- Confirmation Header -->
     <div class="text-center mb-4">
       <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success bg-opacity-25 rounded-circle shadow" style="width: 64px; height: 64px;">
-        <i class="bi bi-check2 text-success" style="font-size: 2.5rem;"></i>
+        <!-- Use Bootstrap Icon SVG directly for best compatibility -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-check2 text-success" viewBox="0 0 16 16">
+          <path d="M13.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+        </svg>
       </div>
       <h1 class="h4 fw-bold text-success">Order Confirmed!</h1>
       <p class="text-muted small">Thank you for your order.<br>We'll send you a confirmation email shortly.</p>

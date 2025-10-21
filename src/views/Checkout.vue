@@ -159,6 +159,7 @@ function removeItem() {
   selectedItem.quantity = 0
 }
 function placeOrder() {
+  // Optionally, validate or save order here
   router.push('/order-receipt')
 }
 </script>

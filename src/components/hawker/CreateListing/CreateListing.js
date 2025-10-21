@@ -15,7 +15,6 @@ import { getDoc, doc } from 'firebase/firestore';
 
 export default {
   setup() {
-    // Form-specific state
     const form = reactive({
       itemName: "",
       itemPrice: null,
@@ -77,6 +76,12 @@ export default {
       if (form.discount > 100 || form.discount < 0) {
         errors.push("Discount must be in the range of 1 to 99.");
       }
+      if (!currentUser.value) {
+        errors.push("You must be logged in to create a listing.");
+      }
+      if (!currentUser.value?.displayName) {
+        errors.push("Your account doesn't have a display name set.");
+      }
 
       if (errors.length > 0) {
         const errorMessage = errors.join('\n');
@@ -93,13 +98,13 @@ export default {
           imageUrl: imageData.url,
           imageName: imageData.name,
           imagePath: imageData.path,
-          orders: 0
+          orders: 0,
+          hawkerName: currentUser.value.displayName,
+          userId: currentUser.value.uid
         };
         await createListing(listingData);
         showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
         resetForm();
-
-        
       } catch (error) {
         console.error("Error creating listing: ", error);
         errorMsg.value = "Error: " + error.message;
@@ -123,7 +128,6 @@ export default {
       }
     };
 
-
     onBeforeUnmount(() => {
       if (unsubscribe) {
         unsubscribe();
@@ -134,16 +138,15 @@ export default {
     });
 
     const goToHome = () => {
-        closeAlert();
-        };
-
-    const createNewListing = () => {
-        closeAlert();
-        resetForm();
-        window.scrollTo(0, 0);
+      closeAlert();
     };
 
-    // Fetch user role
+    const createNewListing = () => {
+      closeAlert();
+      resetForm();
+      window.scrollTo(0, 0);
+    };
+
     const fetchUserRole = async (uid) => {
       try {
         const userDoc = await getDoc(doc(db, 'users', uid));
@@ -157,7 +160,6 @@ export default {
       }
     };
 
-    // Listen to auth state
     onMounted(() => {
       onAuthStateChanged(auth, async (user) => {
         currentUser.value = user;
@@ -170,7 +172,6 @@ export default {
         isLoading.value = false;
       });
     });
-
 
     return {
       form,
