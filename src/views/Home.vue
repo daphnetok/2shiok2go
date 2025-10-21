@@ -8,7 +8,9 @@
       <h1 class="headline2">Discover Discounted Hawker Meals Near You!</h1>
       <p class="subheading">Join the Movement to Reduce Food Waste While Enjoying Affordable Local Food</p>
       <div class="buttons">
+        <router-link class="router" to="/login">
         <button class="signup1">Start Saving Today &nbsp; ➜  </button>
+        </router-link>
         <button class="browse">Browse Deals</button>
       </div>
       <div class="stats">
@@ -29,18 +31,11 @@
 
     <!-- Key Benefits Section -->
     <section class="benefits">
-      <h2>Why Choose <span>2Shiok2</span>?</h2>
+      <h2>Why Choose <span>2Shiok2Go</span>?</h2>
       <div class="benefit" v-for="(benefit, index) in benefits" :key="index">
         <h3>{{ benefit.title }}</h3>
         <p>{{ benefit.text }}</p>
       </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="cta">
-      <h2>Start Saving Today!</h2>
-      <p>Browse through the latest deals near you and start supporting your favorite hawkers while cutting down on food waste!</p>
-      <button @click="startSaving" class="cta-button">Join the Movement – Sign Up Now!</button>
     </section>
 
     <!-- About Us Section -->
@@ -52,14 +47,29 @@
 
     <!-- Testimonials Section -->
     <section class="testimonials">
-      <h2>What Our <span class="user">Users</span> Are Saying</h2>
-      <div class="testimonial">
+    <h2>What Our <span class="user">Users</span> Are Saying</h2>
+    <div class="testimonial-container">
+      <div class="testimonial" v-for="n in 5" :key="n">
+        <i v-for="star in 5" :key="star" class="fa-solid fa-star starIcon"></i>
         <p>‘Love this platform! Not only am I saving money, but I feel great knowing I’m helping reduce food waste. Plus, the food is always so tasty!’</p>
-        
-        <p class="name">- [User Name]</p>
+        <p class="name">- User {{ n }}</p>
       </div>
+      
+    </div>
+  </section>
+
+    <!-- Call to Action -->
+    <section class="cta">
+      <h2>Start Saving Today!</h2>
+      <p>Browse through the latest deals near you and start supporting your favorite hawkers while cutting down on food waste!</p>
+      <button @click="startSaving" class="cta-button">Join the Movement – Sign Up Now!</button>
     </section>
   </div>
+
+  <footer >
+    © 2025 2Shiok2Go. All rights reserved.
+  </footer>
+
 </template>
 
 <script>
