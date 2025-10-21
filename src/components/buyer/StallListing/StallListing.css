@@ -6,6 +6,7 @@
   margin: 30px auto;
   max-width: 1100px;
   padding: 32px 24px;
+  position: relative; /* allow absolute children like floating heart */
 }
 .reset-style {
   all: unset;
@@ -23,7 +24,7 @@
   align-items: center;
   gap: 10px;
 }
-.heart-btn {
+/* .heart-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -40,6 +41,42 @@
   color: red;
   font-size: 1.7em;
   transition: color 0.2s;
+} */
+
+ /* Heart icon */
+.heart-container {
+  display: inline-block;
+  padding: 20px;
+}
+
+/* Floating overlay specifically for top-right placement */
+.heart-container-overlay {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 20;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+}
+
+.heart-icon {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease, fill 0.2s ease;
+  fill: #9ca3af; /* neutral gray */
+}
+.heart-icon:hover {
+  transform: scale(1.08);
+}
+
+/* liked state - filled heart */
+.heart-icon.liked {
+  fill: #ef4444; /* red */
+  transform: scale(1.05);
 }
 .stall-address, .stall-distance {
   margin: 5px 0;
