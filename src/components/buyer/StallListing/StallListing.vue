@@ -27,11 +27,20 @@
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
           <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
         </div>
-        <div class="col-md-1">
-          <button @click="toggleSave" class="heart-btn">
-              <i :class="[saved ? saveIcons.heartFilled : saveIcons.heart]"></i>
-          </button>
-        </div>
+      </div>
+
+      <!-- Floating heart button placed at top-right of stall-card -->
+      <div class="heart-container-overlay">
+        <svg
+          @click="toggleLike"
+          :class="['heart-icon', { liked: isLiked }]"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          />
+        </svg>
       </div>
 
       <div class="row mt-4">
@@ -82,15 +91,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast Notification -->
+    <transition name="slide-up">
+      <div v-if="showToast" class="toast-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>Added to cart!</span>
+      </div>
+    </transition>
   </div>
 </template>
 
-<script src="./StallListing.js">
-export default {
-  name: 'StallListing'
-}
-</script>
+
+<script src="./StallListing.js"></script>
 
 <style>
-  @import './StallListing.css';
+@import './StallListing.css';
 </style>
