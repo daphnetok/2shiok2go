@@ -65,7 +65,7 @@
                     <div v-if="item.hover" class="hover-controls">
                       <button @click.stop="decrement(item)">-</button>
                       {{ item.count }}
-                      <button @click.stop="increment(item)">+</button>
+                      <button @click.stop="increment(item)" :disabled="item.count >= item.itemQty">+</button>
                     </div>
                     <div v-else>
                       {{ item.count }}
