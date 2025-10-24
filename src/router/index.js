@@ -23,7 +23,7 @@ const routes = [
   { path: '/login', component: Login },
   { path: '/register', component: Register },
   { 
-    path: '/buyer-view-stall/:hawkerName', 
+    path: '/buyer-view-stall/:userId', 
     name: 'BuyerViewStall',
     component: BuyerViewStall,
     props: true 
@@ -31,6 +31,7 @@ const routes = [
   { path: '/checkout', component: Checkout },
   { path: '/order-receipt', component: OrderReceipt }, 
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
+  { path: '/hawker-form', component: HawkerForm }
 ]
 
 const router = createRouter({
