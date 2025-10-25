@@ -13,10 +13,15 @@ export default {
     const loading = ref(true);
     const errorMsg = ref(null);
     const showToast = ref(false);
+    const showMap = ref(false);
 
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
       setTimeout(() => { showToast.value = false; }, duration);
+    };
+
+    const toggleMap = () => {
+      showMap.value = !showMap.value;
     };
     
     const saveIcons = {
@@ -120,7 +125,9 @@ export default {
       loading,
       errorMsg,
       showToast,
+      showMap,
       triggerToast,
+      toggleMap,
       saveIcons,
       toggleSave,
       increment,
