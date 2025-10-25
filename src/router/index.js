@@ -28,7 +28,7 @@ const routes = [
     component: BuyerViewStall,
     props: true 
   },
-  { path: '/checkout', component: Checkout },
+  { path: '/cart', component: ShoppingCart },
   { path: '/order-receipt', component: OrderReceipt }, 
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
 ]
