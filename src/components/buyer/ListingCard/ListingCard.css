@@ -1,53 +1,188 @@
+/* Card container with modern styling */
 .card {
   border: none;
-  border-radius: 15px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  transition: all 0.3s ease; /* Smooth hover transition */
-}
-
-.card:hover {
-  transform: translateY(-5px); /* Slight lift effect on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
-}
-
-.card-img-top {
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  object-fit: cover;
-  height: 180px; /* Control image height */
-}
-
-.card-body {
-  padding: 15px;
-  background-color: #fff; /* Light background */
-}
-
-.stallName {
-  font-weight: bold;
-  font-size: 1.25rem;
-  color: #333;
-  margin-bottom: 10px; /* Space between name and other details */
-  white-space: nowrap; /* Prevent text from wrapping */
+  border-radius: 16px;
   overflow: hidden;
-  text-overflow: ellipsis; /* Show "..." when text overflows */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Smooth hover effect with scale and shadow */
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Add a subtle shine effect on hover */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.card:hover::before {
+  left: 100%;
+}
+
+/* Image with zoom effect on hover */
+.card-img-top {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  object-fit: cover;
+  height: 200px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
 }
 
-.stallName:hover {
-  background-color: #f0f0f0; /* Add subtle hover effect */
-  white-space: normal; /* Allow text to wrap when hovering */
+.card:hover .card-img-top {
+  transform: scale(1.08);
+}
+
+/* Card body with smooth transitions */
+.card-body {
+  padding: 18px;
+  background-color: #fff;
+  position: relative;
+  z-index: 2;
+}
+
+/* Stall name with gradient on hover */
+.stallName {
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  transition: all 0.3s ease;
+  line-height: 1.3;
+}
+
+.card:hover .stallName {
+  color: rgb(12, 133, 12);
+  white-space: normal;
   overflow: visible;
 }
 
+/* Info text with icons */
 .card-text {
-  font-size: 0.9rem;
-  color: #666; /* Slightly lighter text color for details */
+  font-size: 0.95rem;
+  color: #666;
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  line-height: 1.5;
 }
 
+.card:hover .card-text {
+  color: #333;
+  transform: translateX(3px);
+}
+
+/* Icon styling with animation */
 .card-text img {
-  width: 16px;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  transition: transform 0.3s ease;
+  opacity: 0.8;
+}
+
+.card:hover .card-text img {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Add a subtle border animation on hover */
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  border: 2px solid rgb(7, 141, 58);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+.nav-link:hover{
+    background: none ;
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Loading skeleton animation (optional - for when images load) */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.card-img-top[src=""] {
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-img-top {
+    height: 180px;
+  }
+  
+  .stallName {
+    font-size: 1.2rem;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-img-top {
+    height: 200px;
+  }
+  
+  .stallName {
+    font-size: 1.15rem;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+  }
 }

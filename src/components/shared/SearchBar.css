@@ -1,0 +1,101 @@
+.search-container {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 5px;
+  width: 90%;
+  margin-right: 5%;
+}
+
+.search-box:hover {
+  box-shadow: 0px 0px 10px 4px rgba(0, 128, 0, 0.6); /* Green box-shadow */
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  padding: 8px;
+  width: 100%;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.search-icon {
+  margin-left: 2%;  /* Adjust space between icon and input text */
+  font-size: 18px; /* Adjust the size of the icon */
+  color: #509180;  /* Icon color */
+}
+
+/* Style for user icon container */
+.user-icon-container {
+  position: relative;
+}
+
+/* Hide the dropdown by default */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 170px;
+  z-index: 10;
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+}
+
+.user-dropdown ul li {
+  padding: 5px;
+  
+}
+
+.user-dropdown ul li a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+/* Change background color when hovering over the options */
+.user-dropdown ul li a:hover {
+  background-color: #f0f0f0;
+}
+
+/* Show dropdown when hovering over the user icon */
+.user-icon-container:hover .user-dropdown {
+  display: block;
+}
+
+.icon{
+  color: green;
+  padding-right: 7px ;
+  font-size: 20px;
+}
+
+.shopping, .user{
+  font-size: 24px;
+}
+
+.router{
+    background: none ;
+    background-color: transparent;
+    padding: 0;
+}

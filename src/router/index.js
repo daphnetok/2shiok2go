@@ -13,6 +13,7 @@ import OrderReceipt from '../views/OrderReceipt.vue'
 import HawkerForm from '../views/HawkerForm.vue'
 import ShoppingCart from '../components/buyer/ShoppingCart/ShoppingCart.vue'
 import HawkerAnalytics from '../views/HawkerAnalytics.vue' 
+import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -31,6 +32,7 @@ const routes = [
   { path: '/cart', component: ShoppingCart },
   { path: '/order-receipt', component: OrderReceipt }, 
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
+  { path: '/favourites', component: Favourites},
 ]
 
 const router = createRouter({
