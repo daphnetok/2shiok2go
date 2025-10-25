@@ -10,7 +10,6 @@ import Register from '../views/Register.vue'
 import BuyerViewStall from '../views/BuyerViewStall.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderReceipt from '../views/OrderReceipt.vue' 
-import HawkerForm from '../views/HawkerForm.vue'
 import ShoppingCart from '../components/buyer/ShoppingCart/ShoppingCart.vue'
 import HawkerAnalytics from '../views/HawkerAnalytics.vue' 
 
@@ -30,8 +29,7 @@ const routes = [
   },
   { path: '/checkout', component: Checkout },
   { path: '/order-receipt', component: OrderReceipt }, 
-  { path: '/hawker-analytics', component: HawkerAnalytics }, 
-  { path: '/hawker-form', component: HawkerForm }
+  { path: '/hawker-analytics', component: HawkerAnalytics }
 ]
 
 const router = createRouter({

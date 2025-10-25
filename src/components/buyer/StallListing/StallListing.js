@@ -65,7 +65,11 @@ export default {
       
       try {
         const itemsRef = collection(db, 'itemListings');
-        const q = query(itemsRef, where('userId', '==', hawker.value.userId));
+        const q = query(
+          itemsRef, 
+          where('userId', '==', hawker.value.userId), 
+          where('makeActive', '==', true)
+        );
         const querySnapshot = await getDocs(q);
         
         foodItems.value = querySnapshot.docs.map(doc => {
