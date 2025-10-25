@@ -28,8 +28,37 @@
         <div class="bg-light rounded-3 p-3 small border border-success border-opacity-25">
           <p class="mb-1 fw-medium text-success">Maxwell Hainanese Chicken Rice</p>
           <p class="mb-1">1 Kadayanallur St, #01-10/11 Maxwell Food Centre, Singapore 069184</p>
+          <p class="mb-1 fw-medium text-success">Location Map</p>
+          <div class="rounded-3 overflow-hidden border border-success border-opacity-25">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.822200923736!2d103.84219207543734!3d1.280341461794361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da190d4d2ce4b1%3A0xce7f195d585390aa!2sMaxwell%20Food%20Centre!5e0!3m2!1sen!2ssg!4v1761379585008!5m2!1sen!2ssg" 
+              width="100%" 
+              height="200" 
+              style="border:10px;" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+          <br></br>
           <p class="text-muted mb-0">Collection time: <span class="fw-semibold text-success">7:00 pm</span></p>
         </div>
+        
+        <!-- Map -->
+        <!-- <div class="mt-3">
+          <h6 class="fw-semibold mb-2 text-success">Location Map</h6>
+          <div class="rounded-3 overflow-hidden border border-success border-opacity-25">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.822200923736!2d103.84219207543734!3d1.280341461794361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da190d4d2ce4b1%3A0xce7f195d585390aa!2sMaxwell%20Food%20Centre!5e0!3m2!1sen!2ssg!4v1761379585008!5m2!1sen!2ssg" 
+              width="100%" 
+              height="200" 
+              style="border:0;" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+        </div> -->
       </div>
 
       <!-- Order Items -->
