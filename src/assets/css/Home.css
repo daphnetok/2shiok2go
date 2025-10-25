@@ -628,3 +628,143 @@ footer{
     padding: 30px 10px;
   }
 }
+
+/* Footer Styles */
+.footer {
+  background:#64c686;
+  color: white;
+  padding: 40px 0 20px;
+  margin-top: 60px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.footer-section:first-child {
+  text-align: left;
+}
+
+.footer-section:nth-child(2),
+.footer-section:nth-child(3) {
+  text-align: center;
+}
+
+.footer-tagline {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: whitesmoke;
+  margin-bottom: 10px;
+}
+
+.footer-description {
+  color: white;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.footer-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: whitesmoke;
+  margin-bottom: 15px;
+}
+
+.footer-email {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #e0e0e0;
+}
+
+.footer-email i {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.footer-email a {
+  color:white;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-email a:hover {
+  color: #a3f6bf;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+}
+
+.social-link.facebook {
+  background-color: #1877f2;
+  color: white;
+}
+
+.social-link.instagram {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+}
+
+.social-link.twitter {
+  background-color: #000000;
+  color: white;
+}
+
+.social-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.footer-bottom {
+  border-top: 1px solid #4a5d4a;
+  margin-top: 30px;
+  padding-top: 20px;
+  text-align: center;
+  color: black;
+  font-size: 0.9rem;
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+  
+  .footer-tagline {
+    font-size: 1.5rem;
+  }
+  
+  .social-links {
+    justify-content: center;
+  }
+}
