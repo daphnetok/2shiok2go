@@ -13,6 +13,7 @@ export default {
     const loading = ref(true);
     const errorMsg = ref(null);
     const showToast = ref(false);
+    const selectedItems = ref([]);  // Added to store selected items and their quantities
 
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
@@ -103,11 +104,27 @@ export default {
     const increment = (item) => {
       if (item.itemQty > 0 && item.count < item.itemQty) {
         item.count++;
+        saveItemToList(item);  // Save the updated item with its count
       }
     };
 
     const decrement = (item) => {
-      if (item.count > 0) item.count--;
+      if (item.count > 0) {
+        item.count--;
+        saveItemToList(item);  // Save the updated item with its count
+      }
+    };
+
+    const saveItemToList = (item) => {
+      const existingItemIndex = selectedItems.value.findIndex(selectedItem => selectedItem.id === item.id);
+      
+      if (existingItemIndex !== -1) {
+        // If the item exists, update the quantity
+        selectedItems.value[existingItemIndex].count = item.count;
+      } else {
+        // Otherwise, add the item to the list
+        selectedItems.value.push({ ...item });
+      }
     };
 
     onMounted(async () => {
@@ -128,7 +145,8 @@ export default {
       saveIcons,
       toggleSave,
       increment,
-      decrement
+      decrement,
+      selectedItems  // Expose selectedItems so it can be used in the template
     };
   },
   data() {
