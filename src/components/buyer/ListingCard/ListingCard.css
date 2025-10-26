@@ -1,188 +1,316 @@
 /* Card container with modern styling */
 .card {
   border: none;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   background: #fff;
   position: relative;
   cursor: pointer;
+  height: 100%;
 }
 
-/* Smooth hover effect with scale and shadow */
 .card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-10px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* Add a subtle shine effect on hover */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
+/* Image container */
+.image-container {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+}
+
+.card-img-top {
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.5s;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.card:hover::before {
-  left: 100%;
-}
-
-/* Image with zoom effect on hover */
-.card-img-top {
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
   object-fit: cover;
-  height: 200px;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover .card-img-top {
-  transform: scale(1.08);
-}
-
-/* Card body with smooth transitions */
-.card-body {
-  padding: 18px;
-  background-color: #fff;
-  position: relative;
-  z-index: 2;
-}
-
-/* Stall name with gradient on hover */
-.stallName {
-  font-weight: 700;
-  font-size: 1.3rem;
-  color: #1a1a1a;
-  margin-bottom: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  transition: all 0.3s ease;
-  line-height: 1.3;
-}
-
-.card:hover .stallName {
-  color: rgb(12, 133, 12);
-  white-space: normal;
-  overflow: visible;
-}
-
-/* Info text with icons */
-.card-text {
-  font-size: 0.95rem;
-  color: #666;
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  transition: all 0.3s ease;
-  line-height: 1.5;
-}
-
-.card:hover .card-text {
-  color: #333;
-  transform: translateX(3px);
-}
-
-/* Icon styling with animation */
-.card-text img {
-  width: 18px;
-  height: 18px;
-  margin-right: 10px;
-  transition: transform 0.3s ease;
-  opacity: 0.8;
-}
-
-.card:hover .card-text img {
   transform: scale(1.1);
-  opacity: 1;
 }
 
-/* Add a subtle border animation on hover */
-.card::after {
-  content: '';
+/* Image overlay */
+.image-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 16px;
-  border: 2px solid rgb(7, 141, 58);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
-.card:hover::after {
+.card:hover .image-overlay {
   opacity: 1;
 }
 
-.nav-link:hover{
-    background: none ;
-    background-color: transparent;
-    padding: 0;
+.view-menu-badge {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0c850c;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transform: translateY(10px);
+  transition: transform 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Loading skeleton animation (optional - for when images load) */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
+.card:hover .view-menu-badge {
+  transform: translateY(0);
+}
+
+/* Status badge */
+.status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-badge.open {
+  background: rgba(34, 197, 94, 0.95);
+  color: white;
+}
+
+.status-badge.open .status-dot {
+  background: white;
+}
+
+.status-badge.closing-soon {
+  background: rgba(251, 191, 36, 0.95);
+  color: white;
+}
+
+.status-badge.closing-soon .status-dot {
+  background: white;
+}
+
+.status-badge.closed {
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+}
+
+.status-badge.closed .status-dot {
+  background: white;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
   }
-  100% {
-    background-position: 1000px 0;
+  50% {
+    opacity: 0.5;
   }
 }
 
-.card-img-top[src=""] {
-  background: linear-gradient(
-    to right,
-    #f0f0f0 0%,
-    #e0e0e0 20%,
-    #f0f0f0 40%,
-    #f0f0f0 100%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite linear;
+/* Card body */
+.card-body {
+  padding: 20px;
+  background: #fff;
+}
+
+/* Header section */
+.card-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.stallName {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #1a1a1a;
+  margin: 0;
+  flex: 1;
+  transition: color 0.3s ease;
+  line-height: 1.3;
+}
+
+.card:hover .stallName {
+  color: #0c850c;
+}
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff8e1;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-left: 10px;
+}
+
+.star {
+  color: #fbbf24;
+  font-size: 1rem;
+}
+
+.rating-text {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+/* Info section */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.card:hover .info-item {
+  background: #e8f5e9;
+  transform: translateX(4px);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.clock-icon {
+  color: #0c850c;
+}
+
+.pin-icon {
+  color: #0c850c;
+}
+
+.card:hover .icon {
+  transform: scale(1.15);
+}
+
+.info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Tags section */
+.tags-section {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e8f5e9;
+  color: #0c850c;
+  transition: all 0.3s ease;
+}
+
+.price-tag {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.card:hover .tag {
+  transform: translateY(-2px);
+}
+
+/* Nav link styling */
+.nav-link {
+  padding: 0;
+  background: none !important;
+}
+
+.nav-link:hover {
+  background: none !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .card-img-top {
-    height: 180px;
+  .image-container {
+    height: 200px;
   }
   
   .stallName {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
   
   .card-body {
-    padding: 15px;
+    padding: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .card-img-top {
-    height: 200px;
+  .image-container {
+    height: 180px;
   }
   
   .stallName {
     font-size: 1.15rem;
   }
   
-  .card-text {
-    font-size: 0.9rem;
+  .card-header-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .rating-section {
+    margin-left: 0;
+    align-self: flex-start;
   }
 }
