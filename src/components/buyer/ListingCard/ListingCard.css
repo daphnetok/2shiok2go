@@ -1,53 +1,316 @@
+/* Card container with modern styling */
 .card {
   border: none;
-  border-radius: 15px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  transition: all 0.3s ease; /* Smooth hover transition */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+  height: 100%;
 }
 
 .card:hover {
-  transform: translateY(-5px); /* Slight lift effect on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+  transform: translateY(-10px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Image container */
+.image-container {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
 }
 
 .card-img-top {
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  height: 180px; /* Control image height */
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.card:hover .card-img-top {
+  transform: scale(1.1);
+}
+
+/* Image overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card:hover .image-overlay {
+  opacity: 1;
+}
+
+.view-menu-badge {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0c850c;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transform: translateY(10px);
+  transition: transform 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card:hover .view-menu-badge {
+  transform: translateY(0);
+}
+
+/* Status badge */
+.status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-badge.open {
+  background: rgba(34, 197, 94, 0.95);
+  color: white;
+}
+
+.status-badge.open .status-dot {
+  background: white;
+}
+
+.status-badge.closing-soon {
+  background: rgba(251, 191, 36, 0.95);
+  color: white;
+}
+
+.status-badge.closing-soon .status-dot {
+  background: white;
+}
+
+.status-badge.closed {
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+}
+
+.status-badge.closed .status-dot {
+  background: white;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Card body */
 .card-body {
-  padding: 15px;
-  background-color: #fff; /* Light background */
+  padding: 20px;
+  background: #fff;
+}
+
+/* Header section */
+.card-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
 .stallName {
-  font-weight: bold;
-  font-size: 1.25rem;
-  color: #333;
-  margin-bottom: 10px; /* Space between name and other details */
-  white-space: nowrap; /* Prevent text from wrapping */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Show "..." when text overflows */
-  width: 100%;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #1a1a1a;
+  margin: 0;
+  flex: 1;
+  transition: color 0.3s ease;
+  line-height: 1.3;
 }
 
-.stallName:hover {
-  background-color: #f0f0f0; /* Add subtle hover effect */
-  white-space: normal; /* Allow text to wrap when hovering */
-  overflow: visible;
+.card:hover .stallName {
+  color: #0c850c;
 }
 
-.card-text {
-  font-size: 0.9rem;
-  color: #666; /* Slightly lighter text color for details */
+.rating-section {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  gap: 4px;
+  background: #fff8e1;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-left: 10px;
 }
 
-.card-text img {
-  width: 16px;
-  margin-right: 8px;
+.star {
+  color: #fbbf24;
+  font-size: 1rem;
+}
+
+.rating-text {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+/* Info section */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.card:hover .info-item {
+  background: #e8f5e9;
+  transform: translateX(4px);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.clock-icon {
+  color: #0c850c;
+}
+
+.pin-icon {
+  color: #0c850c;
+}
+
+.card:hover .icon {
+  transform: scale(1.15);
+}
+
+.info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Tags section */
+.tags-section {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e8f5e9;
+  color: #0c850c;
+  transition: all 0.3s ease;
+}
+
+.price-tag {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.card:hover .tag {
+  transform: translateY(-2px);
+}
+
+/* Nav link styling */
+.nav-link {
+  padding: 0;
+  background: none !important;
+}
+
+.nav-link:hover {
+  background: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .image-container {
+    height: 200px;
+  }
+  
+  .stallName {
+    font-size: 1.25rem;
+  }
+  
+  .card-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-container {
+    height: 180px;
+  }
+  
+  .stallName {
+    font-size: 1.15rem;
+  }
+  
+  .card-header-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .rating-section {
+    margin-left: 0;
+    align-self: flex-start;
+  }
 }
