@@ -1,0 +1,354 @@
+/* Container with better spacing */
+.listings-container {
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 60vh;
+}
+
+/* Header section with icon */
+h2 {
+  margin-top: 0;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+  text-align: center;
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  animation: fadeInDown 0.6s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Animated heart icon */
+.hearticon {
+  color: #ef4444;
+  animation: heartbeat 1.5s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10%, 30% {
+    transform: scale(1.15);
+  }
+  20%, 40% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced loading state with spinner */
+.loading {
+  text-align: center;
+  padding: 100px 40px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.loading p {
+  font-size: 1.15rem;
+  color: #666;
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.loading p::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 20px auto 0;
+  border: 4px solid #f0f0f0;
+  border-top-color: #0c850c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced empty state with illustration */
+.empty-state {
+  text-align: center;
+  padding: 100px 40px;
+  animation: fadeIn 0.8s ease-out;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 24px;
+  margin: 20px;
+}
+
+.empty-state p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.empty-state::before {
+  content: '💚';
+  display: block;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+  filter: grayscale(0.3);
+}
+
+.empty-state::after {
+  content: 'Start adding your favourite hawkers!';
+  display: block;
+  font-size: 0.95rem;
+  color: #999;
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive grid with proper breakpoints */
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  animation: fadeIn 0.6s ease-out;
+  padding: 0 10px;
+}
+
+/* Staggered card animations */
+.listings-grid > * {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.listings-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.listings-grid > *:nth-child(2) { animation-delay: 0.1s; }
+.listings-grid > *:nth-child(3) { animation-delay: 0.15s; }
+.listings-grid > *:nth-child(4) { animation-delay: 0.2s; }
+.listings-grid > *:nth-child(5) { animation-delay: 0.25s; }
+.listings-grid > *:nth-child(6) { animation-delay: 0.3s; }
+.listings-grid > *:nth-child(7) { animation-delay: 0.35s; }
+.listings-grid > *:nth-child(8) { animation-delay: 0.4s; }
+.listings-grid > *:nth-child(9) { animation-delay: 0.45s; }
+.listings-grid > *:nth-child(n+10) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Tablet landscape (3 columns to 2 columns) */
+@media (max-width: 1200px) {
+  .listings-container {
+    padding: 35px 20px;
+    max-width: 1200px;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  h2 {
+    font-size: 2.3rem;
+  }
+}
+
+/* Tablet portrait (2 columns) */
+@media (max-width: 900px) {
+  .listings-container {
+    padding: 30px 16px;
+  }
+
+  .listings-grid {
+    gap: 20px;
+    padding: 0 5px;
+  }
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 32px;
+  }
+
+  .loading {
+    padding: 80px 30px;
+  }
+
+  .empty-state {
+    padding: 80px 30px;
+    margin: 10px;
+  }
+
+  .empty-state::before {
+    font-size: 3.5rem;
+  }
+}
+
+/* Mobile landscape / small tablet (2 columns, smaller cards) */
+@media (max-width: 768px) {
+  .listings-container {
+    padding: 25px 12px;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 28px;
+    gap: 8px;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .empty-state p {
+    font-size: 1.15rem;
+  }
+
+  .empty-state::after {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile portrait (1 column) */
+@media (max-width: 580px) {
+  .listings-container {
+    padding: 20px 12px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+  }
+
+  .listings-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0;
+  }
+
+  .loading {
+    padding: 60px 20px;
+  }
+
+  .loading p {
+    font-size: 1rem;
+  }
+
+  .loading p::after {
+    width: 35px;
+    height: 35px;
+    margin-top: 16px;
+  }
+
+  .empty-state {
+    padding: 60px 24px;
+    border-radius: 20px;
+    margin: 0;
+  }
+
+  .empty-state p {
+    font-size: 1.1rem;
+  }
+
+  .empty-state::before {
+    font-size: 3rem;
+    margin-bottom: 16px;
+  }
+
+  .empty-state::after {
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+  .listings-container {
+    padding: 16px 10px;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+
+  .listings-grid {
+    gap: 12px;
+  }
+
+  .empty-state {
+    padding: 50px 20px;
+  }
+
+  .empty-state p {
+    font-size: 1rem;
+  }
+}
+
+/* Hover effects for desktop only */
+@media (hover: hover) and (pointer: fine) {
+  .listings-grid > * {
+    transition: transform 0.3s ease;
+  }
+}
+
+/* Print styles */
+@media print {
+  .listings-container {
+    padding: 20px;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  h2 {
+    color: #000;
+    page-break-after: avoid;
+  }
+
+  .loading,
+  .empty-state {
+    display: none;
+  }
+}

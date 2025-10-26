@@ -102,6 +102,9 @@
       <button @click="handleSignOut" class="btn btn-danger">
         Sign Out
       </button>
+      <button @click="goToDashboard" class="btn btn-primary" :disabled="!userRole">
+        Go to Dashboard
+      </button>
     </section>
   </div>
 </template>

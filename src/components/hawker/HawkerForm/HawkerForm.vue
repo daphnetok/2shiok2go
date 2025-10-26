@@ -8,6 +8,29 @@
         </div>
         <form @submit.prevent="handleSubmit">
             <div class="form-group">
+                <label class="form-label">Stall Image</label>
+                <div id="img-container" class="mb-3" v-show="selectedFile">
+                    <img id="image" :src="previewSelectedFileSRC">
+                    <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
+                        <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+                    </span>
+                </div>
+                <div id="uploadImg" @click="$refs.fileInput.click()">
+                    <label>
+                        <font-awesome-icon icon="upload" class="fa-lg green" />
+                        <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo</b></span>
+                        <span v-else class="green"><b>Change Photo</b></span>
+                        <br> by clicking here to browse or <br> drag and drop here
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/jpeg, image.png, image/jpg"
+                        @change="onFileSelected"
+                        ref="fileInput"
+                    >
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="form-label">Stall Name</label>
                 <input 
                     type="text"

@@ -60,4 +60,5 @@ export default { name: "Navbar" };
 .offcanvas-title {
   font-size: 1.2rem;
 }
+
 </style>
