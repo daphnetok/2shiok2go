@@ -21,7 +21,7 @@
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
           <p class="stall-address">
-            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address || 'Address not available' }}
+            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
           </p>
           <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
@@ -82,7 +82,7 @@
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">{{ item.discountedPrice }}</span>
+                    <span class="discounted-price">${{ item.discountedPrice }}</span>
                   </div>
                 </div>
               </div>

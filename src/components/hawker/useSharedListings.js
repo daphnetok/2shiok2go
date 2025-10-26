@@ -1,9 +1,16 @@
 import { ref, computed } from 'vue';
 import { updateListing, deleteListing, useLoadListings, createListing } from '/firebase/firestore';
 import { deleteImage } from '/firebase/storage';
+import { auth } from '/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Initialize shared state ONCE at module load
 const allListings = useLoadListings();
+const currentUserId= ref(null);
+
+onAuthStateChanged(auth, (user) => {
+  currentUserId.value = user ? user.uid : null;
+})
 
 export const alert = ref({
   show: false,
@@ -15,11 +22,15 @@ export const alert = ref({
 let confirmResolve = null;
 
 export const activeListings = computed(() => {
-  return allListings.value.filter(listing => listing.makeActive === true);
+  return allListings.value.filter(listing => 
+    listing.makeActive === true && listing.userId === currentUserId.value
+  );
 });
 
 export const inactiveListings = computed(() => {
-  return allListings.value.filter(listing => listing.makeActive === false);
+  return allListings.value.filter(listing => 
+    listing.makeActive === false && listing.userId === currentUserId.value
+  );
 });
 
 export const showAlert = (type, message) => {
@@ -140,6 +151,8 @@ export const duplicateListing = async (listing) => {
       imagePath: listing.imagePath,
       makeActive: false,
       orders: 0,
+      hawkerName: listing.hawkerName,
+      userId: listing.userId
     };
     await createListing(duplicateData);
     showAlert('success', 'Listing duplicated successfully!');

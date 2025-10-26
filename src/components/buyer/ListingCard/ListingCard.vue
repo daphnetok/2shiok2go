@@ -2,7 +2,7 @@
   <router-link 
     :to="{
       name: 'BuyerViewStall',
-      params: { hawkerName: hawker.hawkerName },
+      params: { userId: hawker.userId },
       state: { hawker: hawker }
     }"
     class="nav-link" 

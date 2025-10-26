@@ -55,10 +55,10 @@ export default {
         return;
       }
       
-      if (route.params.hawkerName) {
+      if (route.params.userId) {
         try {
           const hawkersRef = collection(db, 'hawkerListings');
-          const q = query(hawkersRef, where('hawkerName', '==', route.params.hawkerName));
+          const q = query(hawkersRef, where('userId', '==', route.params.userId));
           const querySnapshot = await getDocs(q);
           
           if (!querySnapshot.empty) {
@@ -86,8 +86,8 @@ export default {
 
     // Fetch food items for the hawker
     const fetchItemListings = async () => {
-      if (!hawker.value?.hawkerName) {
-        errorMsg.value = 'No hawker name provided';
+      if (!hawker.value?.userId) {
+        errorMsg.value = 'No hawker ID provided';
         loading.value = false;
         return;
       }
@@ -96,7 +96,11 @@ export default {
       
       try {
         const itemsRef = collection(db, 'itemListings');
-        const q = query(itemsRef, where('hawkerName', '==', hawker.value.hawkerName));
+        const q = query(
+          itemsRef, 
+          where('userId', '==', hawker.value.userId), 
+          where('makeActive', '==', true)
+        );
         const querySnapshot = await getDocs(q);
         
         foodItems.value = querySnapshot.docs.map(doc => {
