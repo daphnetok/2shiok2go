@@ -8,7 +8,7 @@ export default {
   name: "StallListings",
   setup() {
     const route = useRoute();
-    const isLiked = ref(false);  // Changed from 'saved' to match template
+    const isLiked = ref(false);
     const hawker = ref(null);
     const foodItems = ref([]);
     const loading = ref(true);
@@ -48,7 +48,6 @@ export default {
         hawker.value = history.state.hawker;
         console.log('Hawker from state:', hawker.value);
         
-        // Check saved status even when loading from state
         if (userId.value && hawker.value.favouritedUser && hawker.value.favouritedUser.includes(userId.value)) {
           isLiked.value = true;
         }
@@ -68,7 +67,6 @@ export default {
               ...docSnap.data()
             };
 
-            // Check if the user has already favorited this hawker
             if (hawker.value.favouritedUser && hawker.value.favouritedUser.includes(userId.value)) {
               isLiked.value = true;
             }
@@ -84,6 +82,37 @@ export default {
       }
     };
 
+    // NEW: Load cart data and restore quantities
+    const loadCartData = async () => {
+      if (!userId.value) {
+        console.log('No user logged in, skipping cart load');
+        return {};
+      }
+
+      try {
+        const cartRef = doc(db, 'cart', userId.value);
+        const cartSnap = await getDoc(cartRef);
+
+        if (cartSnap.exists()) {
+          const cartData = cartSnap.data();
+          const cartItems = cartData.items || [];
+          
+          // Create a map of itemId to quantity for easy lookup
+          const cartMap = {};
+          cartItems.forEach(item => {
+            cartMap[item.itemId] = item.qty;
+          });
+          
+          console.log('Cart data loaded:', cartMap);
+          return cartMap;
+        }
+      } catch (error) {
+        console.error('Error loading cart data:', error);
+      }
+      
+      return {};
+    };
+
     // Fetch food items for the hawker
     const fetchItemListings = async () => {
       if (!hawker.value?.userId) {
@@ -95,6 +124,9 @@ export default {
       loading.value = true;
       
       try {
+        // Load cart data first
+        const cartMap = await loadCartData();
+        
         const itemsRef = collection(db, 'itemListings');
         const q = query(
           itemsRef, 
@@ -105,19 +137,31 @@ export default {
         
         foodItems.value = querySnapshot.docs.map(doc => {
           const data = doc.data();
-          return {
-            id: doc.id,
+          const itemId = doc.id;
+          
+          // Restore count from cart if it exists
+          const savedCount = cartMap[itemId] || 0;
+          
+          const item = {
+            id: itemId,
             itemName: data.itemName,
             itemPrice: data.itemPrice,
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
             imageUrl: data.imageUrl,
-            count: 0,
+            count: savedCount,
             hover: false
           };
+          
+          // Add to selectedItems if count > 0
+          if (savedCount > 0) {
+            selectedItems.value.push({ ...item });
+          }
+          
+          return item;
         });
 
-        console.log('Food items loaded:', foodItems.value);
+        console.log('Food items loaded with cart quantities:', foodItems.value);
       } catch (error) {
         console.error('Error fetching item listings:', error);
         errorMsg.value = 'Error loading items: ' + error.message;
@@ -126,52 +170,44 @@ export default {
       }
     };
 
-    // Toggle the favorite (like) state - Changed function name to match template
+    // Toggle the favorite (like) state
     const toggleLike = async () => {
+      if (!authReady.value) {
+        console.warn('Auth not ready yet');
+        errorMsg.value = 'Please wait, loading...';
+        return;
+      }
+
       if (!userId.value) {
         console.warn('Cannot toggle like: No user logged in');
         errorMsg.value = 'Please log in to favorite this stall';
         return;
       }
 
-      if (!hawker.value) {
+      if (!hawker.value || !hawker.value.id) {
         console.warn('Cannot toggle like: No hawker data');
+        errorMsg.value = 'Hawker data not available';
         return;
       }
 
       const newLikedState = !isLiked.value;
       const hawkerRef = doc(db, 'hawkerListings', hawker.value.id);
-      
-      try {
-        // First, get the current document to check if favouritedUser exists
-        const hawkerDoc = await getDoc(hawkerRef);
-        
-        if (!hawkerDoc.exists()) {
-          console.error('Hawker document not found');
-          errorMsg.value = 'Hawker not found';
-          return;
-        }
 
-        const hawkerData = hawkerDoc.data();
+      try {
+        console.log('Attempting to update with user:', userId.value);
         
         if (newLikedState) {
-          // Add user to favouritedUser array (creates array if it doesn't exist)
           await updateDoc(hawkerRef, {
             favouritedUser: arrayUnion(userId.value)
           });
-          console.log(`User ${userId.value} added to favourites for ${hawker.value.hawkerName}`);
         } else {
-          // Remove user from favouritedUser array
           await updateDoc(hawkerRef, {
             favouritedUser: arrayRemove(userId.value)
           });
-          console.log(`User ${userId.value} removed from favourites for ${hawker.value.hawkerName}`);
         }
-        
-        // Update local state after successful Firebase operation
+
         isLiked.value = newLikedState;
         
-        // Update the hawker object to reflect the change
         if (!hawker.value.favouritedUser) {
           hawker.value.favouritedUser = [];
         }
@@ -183,44 +219,110 @@ export default {
         } else {
           hawker.value.favouritedUser = hawker.value.favouritedUser.filter(id => id !== userId.value);
         }
-        
+
+        console.log('Favourite status updated successfully');
+
       } catch (error) {
         console.error('Error updating favourite status:', error);
+        console.error('Error code:', error.code);
         errorMsg.value = 'Failed to update favorite status. Please try again.';
       }
     };
 
+    // Save item to cart in Firebase
+    const saveToCart = async (item) => {
+      if (!userId.value) {
+        console.warn('Cannot save to cart: No user logged in');
+        errorMsg.value = 'Please log in to add items to cart';
+        return;
+      }
+
+      try {
+        const cartRef = doc(db, 'cart', userId.value);
+        const cartSnap = await getDoc(cartRef);
+
+        const cartItem = {
+          itemId: item.id,
+          itemName: item.itemName,
+          qty: item.count,
+          itemPrice: item.itemPrice,
+          discountedPrice: item.discountedPrice,
+          imageUrl: item.imageUrl,
+          hawkerId: hawker.value.userId,
+          hawkerName: hawker.value.hawkerName
+        };
+
+        if (cartSnap.exists()) {
+          // Cart exists, update it
+          const existingItems = cartSnap.data().items || [];
+          const itemIndex = existingItems.findIndex(i => i.itemId === item.id);
+
+          if (item.count === 0) {
+            // Remove item if count is 0
+            if (itemIndex !== -1) {
+              existingItems.splice(itemIndex, 1);
+            }
+          } else if (itemIndex !== -1) {
+            // Update existing item
+            existingItems[itemIndex] = cartItem;
+          } else {
+            // Add new item
+            existingItems.push(cartItem);
+          }
+
+          await updateDoc(cartRef, {
+            items: existingItems,
+            updatedAt: new Date()
+          });
+        } else {
+          // Create new cart
+          if (item.count > 0) {
+            await setDoc(cartRef, {
+              uid: userId.value,
+              items: [cartItem],
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+          }
+        }
+
+        console.log('Cart updated successfully');
+      } catch (error) {
+        console.error('Error saving to cart:', error);
+        errorMsg.value = 'Failed to update cart. Please try again.';
+      }
+    };
+
     // Increment item count
-    const increment = (item) => {
+    const increment = async (item) => {
       if (item.itemQty > 0 && item.count < item.itemQty) {
         item.count++;
+        await saveToCart(item);
         saveItemToList(item);
         triggerToast();
       }
     };
 
     // Decrement item count
-    const decrement = (item) => {
+    const decrement = async (item) => {
       if (item.count > 0) {
         item.count--;
+        await saveToCart(item);
         saveItemToList(item);
       }
     };
 
-    // Save selected item to list
+    // Save selected item to local list (for internal tracking)
     const saveItemToList = (item) => {
       const existingItemIndex = selectedItems.value.findIndex(selectedItem => selectedItem.id === item.id);
       
       if (item.count === 0) {
-        // Remove item if count is 0
         if (existingItemIndex !== -1) {
           selectedItems.value.splice(existingItemIndex, 1);
         }
       } else if (existingItemIndex !== -1) {
-        // Update existing item
         selectedItems.value[existingItemIndex].count = item.count;
       } else {
-        // Add new item
         selectedItems.value.push({ ...item });
       }
     };
@@ -234,7 +336,7 @@ export default {
     });
 
     return {
-      isLiked,  // Changed from 'saved' to match template
+      isLiked,
       hawker,
       foodItems,
       loading,
@@ -242,7 +344,7 @@ export default {
       showToast,
       triggerToast,
       saveIcons,
-      toggleLike,  // Changed from 'toggleSave' to match template
+      toggleLike,
       increment,
       decrement,
       selectedItems
