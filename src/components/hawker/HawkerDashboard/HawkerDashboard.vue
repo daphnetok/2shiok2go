@@ -52,7 +52,7 @@
       <p v-if="activeListings.length === 0" class="text-secondary">No active listings yet</p>
       
       <div v-else class="w-100">
-        <div class="card mb-3" v-for="listing of activeListings" :key="listing.id">
+        <div class="card" v-for="listing of activeListings" :key="listing.id">
           <div class="row g-0" style="align-items: center;">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">
@@ -94,7 +94,7 @@
       <p v-if="inactiveListings.length === 0" class="text-secondary">No inactive listings</p>
       
       <div v-else class="w-100">
-        <div class="card mb-3" v-for="listing in inactiveListings" :key="listing.id">
+        <div class="card" v-for="listing in inactiveListings" :key="listing.id">
           <div class="row g-0" style="align-items: center;">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">
