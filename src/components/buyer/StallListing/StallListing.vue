@@ -21,10 +21,26 @@
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
           <p class="stall-address">
-            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
+            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address || 'Address not available' }}
+            <button @click="toggleMap" class="map-toggle-btn">
+              <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
+            </button>
           </p>
-          <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
-          <p class="stall-distance">{{ hawker.distance || '?' }} km away </p>
+          
+          <!-- Toggleable Embedded Google Maps -->
+          <div v-if="showMap" class="map-container">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8!2d103.903265!3d1.305055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMTgnMTguMiJOIDEwM8KwNTQnMTEuNyJF!5e0!3m2!1sen!2ssg!4v1234567890123!5m2!1sen!2ssg"
+              width="75%"
+              height="150"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+          
+          <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
           <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
         </div>
       </div>

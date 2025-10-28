@@ -32,11 +32,18 @@ export default {
       authReady.value = true;
     });
 
+    const showMap = ref(false);
+
+
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
       setTimeout(() => { showToast.value = false; }, duration);
     };
 
+    const toggleMap = () => {
+      showMap.value = !showMap.value;
+    };
+    
     const saveIcons = {
       heart: 'fa-regular fa-heart saveIcon',
       heartFilled: 'fa-solid fa-heart savedIcon'
@@ -342,7 +349,9 @@ export default {
       loading,
       errorMsg,
       showToast,
+      showMap,
       triggerToast,
+      toggleMap,
       saveIcons,
       toggleLike,
       increment,
