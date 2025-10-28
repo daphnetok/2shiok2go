@@ -1,13 +1,15 @@
-import { reactive, ref } from 'vue';
+import { reactive, ref, onBeforeUnmount } from 'vue';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete.vue';
 import { createHawker } from '/firebase/firestore';
+import { uploadImage } from '/firebase/storage';
+import { auth } from '/firebase/config';
 
 export default {
   name: 'HawkerStallForm',
   components: {
     AddressAutocomplete
   },
-  setup() {
+  setup(props, { emit }) {
     const form = reactive({
       stallName: '',
       closingTime: '',
@@ -26,11 +28,33 @@ export default {
     const loading = ref(false);
     const errorMsg = ref('');
     const successMsg = ref('');
+    const selectedFile = ref(null);
+    const previewSelectedFileSRC = ref('');
+    const fileInput = ref(null);
 
     const onAddressSelected = (addressData) => {
       console.log('Address selected:', addressData);
       form.address = addressData;
     };
+
+    const onFileSelected = (event) => {
+      const file = event.target.files[0];
+      if(file) {
+        selectedFile.value = file;
+        previewSelectedFileSRC.value = URL.createObjectURL(file);
+      }
+    }
+
+    const removeFile = () => {
+      if(previewSelectedFileSRC.value) {
+        URL.revokeObjectURL(previewSelectedFileSRC.value);
+      }
+      previewSelectedFileSRC.value = '';
+      selectedFile.value = null;
+      if(fileInput.value) {
+        fileInput.value = '';
+      }
+    }
 
     const handleSubmit = async () => {
       loading.value = true;
@@ -42,6 +66,9 @@ export default {
         if(!form.address.formattedAddress) {
           throw new Error('Please enter a valid address')
         }
+        // upload image to storage
+        const imageData = await uploadImage(selectedFile.value, 'hawkerListings');
+
         // create hawker document
         const hawkerData = {
           hawkerName: form.stallName,
@@ -55,12 +82,18 @@ export default {
             street: form.address.street,
             city: form.address.city,
             country: form.address.country
-          }
+          },
+          imageUrl: imageData.url,
+          imageName: imageData.name,
+          imagePath: imageData.path,
+          userId: auth.currentUser.uid
         };
 
         const docRef = await createHawker(hawkerData);
         console.log('Hawker created with ID: ', docRef.id);
         successMsg.value = 'Hawker stall created successfully!';
+        emit('stallCreated');
+
         // reset form
         form.stallName = '';
         form.closingTime = '';
@@ -74,6 +107,7 @@ export default {
           city: '',
           country: ''
         };
+      removeFile();
       } catch (error) {
         console.error('Error creating hawker: ', error);
         errorMsg.value = error.message;
@@ -82,13 +116,24 @@ export default {
       }
     };
 
+    onBeforeUnmount(() => {
+      if(previewSelectedFileSRC.value) {
+        URL.revokeObjectURL(previewSelectedFileSRC.value);
+      }
+    })
+
     return {
       form,
       loading,
       errorMsg,
       successMsg,
+      selectedFile,
+      previewSelectedFileSRC,
+      fileInput,
       onAddressSelected,
-      handleSubmit
+      handleSubmit,
+      onFileSelected,
+      removeFile
     };
   }
 };

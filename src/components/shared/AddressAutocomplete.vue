@@ -9,9 +9,9 @@
       v-model="displayAddress"
       @focus="onFocus"
     />
-    <small v-if="coordinates.lat && coordinates.lng" class="text-muted">
-      📍 Location verified ({{ coordinates.lat.toFixed(4) }}, {{ coordinates.lng.toFixed(4) }})
-    </small>
+    <!-- <small v-if="coordinates.lat && coordinates.lng" class="text-muted"> -->
+      <!-- 📍 Location verified ({{ coordinates.lat.toFixed(4) }}, {{ coordinates.lng.toFixed(4) }}) -->
+    <!-- </small> -->
   </div>
 </template>
 

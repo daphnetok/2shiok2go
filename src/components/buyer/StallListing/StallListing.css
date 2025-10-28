@@ -150,14 +150,12 @@
   border-radius: 8px;
 }
 
-/* Counter Button */
 .counter-btn {
   position: absolute;
   bottom: 10px;
   right: 10px;
   background: #4CAF50;
   color: white;
-  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,8 +163,8 @@
   transition: all 0.2s ease;
   white-space: nowrap; /* Ensure the content doesn't wrap */
   height: 40px;  /* Fix height */
-  min-width: 40px;  /* Fix minimum width to maintain circle shape when only one element */
-  border-radius: 50%;  /* Makes it a circle when only quantity or "+" is displayed */
+  min-width: 40px;  /* Fix minimum width to maintain circle shape when only '+' is displayed */
+  border-radius: 50%;  /* Makes it a circle when only quantity or '+' is displayed */
 }
 
 .counter-btn.square {
@@ -181,8 +179,9 @@
 .hover-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 80px;
+  justify-content: center;
+  width: auto;  /* Let it adjust based on content */
+  gap: 5px;  /* Add space between buttons and quantity */
 }
 
 .hover-controls button {
@@ -190,16 +189,20 @@
   background-color: #45a049;
   color: white;
   font-size: 1.2em;
+  padding: 5px 5px; /* Give buttons padding for better appearance */
 }
 
-/* Adjust button text size and alignment */
 .counter-btn div {
   font-size: 1em;  /* Adjust size of quantity */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;  /* Space between quantity and "+" */
 }
+
+.counter-btn div:hover .hover-controls {
+  display: flex;
+}
+
 
 .card-content {
   margin-top: 10px;

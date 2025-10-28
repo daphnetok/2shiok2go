@@ -1,5 +1,5 @@
 <template>
-    <main>
+    <div class="container">
         <div class="row">
             <SearchBar/>
         </div>
@@ -13,8 +13,8 @@
                 </router-link>
             </div>
         </div>
-        <BackToTop />
-    </main>
+    </div>
+    <BackToTop />
 </template>
 
 <script>

@@ -1,7 +1,7 @@
 <template>
   <main>
     <h2>Create Listing</h2>
-    <p>Hawkers can upload surplus food items here.</p>
+    <!-- <p>Hawkers can upload surplus food items here.</p> -->
     <CreateAListing/>
   </main>
 </template>

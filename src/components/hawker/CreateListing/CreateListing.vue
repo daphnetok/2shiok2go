@@ -91,6 +91,13 @@
         <input type="text" class="form-control mb-3" required 
             placeholder="Type food name here" v-model="form.itemName" name="itemName">
 
+         <!-- AI Food Description Component -->
+        <AIFoodDescription 
+          :selectedFile="selectedFile"
+          :foodName="form.itemName"
+          v-model:description="form.description"
+        />
+
         <!-- Price & Discount fields-->
         <div class="row mb-3">
             <div class="price-input-container col">
@@ -111,8 +118,9 @@
                 <span v-if="form.itemPrice">{{ discountedPrice }}</span>
               </p>
             <!-- Smart discount suggestion -->
-              <span class="green-bg w-50 mb-3"><font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/>
-                Smart Discount Suggestion: <b>20%</b>
+              <span class="green-bg w-50 mb-3">
+                <!-- <font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/> -->
+                ✨ Smart Discount Suggestion: <b>20%</b>
               </span>
           </div>
 

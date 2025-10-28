@@ -6,6 +6,25 @@
         <input type="text" placeholder="Search for Food or Location..." class="search-input" />
       </div>
       
+      <router-link to="/cart">
+        <a href=""><i class="fa-solid fa-basket-shopping shopping"></i></a>
+      </router-link>
+      <div class="me-3"></div>
+      <div class="user-icon-container position-relative">
+        <a href="" class="user-icon user">
+          <i class="fa-solid fa-user"></i>
+        </a>
+        <div class="user-dropdown">
+          <ul>
+            <router-link to="/favourites" class="router">
+            <li><a href="#"><i class="fa-solid fa-heart icon"></i>Favourite</a></li>
+            </router-link>
+            <li><a href="#"><i class="fa-solid fa-clock icon"></i>Recent Orders</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear icon"></i>Settings</a></li>
+          </ul>
+        </div>
+      </div>
+      
   </div>
 </template>
 
@@ -14,42 +33,7 @@ export default {
   name: "SearchBar"}
 </script>
 
-<style scoped>
-
-.search-container {
-  display: flex;
-  align-items: center;
-  margin-top: 15px;
-  margin-bottom: 15px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  padding: 5px;
-  width: 100%;
-}
-
-.search-box:hover {
-  box-shadow: 0px 0px 10px 4px rgba(0, 128, 0, 0.6); /* Green box-shadow */
-}
-
-.search-input {
-  border: none;
-  outline: none;
-  padding: 8px;
-  width: 100%;
-  border-radius: 20px;
-  font-size: 14px;
-}
-
-.search-icon {
-  margin-left: 2%;  /* Adjust space between icon and input text */
-  font-size: 18px; /* Adjust the size of the icon */
-  color: #509180;  /* Icon color */
-}
-
+<style>
+@import './SearchBar.css'
 
 </style>
