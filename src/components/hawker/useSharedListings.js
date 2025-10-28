@@ -125,8 +125,25 @@ export const deleteListingWithImage = async (listingId, imagePath) => {
   }
 };
 
+export const editModalVisible = ref(false);
+export const listingToEdit = ref(null);
+
 export const editListing = (listingId) => {
-  console.log("Edit listing: ", listingId);
+  const listing = allListings.value.find(l => l.id === listingId);
+  if (listing) {
+    listingToEdit.value = listing;
+    editModalVisible.value = true;
+  }
+};
+
+export const closeEditModal = () => {
+  editModalVisible.value = false;
+  listingToEdit.value = null;
+};
+
+export const onListingSaved = () => {
+  showAlert('success', 'Listing updated successfully!');
+  closeEditModal();
 };
 
 export const duplicateListing = async (listing) => {

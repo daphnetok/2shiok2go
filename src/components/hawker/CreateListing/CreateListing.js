@@ -1,6 +1,6 @@
 import { reactive, ref, onBeforeUnmount, computed, onMounted } from 'vue';
-import { createListing, updateListing, deleteListing, useLoadListings } from '/firebase/firestore';
-import { uploadImage, deleteImage } from '/firebase/storage';
+import { createListing } from '/firebase/firestore';
+import { uploadImage } from '/firebase/storage';
 import { 
   alert, 
   showAlert, 

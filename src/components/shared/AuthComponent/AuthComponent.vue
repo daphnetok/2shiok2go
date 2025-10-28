@@ -84,7 +84,7 @@
           </a>
         </p>
         <!-- directs user to log in page after signing up -->
-        <div v-if="successView" class="manual-toggle">
+        <div v-if="successView && !loading" class="manual-toggle">
           <button class="btn btn-secondary" @click="handleProceedToLogin">
             Proceed to Log in
           </button>    
