@@ -32,7 +32,9 @@
             <a class="nav-link active-link" aria-current="page" href="#">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            <router-link class="nav-link" to="/orders-table">
+              <a class="nav-link"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/hawker-analytics">
