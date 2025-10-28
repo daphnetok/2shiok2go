@@ -40,7 +40,9 @@
             <a class="nav-link active-link" aria-current="page" href="#">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            <router-link class="nav-link" to="/orders-table">
+              <a class="nav-link"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/hawker-analytics">
@@ -60,7 +62,7 @@
       <p v-if="activeListings.length === 0" class="text-secondary">No active listings yet</p>
       
       <div v-else class="w-100">
-        <div class="card mb-3" v-for="listing of activeListings" :key="listing.id">
+        <div class="card" v-for="listing of activeListings" :key="listing.id">
           <div class="row g-0" style="align-items: center;">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">
@@ -102,7 +104,7 @@
       <p v-if="inactiveListings.length === 0" class="text-secondary">No inactive listings</p>
       
       <div v-else class="w-100">
-        <div class="card mb-3" v-for="listing in inactiveListings" :key="listing.id">
+        <div class="card" v-for="listing in inactiveListings" :key="listing.id">
           <div class="row g-0" style="align-items: center;">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">

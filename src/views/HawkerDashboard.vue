@@ -14,7 +14,7 @@
     </div>
 
     <div v-else>
-      <p>Monitor orders, view analytics, and track unsold inventory.</p>
+      <!-- <p>Monitor orders, view analytics, and track unsold inventory.</p> -->
       <HawkerListings/>
     </div>
   </div>

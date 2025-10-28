@@ -20,7 +20,7 @@
                         <font-awesome-icon icon="upload" class="fa-lg green" />
                         <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo</b></span>
                         <span v-else class="green"><b>Change Photo</b></span>
-                        <br> by clicking here to browse or </br> drag and drop here
+                        <br> by clicking here to browse or <br> drag and drop here
                     </label>
                     <input
                         type="file"

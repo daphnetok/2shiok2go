@@ -9,6 +9,7 @@ import {
   confirmationConfirm, 
   confirmationCancel 
 } from '@/components/hawker/useSharedListings';
+import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
 import { getDoc, doc } from 'firebase/firestore';
@@ -22,7 +23,9 @@ export default {
       itemQty: null,
       allergens: [],
       tags: [],
-      makeActive: false
+      makeActive: false,
+      description: "",
+
     });
 
     const selectedFile = ref(null);
@@ -100,7 +103,8 @@ export default {
           imagePath: imageData.path,
           orders: 0,
           hawkerName: currentUser.value.displayName,
-          userId: currentUser.value.uid
+          userId: currentUser.value.uid,
+          description: form.description
         };
         await createListing(listingData);
         showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
@@ -198,5 +202,6 @@ export default {
       isHawker,
       isLoading
     };
-  }
+  },
+  components : {AIFoodDescription}
 };
