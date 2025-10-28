@@ -1,13 +1,13 @@
 <template>
-    <div class="container">
+    <main>
         <div class="row">
             <SearchBar/>
         </div>
         <div class="row">
             <StallListing/>
         </div>
-    </div>
     <BackToTop />
+    </main>
 </template>
 
 <script>
