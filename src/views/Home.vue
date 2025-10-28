@@ -11,7 +11,9 @@
         <router-link class="router" to="/login">
         <button class="signup1">Start Saving Today &nbsp; ➜  </button>
         </router-link>
-        <button class="browse">Browse Deals</button>
+        <router-link class="router" to="/buyer-listings">
+          <button class="browse">Browse Deals</button>
+        </router-link>
       </div>
       <div class="stats">
         <div class="stat">

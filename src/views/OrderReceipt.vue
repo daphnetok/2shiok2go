@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-5 d-flex flex-column align-items-center min-vh-100 bg-light">
+  <main class="py-5 d-flex flex-column align-items-center min-vh-100 bg-light">
     <!-- Confirmation Header -->
     <div class="text-center mb-4">
       <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success bg-opacity-25 rounded-circle shadow" style="width: 64px; height: 64px;">
@@ -116,7 +116,7 @@
         </router-link>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup>

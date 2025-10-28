@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-4">
+  <main>
     <div class="row">
       <!-- Payment & Collection (Left) -->
       <div class="col-lg-6 mb-4">
@@ -107,7 +107,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup>

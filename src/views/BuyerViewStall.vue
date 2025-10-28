@@ -1,13 +1,20 @@
 <template>
-    <div class="container">
+    <main>
         <div class="row">
             <SearchBar/>
         </div>
         <div class="row">
             <StallListing/>
         </div>
-    </div>
-    <BackToTop />
+        <div class="row mt-4">
+            <div class="col text-center">
+                <router-link to="/checkout">
+                    <button class="btn btn-success">Go to Checkout</button>
+                </router-link>
+            </div>
+        </div>
+        <BackToTop />
+    </main>
 </template>
 
 <script>
