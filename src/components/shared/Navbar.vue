@@ -21,10 +21,13 @@
       <div class="navbar-nav-desktop d-none d-md-flex ms-auto" :class="{ 'has-logout': currentUser }">
         <router-link class="nav-link-desktop" to="/">Home</router-link>
         
+        <!-- Show Listing link to all users (customers can browse) -->
+        <router-link class="nav-link-desktop" to="/buyer-listings">Listing</router-link>
+        
         <!-- Buyers see these links -->
         <template v-if="currentUser && userRole === 'buyer'">
-          <router-link class="nav-link-desktop" to="/buyer-listings">Buyer Listings</router-link>
-          <router-link class="nav-link-desktop" to="/buyer-dashboard">Buyer Dashboard</router-link>
+          <router-link class="nav-link-desktop" to="/buyer-dashboard">Profile</router-link>
+          <router-link class="nav-link-desktop" to="/checkout">Checkout</router-link>
         </template>
         
         <!-- Hawkers see these links -->
@@ -34,13 +37,15 @@
         </template>
         
         <!-- Show login when not authenticated -->
-        <router-link v-if="!currentUser" class="nav-link-desktop" to="/login">Login</router-link>
+        <router-link v-if="!currentUser" class="nav-link-desktop login-link-desktop" to="/login">
+          <i class="fa-solid fa-right-to-bracket me-2"></i>Login
+        </router-link>
       </div>
       
-      <!-- Desktop Logout Icon (center right) -->
+      <!-- Desktop Logout Button (center right) -->
       <div v-if="currentUser" class="navbar-logout-desktop d-none d-md-flex">
-        <a href="#" @click.prevent="handleLogout" class="logout-icon-desktop" aria-label="Logout" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
+        <a href="#" @click.prevent="handleLogout" class="logout-button-desktop" aria-label="Logout" title="Logout">
+          <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
         </a>
       </div>
     </div>
@@ -60,11 +65,13 @@
     <div class="offcanvas-body">
       <ul class="nav flex-column">
         <li class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
+        <li class="nav-item"><router-link class="nav-link" to="/buyer-listings">Listing</router-link></li>
         
         <!-- Buyers see these links -->
         <template v-if="currentUser && userRole === 'buyer'">
-          <li class="nav-item"><router-link class="nav-link" to="/buyer-listings">Buyer Listings</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/buyer-dashboard">Buyer Dashboard</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/buyer-dashboard">Profile</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/checkout">Checkout</router-link></li>
+        
         </template>
         
         <!-- Hawkers see these links -->
@@ -170,7 +177,7 @@ export default {
 }
 
 .navbar-nav-desktop.has-logout {
-  margin-right: 4.5rem; /* Space for logout button (2rem right + 40px button + padding) */
+  margin-right: 7.5rem; /* Space for logout button with text (2rem right + logout text width + padding) */
 }
 
 .nav-link-desktop {
@@ -193,7 +200,25 @@ export default {
   background-color: rgba(25, 135, 84, 0.2);
 }
 
-/* Desktop Logout Icon */
+/* Login link styling - white color on desktop */
+.login-link-desktop {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.login-link-desktop:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.login-link-desktop i {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.login-link-desktop:hover i {
+  color: #ffffff;
+}
+
+/* Desktop Logout Button */
 .navbar-logout-desktop {
   position: absolute;
   right: 2rem;
@@ -202,24 +227,31 @@ export default {
   z-index: 10;
 }
 
-.logout-icon-desktop {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.3rem;
+.logout-button-desktop {
+  color: #dc3545;
   text-decoration: none;
-  padding: 0.5rem;
-  border-radius: 50%;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  white-space: nowrap;
 }
 
-.logout-icon-desktop:hover {
-  color: #198754;
-  background-color: rgba(25, 135, 84, 0.2);
-  transform: scale(1.1);
+.logout-button-desktop:hover {
+  color: #c82333;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.logout-button-desktop i {
+  color: #dc3545;
+  font-size: 1.1rem;
+}
+
+.logout-button-desktop:hover i {
+  color: #c82333;
 }
 
 /* Mobile Navigation Styles */
