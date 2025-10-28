@@ -10,12 +10,13 @@ import {
 import { assignRoleToGoogleUser } from '/firebase/firestore';
 import { db } from '/firebase/config'
 import { doc, getDoc } from 'firebase/firestore';
+import router from '@/router';
 
 export default {
   name: 'AuthComponent',
   setup() {
     const user = ref(null);
-    const isLogin = ref(false);
+    const isLogin = ref(true);
     const loading = ref(false);
     const errorMessage = ref('');
     const successMessage = ref('');
@@ -151,6 +152,15 @@ export default {
       loading.value = false;
     };
 
+    // handle routing
+    const goToDashboard = () => {
+      if(userRole.value == 'buyer'){
+        router.push('/buyer-dashboard');
+      } else if (userRole.value == 'hawker') {
+        router.push('/hawker-dashboard')
+      }
+    };
+
     // listen to auth state changes
     onMounted(() => {
       onAuthStateChanged(auth, async (authUser) => {
@@ -188,7 +198,8 @@ export default {
       googleSignIn,
       handleSignOut,
       handleProceedToLogin,
-      handleRoleSelect
+      handleRoleSelect,
+      goToDashboard
     };
   }
 };

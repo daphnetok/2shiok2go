@@ -21,10 +21,10 @@
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
           <p class="stall-address">
-            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address || 'Address not available' }}
+            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
           </p>
           <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
-          <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+          <p class="stall-distance">{{ hawker.distance || '?' }} km away </p>
           <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
         </div>
       </div>
@@ -65,7 +65,7 @@
                     <div v-if="item.hover" class="hover-controls">
                       <button @click.stop="decrement(item)">-</button>
                       {{ item.count }}
-                      <button @click.stop="increment(item)">+</button>
+                      <button @click.stop="increment(item)" :disabled="item.count >= item.itemQty">+</button>
                     </div>
                     <div v-else>
                       {{ item.count }}
