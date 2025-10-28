@@ -1,9 +1,9 @@
 <template>
-    <div class="container mt-4 text-center">
+    <main class="text-center">
         <h2>Hawker Form</h2>
         <p>Create your own hawker listing!</p>
         <HawkerStallForm/>
-    </div>
+    </main>
 </template>
 
 <script>

@@ -1,6 +1,6 @@
 <!-- filepath: /Applications/MAMP/htdocs/wad2/gproj/figmamake/2shiok2go/src/views/HawkerAnalytics.vue -->
 <template>
-  <div class="container mt-4">
+  <main>
     <!-- Dashboard Header -->
     <div class="row mb-4">
       <div class="col">
@@ -110,7 +110,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script>

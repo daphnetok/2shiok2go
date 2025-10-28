@@ -1,8 +1,8 @@
 <template>
-  <div class="container mt-4">
+  <main>
     <h2>Buyer Dashboard</h2>
     <p>Track your past orders, points, and rewards here.</p>
-  </div>
+  </main>
 </template>
 
 <script>

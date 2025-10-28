@@ -25,7 +25,7 @@
       </div>
     </div>
     
-  <div class="container mt-4">
+  <main>
     <h2>Hawker Dashboard</h2>
     <p>Monitor orders, view analytics, and track unsold inventory.</p>
 
@@ -48,7 +48,7 @@
     </nav>
 
   <!-- active listings -->
-  <div class="container mt-4">
+  <div>
     <div class="d-flex justify-content-end">
       <router-link to="/create-listing" class="btn btn-success mb-3 ">+ Create a New Listing</router-link></div>
     <div class="row active mb-5">
@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  </div>
+  </main>
   
 </template>
 
