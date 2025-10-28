@@ -1,21 +1,28 @@
 .hawker-form {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.form-group{
+.form-group {
   margin-bottom: 15px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  width: 75%;
+  margin: 0 auto 5px auto;  /* Center the label */
   color: #555;
   font-weight: 500;
   font-size: 14px;
+  text-align: left;
 }
 
-.form-group input, .form-group select {
+.form-group input,
+.form-group select {
   width: 75%;
+  margin: 0 auto;  /* Center the inputs */
+  display: block;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -23,10 +30,52 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #4285f4;
 }
+
+/* Style the AddressAutocomplete component */
+.form-group :deep(.address-autocomplete) {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.form-group :deep(.address-autocomplete .form-label) {
+  display: block;
+  width: 75%;
+  margin: 0 auto 5px auto;  /* Center the label */
+  color: #555;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: left;
+}
+
+.form-group :deep(.address-autocomplete .form-control) {
+  width: 75% !important;
+  margin: 0 auto !important;  /* Center the input */
+  display: block !important;
+  padding: 10px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+}
+
+.form-group :deep(.address-autocomplete .text-muted) {
+  width: 75%;
+  margin: 0 auto;  /* Center the helper text */
+  text-align: left;
+}
+
+.button-group {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 button {
   margin: 10px;
   padding: 10px 20px;
@@ -38,4 +87,69 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Image Upload Styles - CENTERED */
+#uploadImg {
+  height: 150px;
+  width: 75%;
+  margin: 0 auto;  /* Center it */
+  background-color: rgb(241, 255, 241);
+  border: 1px dashed rgb(71, 153, 71);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#uploadImg label {
+  display: block;
+  text-align: center;
+  cursor: pointer;
+  width: 100%;
+  margin: 0;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+#image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+}
+
+#img-container {
+  position: relative;
+  padding: 10px;
+  width: 75%;
+  margin: 0 auto 10px auto;  /* Center it */
+  border: 1px dashed rgb(71, 153, 71);
+  border-radius: 10px;
+}
+
+.remove-btn {
+  position: absolute;
+  font-size: 15px;
+  top: 5px;
+  right: 5px;
+  background-color: #eee;
+  border-radius: 50%;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background-color: #ddd;
+}
+
+.green {
+  color: rgb(71, 153, 71);
+}
+
+.form-label {
+  font-weight: bold;
 }

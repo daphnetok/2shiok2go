@@ -73,8 +73,8 @@ input[type=file]{
     padding: 20px;
 }
 .list-img-container img{
-    height: 70px;
-    width: 120px;
+    height: 100px;
+    width: 150px;
     object-fit: cover;
     margin: 10px;
     

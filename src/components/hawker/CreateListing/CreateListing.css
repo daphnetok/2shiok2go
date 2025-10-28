@@ -1,0 +1,37 @@
+.ai-description-container {
+  margin-bottom: 1rem;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+textarea:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.btn-outline-primary {
+  border-color: hsla(160, 100%, 37%, 1);
+  background-color: hsla(160, 100%, 37%, 1);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: rgb(0, 140, 94);
+  border-color: hsla(160, 100%, 37%, 1);
+  color: white;
+}
+
+.btn-outline-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  border-color: rgb(71, 153, 71);
+  background-color: rgb(0, 139, 93);
+  color: white;
+  font-weight: 600;
+}
