@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container mt-4">
      <!-- Alert Box -->
     <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
       <div class="custom-alert-content">

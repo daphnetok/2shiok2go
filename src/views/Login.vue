@@ -1,9 +1,9 @@
 <template>
-  <main class="text-center">
+  <div class="container mt-4 text-center">
     <h2>Login</h2>
     <p>Access your hawker or buyer account to start saving food.</p>
     <AuthComponent />
-  </main>
+  </div>
 </template>
 
 <script>

@@ -1,8 +1,8 @@
 <template>
-  <main class="text-center">
+  <div class="container mt-4 text-center">
     <h2>Register</h2>
     <p>Create your account and join the 2Shiok2Go community.</p>
-  </main>
+  </div>
 </template>
 
 <script>

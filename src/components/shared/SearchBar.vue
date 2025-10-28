@@ -35,4 +35,5 @@ export default {
 
 <style>
 @import './SearchBar.css'
+
 </style>
