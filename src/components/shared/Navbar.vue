@@ -27,7 +27,7 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <router-link class="nav-link-desktop" to="/buyer-dashboard">Profile</router-link>
-            <router-link class="nav-link-desktop" to="/checkout">Checkout</router-link>
+            <router-link class="nav-link-desktop" to="/cart">Cart</router-link>
   </template>
   
   <!-- Hawkers see these links -->
@@ -70,7 +70,7 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <li class="nav-item"><router-link class="nav-link" to="/buyer-dashboard">Profile</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/checkout">Checkout</router-link></li>
+            <li class="nav-item"><router-link class="nav-link" to="/cart">Cart</router-link></li>
           
   </template>
   
