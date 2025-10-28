@@ -13,10 +13,12 @@
 }
 /* Top Stall Info */
 .stall-info {
-  align-items: center;
+  /* align-items: center; */
 }
 .stallImg {
   width: 100%;
+  height: 400px;
+  object-fit: cover;
   border-radius: 25px;
 }
 .stall-header {
@@ -82,16 +84,40 @@
   margin: 5px 0;
   color: black;
 }
-.map-btn {
-  margin: 5px 0;
-  border: 2px solid green;
-  border-radius: 20px;
-  color: green;
-  background-color: rgb(236, 255, 234);
-  padding: 3px 8px;
+.map-container {
+  margin: 10px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
 }
-.stall-address, .map-btn{
-    display: inline;
+.map-container iframe {
+  border-radius: 12px;
+  width: 100%;
+  height: 150px;
+}
+.stall-address{
+    display: block;
+    margin: 5px 0;
+}
+.map-toggle-btn {
+  margin-left: 10px;
+  border: 2px solid #4CAF50;
+  border-radius: 20px;
+  color: #4CAF50;
+  background-color: #f1f8e9;
+  padding: 5px 12px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.map-toggle-btn:hover {
+  background-color: #4CAF50;
+  color: white;
+}
+.stall-distance, .stall-rating {
+  margin: 8px 0;
+  color: black;
 }
 .pinIcon{
     color: rgb(235, 86, 86);

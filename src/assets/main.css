@@ -7,6 +7,24 @@
   font-weight: normal;
 }
 
+/* Main element padding to prevent content from touching screen edges */
+main {
+  padding: 1.5rem;
+}
+
+/* Responsive padding for smaller screens */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  main {
+    padding: 0.75rem;
+  }
+}
+
 a,
 .green {
   text-decoration: none;

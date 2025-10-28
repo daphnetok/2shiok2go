@@ -14,29 +14,13 @@ export default {
     const loading = ref(true);
     const errorMsg = ref(null);
     const showToast = ref(false);
-    const selectedItems = ref([]);
-
-    const auth = getAuth();
-    const userId = ref(null);
-    const authReady = ref(false);
-    
-    // Listen for auth state changes
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userId.value = user.uid;
-        console.log('User authenticated:', userId.value);
-      } else {
-        userId.value = null;
-        console.log('No user authenticated');
-      }
-      authReady.value = true;
-    });
+    const showMap = ref(false);
 
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
       setTimeout(() => { showToast.value = false; }, duration);
     };
-
+    
     const saveIcons = {
       heart: 'fa-regular fa-heart saveIcon',
       heartFilled: 'fa-solid fa-heart savedIcon'
@@ -342,7 +326,9 @@ export default {
       loading,
       errorMsg,
       showToast,
+      showMap,
       triggerToast,
+      toggleMap,
       saveIcons,
       toggleLike,
       increment,

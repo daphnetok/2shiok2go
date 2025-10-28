@@ -6,6 +6,13 @@
         <div class="row">
             <StallListing/>
         </div>
+        <div class="row mt-4">
+            <div class="col text-center">
+                <router-link to="/checkout">
+                    <button class="btn btn-success">Go to Checkout</button>
+                </router-link>
+            </div>
+        </div>
     </div>
     <BackToTop />
 </template>

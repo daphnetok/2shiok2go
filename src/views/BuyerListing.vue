@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-4">
+  <main>
     <div class="row" >
       <div class="col-lg-3 col-md-4" >
         <FilterBar @filter-change="onFilterChange" />
@@ -14,8 +14,8 @@
       </div>
 
     </div>
-  </div>
-  <BackToTop />
+    <BackToTop />
+  </main>
 </template>
 
 <script>
