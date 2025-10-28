@@ -1,12 +1,21 @@
 <template>
-  <div class="container mt-4">
-    <div class="row" >
-      <div class="col-lg-3 col-md-4" >
+ <main>
+    <div class="row">
+      <!-- Desktop: Filter on left, Search and Grid on right -->
+      <div class="col-lg-2 col-md-3 d-none d-md-block">
         <FilterBar @filter-change="onFilterChange" />
       </div>
 
-      <div class="col-lg-9 col-md-8" >
+      <!-- Desktop: Main content area (wider now) -->
+      <!-- Mobile: Full width with SearchBar first, then Filter, then Grid -->
+      <div class="col-lg-10 col-md-9 col-12">
         <SearchBar/>
+        
+        <!-- Mobile: Filter appears below SearchBar -->
+        <div class="d-md-none mb-3">
+          <FilterBar @filter-change="onFilterChange" />
+        </div>
+        
         <ListingGrid
           :price-order="filters.priceOrder"
           :dietary="filters.dietary"
@@ -14,8 +23,8 @@
       </div>
 
     </div>
-  </div>
-  <BackToTop />
+    <BackToTop />
+  </main>
 </template>
 
 <script>
