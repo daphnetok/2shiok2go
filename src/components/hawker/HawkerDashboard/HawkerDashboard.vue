@@ -23,6 +23,14 @@
         
       </div>
     </div>
+
+    <!-- Edit Listing Modal -->
+    <EditModal
+      :isVisible="editModalVisible"
+      :listing="listingToEdit"
+      @close="closeEditModal"
+      @saved="onListingSaved"
+    />
     
   <div class="container mt-4">
     <nav class="navbar navbar-expand bg-body-tertiary">
@@ -162,10 +170,19 @@
     deleteListingWithImage,
     editListing,
     duplicateListing,
+    editModalVisible,
+    listingToEdit,
+    closeEditModal,
+    onListingSaved
   } from '@/components/hawker/useSharedListings';
+
+  import EditModal from '@/components/hawker/editModal/editModal.vue';
 
   export default {
     name: "HawkerListings",
+    components: {
+      EditModal
+    },
     setup() {
       onMounted(() => {
         console.log("HawkerDashboard mounted");
@@ -185,6 +202,10 @@
         deleteListingWithImage,
         editListing,
         duplicateListing,
+        editModalVisible,
+        listingToEdit,
+        closeEditModal,
+        onListingSaved
       };
     }
   };
