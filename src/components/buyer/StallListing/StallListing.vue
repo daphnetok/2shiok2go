@@ -24,7 +24,7 @@
             <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
           </p>
           <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
-          <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+          <p class="stall-distance">{{ hawker.distance || '?' }} km away </p>
           <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
         </div>
       </div>
