@@ -15,17 +15,29 @@ h2 {
   border-radius: 0;
   box-shadow: none;
   border: none;
-  padding: 18px 0 18px 0;
+  padding: 12px 0 12px 0;
   height: auto;
 }
 
 .colour h2 {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #388e3c;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   letter-spacing: 0.5px;
   text-align: left;
+}
+
+/* Smaller filter on desktop */
+@media (min-width: 768px) {
+  .colour {
+    padding: 10px 0 10px 0;
+  }
+  
+  .colour h2 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
 }
 
 /* Toggler Button */
@@ -51,11 +63,19 @@ h2 {
 .filterItem {
   border-bottom: 1px solid #e0e0e0;
   background:#e8f5e9;
-  padding: 18px 0;
   margin: 0;
-  border-radius: 22px;
-  padding: 18px 18px;
-  margin-bottom: 15px;
+  border-radius: 15px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+/* Smaller filter items on desktop */
+@media (min-width: 768px) {
+  .filterItem {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
 }
 
 
@@ -69,9 +89,42 @@ h2 {
 
 .filter-header h4 {
   margin: 0;
-  font-size: 1.08rem;
+  font-size: 0.95rem;
   color: #388e3c;
   font-weight: 600;
+}
+
+/* Smaller header on desktop */
+@media (min-width: 768px) {
+  .filter-header h4 {
+    font-size: 0.85rem;
+  }
+  
+  .filter-header {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  
+  /* Smaller buttons on desktop */
+  .filter-header .btn {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .filterItem .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Smaller checkboxes and labels */
+  .filterItem label {
+    font-size: 0.85rem;
+  }
+  
+  input[type="checkbox"] {
+    margin-right: 6px;
+    margin-bottom: 3px;
+  }
 }
 
 .filter-header .accordion-btn {
@@ -118,7 +171,7 @@ input[type="checkbox"] {
 }
 
 /* Buyer Listing Specific Styles */
-.col-lg-3, .col-md-4 {
+.col-lg-2, .col-lg-3, .col-md-3, .col-md-4 {
   padding-right: 0 !important;
   padding-left: 0 !important;
 }
