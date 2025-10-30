@@ -1,257 +1,515 @@
-/* Stall Card Outer */
-.stall-card {
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  margin: 30px auto;
-  max-width: 1100px;
-  padding: 32px 24px;
-  position: relative; /* allow absolute children like floating heart */
-}
+/* Reset and Base Styles */
 .reset-style {
   all: unset;
+  display: block;
 }
-/* Top Stall Info */
+
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Loading and Error States */
+.text-center {
+  text-align: center;
+}
+
+.alert {
+  padding: 15px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.alert-danger {
+  background-color: #fee;
+  color: #c33;
+  border: 1px solid #fcc;
+}
+
+/* Stall Card Container */
 .stall-info {
-  /* align-items: center; */
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
 }
-.stallImg {
+
+.stall-info:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Image Column (scoped) */
+.stall-listing .col-md-5 {
+  flex: 0 0 42%;
+  max-width: 42%;
+}
+
+.stall-listing .stallImg {
   width: 100%;
   height: 400px;
   object-fit: cover;
-  border-radius: 25px;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
 }
-.stall-header {
+
+.stallImg:hover {
+  transform: scale(1.02);
+}
+
+/* Info Column (scoped) */
+.stall-listing .col-md-6 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Header */
+.stall-header h1 {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+}
+
+/* Address and Distance */
+.stall-address,
+.stall-distance {
+  font-size: 1em;
+  color: #555;
+  margin: 8px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
-/* .heart-btn {
-  background: none;
-  border: none;
+
+.pinIcon {
+  color: #ef4444;
+  font-size: 1.1em;
+}
+
+.starIcon {
+  color: #fbbf24;
+  font-size: 1.1em;
+  margin-right: 4px;
+}
+
+/* Rating */
+.stall-info p:last-child {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+}
+
+/* Map Toggle Button */
+.map-toggle-btn {
+  margin-left: 10px;
+  border: 2px solid #4CAF50;
+  border-radius: 25px;
+  color: #4CAF50;
+  background-color: #f1f8e9;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  font-weight: 600;
   cursor: pointer;
-  position: absolute;
-  right: 5%;
-  top: 4%;
-}
-.saveIcon {
-  color: gray; 
-  font-size: 1.7em;
-  transition: color 0.2s;
-}
-.savedIcon {
-  color: red;
-  font-size: 1.7em;
-  transition: color 0.2s;
-} */
-
- /* Heart icon */
-.heart-container {
-  display: inline-block;
-  padding: 20px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Floating overlay specifically for top-right placement */
+.map-toggle-btn:hover {
+  background-color: #4CAF50;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.map-toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* Map Container */
+.map-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-container iframe {
+  border-radius: 12px;
+  width: 100%;
+  height: 180px;
+}
+
+/* Floating Heart Button */
 .heart-container-overlay {
   position: absolute;
-  top: 12px;
-  right: 16px;
+  top: 30px;
+  right: 30px;
   z-index: 20;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  padding: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: pointer;
+  transition: all 0.3s ease;
+
+}
+
+.heart-container-overlay:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .heart-icon {
   width: 28px;
   height: 28px;
   cursor: pointer;
-  transition: transform 0.2s ease, fill 0.2s ease;
-  fill: #9ca3af; /* neutral gray */
-}
-.heart-icon:hover {
-  transform: scale(1.08);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  fill: #d1d5db;
 }
 
-/* liked state - filled heart */
 .heart-icon.liked {
-  fill: #ef4444; /* red */
-  transform: scale(1.05);
+  fill: #ef4444;
+  animation: heartBeat 0.5s ease;
 }
-.stall-address, .stall-distance {
-  margin: 5px 0;
-  color: black;
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.2); }
 }
-.map-container {
-  margin: 10px 0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+
+/* Listings Section (scoped) */
+.stall-listing .row.mt-4 {
+  margin-top: 40px;
 }
-.map-container iframe {
-  border-radius: 12px;
-  width: 100%;
-  height: 150px;
+
+.stall-listing .row.mt-4 h4 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #4CAF50;
+  display: inline-block;
 }
-.stall-address{
-    display: block;
-    margin: 5px 0;
+
+/* Grid Layout for Food Items (scoped) */
+.stall-listing .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 0 -10px;
 }
-.map-toggle-btn {
-  margin-left: 10px;
-  border: 2px solid #4CAF50;
-  border-radius: 20px;
-  color: #4CAF50;
-  background-color: #f1f8e9;
-  padding: 5px 12px;
-  font-size: 0.9em;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.map-toggle-btn:hover {
-  background-color: #4CAF50;
-  color: white;
-}
-.stall-distance, .stall-rating {
-  margin: 8px 0;
-  color: black;
-}
-.pinIcon{
-    color: rgb(235, 86, 86);
+
+.stall-listing .col-md-4 {
+  flex: 0 0 calc(33.333% - 20px);
+  max-width: calc(33.333% - 20px);
+  padding: 0;
 }
 
 /* Listing Card */
 .listing-card {
   position: relative;
-  border-radius: 15px;
-  background: #fafafa;
-  padding: 10px;
-  margin-top: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-radius: 16px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
 .listing-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.18);
-  background: #f5f5f5;
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
+
+/* Image Container */
 .img-container {
   position: relative;
-  height: 200px;
+  height: 220px;
   overflow: hidden;
 }
+
 .foodImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  transition: transform 0.4s ease;
 }
 
+.listing-card:hover .foodImg {
+  transform: scale(1.08);
+}
+
+/* Counter Button */
 .counter-btn {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
+  bottom: 12px;
+  right: 12px;
   background: #4CAF50;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap; /* Ensure the content doesn't wrap */
-  height: 40px;  /* Fix height */
-  min-width: 40px;  /* Fix minimum width to maintain circle shape when only '+' is displayed */
-  border-radius: 50%;  /* Makes it a circle when only quantity or '+' is displayed */
-}
-
-.counter-btn.square {
-  width: auto;  /* Make width adjust to content when both quantity and '+' are visible */
-  border-radius: 20px;  /* Remove full circle when both quantity and '+' are displayed */
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  font-size: 1.3em;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  z-index: 10;
 }
 
 .counter-btn:hover {
   background: #45a049;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
 }
 
+.counter-btn.square {
+  border-radius: 22px;
+  padding: 0 12px;
+  min-width: 100px;
+}
+
+/* Hover Controls */
 .hover-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: auto;  /* Let it adjust based on content */
-  gap: 5px;  /* Add space between buttons and quantity */
+  gap: 10px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .hover-controls button {
   border: none;
-  background-color: #45a049;
+  background: transparent;
   color: white;
-  font-size: 1.2em;
-  padding: 5px 5px; /* Give buttons padding for better appearance */
+  font-size: 1.3em;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: all 0.2s ease;
 }
 
-.counter-btn div {
-  font-size: 1em;  /* Adjust size of quantity */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hover-controls button:hover:not(:disabled) {
+  transform: scale(1.2);
 }
 
-.counter-btn div:hover .hover-controls {
-  display: flex;
+.hover-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-
+/* Card Content */
 .card-content {
-  margin-top: 10px;
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.d-flex {
   display: flex;
 }
 
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.mt-2 {
+  margin-top: 8px;
+}
+
+/* Item Name and Prices */
 .item-name {
   font-size: 1.15em;
-  font-weight: 600;
-  color: #222;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
 }
 
 .original-price {
   text-decoration: line-through;
-  color: #aaa;
-  font-size: 1em;
-  margin-right: 8px;
+  color: #9ca3af;
+  font-size: 0.95em;
+  font-weight: 500;
 }
 
 .discounted-price {
-  font-weight: bold;
-  color: #2e8b57;
-  font-size: 1.08em;
+  font-weight: 700;
+  color: #059669;
+  font-size: 1.2em;
 }
 
+/* Stock Info */
 .item-stock {
-  font-size: 0.98em;
-  color: #444;
+  font-size: 0.9em;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .low-stock {
-  color: red;
-  font-weight: bold;
+  color: #ef4444;
+  font-weight: 700;
+  animation: pulse 2s infinite;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #4CAF50;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-up-enter-active {
+  animation: slideInRight 0.3s ease;
+}
+
+.slide-up-leave-active {
+  animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Responsive Design */
 @media (max-width: 991px) {
-  .item-name {
-    font-size: 1.08em;
-    margin-bottom: 2px;
+  .stall-listing .stall-info {
+    flex-direction: column;
+    gap: 20px;
   }
-  .original-price {
-    font-size: 0.98em;
-    margin-right: 6px;
+  
+  .stall-listing .col-md-5,
+  .stall-listing .col-md-6 {
+    flex: 1;
+    max-width: 100%;
   }
-  .discounted-price {
-    font-size: 1em;
+  
+  .stall-listing .stallImg {
+    height: 300px;
   }
-  .item-stock {
-    font-size: 0.95em;
-    margin-top: 2px;
+  
+  .stall-listing .col-md-4 {
+    flex: 0 0 calc(50% - 20px);
+    max-width: calc(50% - 20px);
   }
+}
+
+@media (max-width: 767px) {
+  .stall-listing .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .stall-listing .stall-header h1 {
+    font-size: 1.8em;
+  }
+  
+  .stall-listing .heart-container-overlay {
+    top: 15px;
+    right: 15px;
+    padding: 8px;
+  }
+  
+  .stall-listing .heart-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Loading State */
+.p-5 {
+  padding: 40px;
+}
+
+/* Utility Classes */
+.text-center p {
+  font-size: 1.1em;
+  color: #6b7280;
 }

@@ -155,6 +155,7 @@ export default {
             itemPrice: data.itemPrice,
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
+            discount: data.discount,  // Adding the discount property
             imageUrl: data.imageUrl,
             count: savedCount,
             hover: false
@@ -253,7 +254,7 @@ export default {
           itemName: item.itemName,
           qty: item.count,
           itemPrice: item.itemPrice,
-          discountedPrice: item.discountedPrice,
+          discount: item.discount,
           imageUrl: item.imageUrl,
           hawkerId: hawker.value.userId,
           hawkerName: hawker.value.hawkerName

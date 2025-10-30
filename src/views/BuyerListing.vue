@@ -1,5 +1,5 @@
 <template>
- <main>
+ <div class="container">
     <div class="row">
       <!-- Desktop: Filter on left, Search and Grid on right -->
       <div class="col-lg-2 col-md-3 d-none d-md-block">
@@ -24,7 +24,7 @@
 
     </div>
     <BackToTop />
-  </main>
+  </div>
 </template>
 
 <script>

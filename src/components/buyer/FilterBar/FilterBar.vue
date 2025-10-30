@@ -1,9 +1,9 @@
 <template>
-  <nav class="navbar navbar-expand-md sticky" >
+  <nav class="navbar navbar-expand-md" >
     <div class="container-fluid">
         <button class="navbar-toggler custom-btn-success " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="d-md-none">Filter</span>
-            <span class="d-none d-md-block">Filter</span>
+            <span class="d-md-none filter">Filter</span>
+            <span class="d-none d-md-block filter">Filter</span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
