@@ -100,17 +100,12 @@
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">${{ item.itemPrice * ((100-item.discount)/100) }}</span>
+                    <span class="discounted-price">${{ (item.itemPrice * ((100-item.discount)/100)).toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
 
-              <transition name="slide-up">
-                <div v-if="showToast" class="toast-notification">
-                  <i class="fa-solid fa-check-circle"></i>
-                  <span>Added to cart!</span>
-                </div>
-              </transition>
+              
 
             </div>
           </div>
@@ -119,8 +114,13 @@
     </div>
 
     <!-- Toast Notification -->
-    
-  </div>
+    <transition name="slide-up">
+      <div v-if="showToast" class="toast-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>Added to cart!</span>
+      </div>
+    </transition>
+</div>
 </template>
 
 

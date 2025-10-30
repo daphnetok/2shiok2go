@@ -1,19 +1,22 @@
 <template>
  <div class="container">
     <div class="row">
-      <!-- Desktop: Filter on left, Search and Grid on right -->
-      <div class="col-lg-2 col-md-3 d-none d-md-block">
-        <FilterBar @filter-change="onFilterChange" />
-      </div>
+      <!-- Desktop: Filter on left, full width of its column -->
+      <SearchBar/>
+    </div>
 
-      <!-- Desktop: Main content area (wider now) -->
+    <div class="row">
+      <!-- Desktop: Main content area -->
       <!-- Mobile: Full width with SearchBar first, then Filter, then Grid -->
-      <div class="col-lg-10 col-md-9 col-12">
-        <SearchBar/>
+      <div class="col-lg-3 col-md-3 d-none d-md-block px-0">
+        <FilterBar @filter-change="onFilterChange" class="w-100" />
+      </div>
+      <div class="col-lg-9 col-md-9 col-12">
         
-        <!-- Mobile: Filter appears below SearchBar -->
-        <div class="d-md-none mb-3">
-          <FilterBar @filter-change="onFilterChange" />
+        
+        <!-- Mobile: Filter appears below SearchBar, full width -->
+        <div class="d-md-none mb-3 px-0">
+          <FilterBar @filter-change="onFilterChange" class="w-100" />
         </div>
         
         <ListingGrid

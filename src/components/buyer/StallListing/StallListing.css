@@ -273,70 +273,57 @@
 /* Counter Button */
 .counter-btn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 10px;
+  right: 10px;
   background: #4CAF50;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  height: 44px;
-  min-width: 44px;
-  border-radius: 50%;
-  font-size: 1.3em;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-  z-index: 10;
+  transition: all 0.2s ease;
+  white-space: nowrap; /* Ensure the content doesn't wrap */
+  height: 40px;  /* Fix height */
+  min-width: 40px;  /* Fix minimum width to maintain circle shape when only '+' is displayed */
+  border-radius: 50%;  /* Makes it a circle when only quantity or '+' is displayed */
+}
+
+.counter-btn.square {
+  width: auto;  /* Make width adjust to content when both quantity and '+' are visible */
+  border-radius: 20px;  /* Remove full circle when both quantity and '+' are displayed */
 }
 
 .counter-btn:hover {
   background: #45a049;
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
 }
 
-.counter-btn.square {
-  border-radius: 22px;
-  padding: 0 12px;
-  min-width: 100px;
-}
-
-/* Hover Controls */
 .hover-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  width: auto;  /* Let it adjust based on content */
+  gap: 5px;  /* Add space between buttons and quantity */
 }
 
 .hover-controls button {
   border: none;
-  background: transparent;
+  background-color: #45a049;
   color: white;
-  font-size: 1.3em;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0 8px;
-  transition: all 0.2s ease;
+  font-size: 1.2em;
+  padding: 5px 5px; /* Give buttons padding for better appearance */
 }
 
-.hover-controls button:hover:not(:disabled) {
-  transform: scale(1.2);
+.counter-btn div {
+  font-size: 1em;  /* Adjust size of quantity */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.hover-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.counter-btn div:hover .hover-controls {
+  display: flex;
 }
+
 
 /* Card Content */
 .card-content {
@@ -424,7 +411,7 @@
   align-items: center;
   gap: 10px;
   font-weight: 600;
-  z-index: 1000;
+  z-index: 1000000000000;
   animation: slideInRight 0.3s ease;
 }
 

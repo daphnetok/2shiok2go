@@ -50,7 +50,7 @@
             </svg>
             <span class="info-text">
               <span class="label">Distance</span>
-              <span class="value">{{ hawker.distance }} away</span>
+              <span class="value">{{ hawker.distance }}km away</span>
             </span>
           </div>
         </div>
@@ -76,8 +76,8 @@ export default {
       const closingTimeInMinutes = closeHour * 60 + closeMin;
       const timeUntilClose = closingTimeInMinutes - currentTime;
 
-      if (timeUntilClose < 30) return 'closing-soon';
       if (timeUntilClose < 0) return 'closed';
+      if (timeUntilClose < 30) return 'closing-soon';
       return 'open';
     },
     getStatusText() {

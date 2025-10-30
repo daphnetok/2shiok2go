@@ -97,6 +97,10 @@ export default {
 h2 {
   margin-bottom: 20px;
   color: #333;
+  display: flex;
+  justify-content:flex-start;
+  padding-left: 10px;
+
 }
 
 .loading, .empty-state {
