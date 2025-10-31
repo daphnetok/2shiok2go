@@ -50,7 +50,7 @@
             </svg>
             <span class="info-text">
               <span class="label">Distance</span>
-              <span class="value">{{ hawker.distance }} away</span>
+              <span class="value">{{ hawker.distance }}km away</span>
             </span>
           </div>
         </div>

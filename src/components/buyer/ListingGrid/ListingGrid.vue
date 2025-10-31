@@ -2,6 +2,10 @@
   <div class="listings-container">
     <h2>Near Me</h2>
     
+    <!-- location permission notice -->
+    <div v-if="locationError" class="alert alert-warning">
+      {{ locationError }} - Showing all stalls without distance sorting
+    </div>
     <!-- Loading state -->
     <div v-if="loading" class="loading">
       <p>Loading listings...</p>
@@ -24,9 +28,10 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
 import { useLoadHawkers } from '/firebase/firestore';
+import { useGeolocation } from '@/assets/composables/useGeolocation';
 
 export default {
   name: 'ListingGrid',
@@ -42,9 +47,39 @@ export default {
     }
   },
   setup(props) {
-    const allHawkers = useLoadHawkers();
+    const { userLocation, locationError, getUserLocation } = useGeolocation();
+    const hawkersRef = ref(null);
+    const ROAD_FACTOR = 1.1 // for urban road detour estimate
 
-    const loading = computed(() => allHawkers.value === null);
+    // fetch user location on mount
+    onMounted(async () => {
+      await getUserLocation();
+    });
+
+    watch(
+      userLocation,
+      (newLocation) => {
+        hawkersRef.value = useLoadHawkers(newLocation);
+        console.log(newLocation);
+      }
+    );
+
+    // load hawkers with user location (reactive)
+    const allHawkers = computed(() => {
+      const hawkers = hawkersRef.value?.value || [];
+
+      // apply road factor to all hawker distances
+      return hawkers.map(hawker => ({
+        ...hawker,
+        distance: hawker.distance && hawker.distance != 'N/A'
+          ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(2))
+          :hawker.distance
+      }));
+    });
+
+    const loading = computed(() => {
+      hawkersRef.value?.value === null;
+    });
 
     // Helpers aligned to your schema
     const getDietary = (h) => {
@@ -53,9 +88,7 @@ export default {
     };
 
     const getDistance = (h) => {
-      // distance is a string, parse to number if needed
-      const d = Number((h.distance ?? '0').toString());
-      return Number.isNaN(d) ? 0 : d;
+      return h.distance ?? 'N/A';
     };
 
     const filteredHawkers = computed(() => {
@@ -68,7 +101,7 @@ export default {
             // match if hawker's single tag is included in selected array
             return props.dietary
               .map(d => d.toString().toLowerCase().trim())
-              .includes(tag);
+              .includes(tag); 
           })
         : list;
 
@@ -84,7 +117,7 @@ export default {
       return filtered;
     });
 
-    return { filteredHawkers, loading };
+    return { filteredHawkers, loading, locationError };
   }
 };
 </script>
