@@ -38,7 +38,7 @@ export default {
       return `$${numPrice.toFixed(2)}`;
     };
     
-    // Fetch cart items from Firebase
+    // Fetch cart items and current stock levels from Firebase
     const fetchCartItems = async () => {
       if (!userId.value) {
         loading.value = false;
@@ -56,14 +56,37 @@ export default {
         
         if (cartSnap.exists()) {
           const cartData = cartSnap.data();
-          cartItems.value = cartData.items || [];
-          console.log('Cart items loaded:', cartItems.value);
-          console.log('Total items in cart:', cartItems.value.length);
+          let items = cartData.items || [];
           
-          // Log each item's quantity for debugging
-          cartItems.value.forEach(item => {
-            console.log(`Item: ${item.itemName}, Qty: ${item.qty}, Price: ${item.discountedPrice}`);
-          });
+          // Fetch current stock levels for each item
+          const updatedItems = await Promise.all(items.map(async (item) => {
+            try {
+              const itemRef = doc(db, 'itemListings', item.itemId);
+              const itemSnap = await getDoc(itemRef);
+              if (itemSnap.exists()) {
+                const itemData = itemSnap.data();
+                // Update item with current stock level
+                return {
+                  ...item,
+                  itemQty: itemData.itemQty,
+                  // Adjust quantity if it exceeds current stock
+                  qty: Math.min(item.qty, itemData.itemQty)
+                };
+              }
+              return item;
+            } catch (err) {
+              console.error(`Error fetching stock for item ${item.itemId}:`, err);
+              return item;
+            }
+          }));
+          
+          cartItems.value = updatedItems;
+          console.log('Cart items loaded with current stock levels:', cartItems.value);
+          
+          // If any quantities were adjusted, update the cart
+          if (updatedItems.some((item, i) => item.qty !== items[i].qty)) {
+            await updateCartInFirebase(updatedItems);
+          }
         } else {
           cartItems.value = [];
           console.log('No cart found for user');
@@ -83,23 +106,22 @@ export default {
     
     const cartTotal = computed(() => {
       return cartItems.value.reduce((total, item) => {
-        // Use discounted price if available, otherwise use item price
-        const discountedPrice = parsePrice(item.discountedPrice);
+        // Calculate price after discount
         const itemPrice = parsePrice(item.itemPrice);
-        const price = discountedPrice > 0 ? discountedPrice : itemPrice;
-        
+        const price = itemPrice * ((100 - item.discount) / 100);
+
         return total + (price * item.qty);
       }, 0);
     });
-    
+
     // Calculate individual item total
     const calculateItemTotal = (item) => {
-      const discountedPrice = parsePrice(item.discountedPrice);
       const itemPrice = parsePrice(item.itemPrice);
-      const price = discountedPrice > 0 ? discountedPrice : itemPrice;
-      
+      const price = itemPrice * ((100 - item.discount) / 100);
+
       return (price * item.qty).toFixed(2);
     };
+
     
     // Update cart in Firebase
     const updateCartInFirebase = async (updatedItems) => {
@@ -133,11 +155,42 @@ export default {
       }
     };
     
-    // Increment item quantity
-    const incrementItem = async (item) => {
+    // Validate and update quantity
+    const validateQuantity = (item) => {
+      let qty = parseInt(item.qty);
+      const maxQty = item.itemQty || 0; // Use actual stock level or 0 if not set
+      
+      // Ensure quantity is a valid number between 1 and stock level
+      if (isNaN(qty) || qty < 1) {
+        item.qty = 1;
+      } else if (maxQty > 0 && qty > maxQty) {
+        item.qty = maxQty;
+      } else {
+        item.qty = qty;
+      }
+    };
+
+    // Update quantity from input
+    const updateItemQuantity = async (item) => {
+      validateQuantity(item);
       const updatedItems = cartItems.value.map(cartItem => {
         if (cartItem.itemId === item.itemId) {
-          return { ...cartItem, qty: cartItem.qty + 1 };
+          return { ...cartItem, qty: parseInt(item.qty) };
+        }
+        return cartItem;
+      });
+      await updateCartInFirebase(updatedItems);
+    };
+
+    // Increment item quantity
+    const incrementItem = async (item) => {
+      const maxQty = item.itemQty || 99; // Default to 99 if itemQty not set
+      if (item.qty >= maxQty) return;
+      
+      const updatedItems = cartItems.value.map(cartItem => {
+        if (cartItem.itemId === item.itemId) {
+          const newQty = parseInt(cartItem.qty || 0) + 1;
+          return { ...cartItem, qty: Math.min(newQty, maxQty) };
         }
         return cartItem;
       });
@@ -146,14 +199,13 @@ export default {
     
     // Decrement item quantity
     const decrementItem = async (item) => {
-      if (item.qty <= 1) {
-        await removeItem(item);
-        return;
-      }
+      const currentQty = parseInt(item.qty || 0);
+      if (currentQty <= 1) return;
       
       const updatedItems = cartItems.value.map(cartItem => {
         if (cartItem.itemId === item.itemId) {
-          return { ...cartItem, qty: cartItem.qty - 1 };
+          const newQty = parseInt(cartItem.qty || 0) - 1;
+          return { ...cartItem, qty: Math.max(newQty, 1) };
         }
         return cartItem;
       });
@@ -206,8 +258,7 @@ export default {
       }
       
       console.log('Proceeding to checkout with items:', cartItems.value);
-      console.log('Total amount:', cartTotal.value);
-      alert('Proceeding to checkout...');
+
       // You can navigate to checkout page here
       // router.push('/checkout');
     };
@@ -268,7 +319,9 @@ export default {
       clearAllItems,
       checkout,
       calculateItemTotal,
-      formatPrice
+      formatPrice,
+      validateQuantity,
+      updateItemQuantity
     };
   }
 };

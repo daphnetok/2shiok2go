@@ -6,6 +6,23 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
   name: "StallListings",
+  methods: {
+    isDiscountApplied() {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      if (!this.hawker.discountTime){
+        return false
+      }
+      else{
+        const [discountHour, discountMin] = this.hawker.discountTime.split(':').map(Number);
+        const discountTimeInMinutes = discountHour * 60 + discountMin;
+
+        if (currentTime>=discountTimeInMinutes) return true;
+        else return false;
+      }
+    },
+  },
   setup() {
     const route = useRoute();
     const isLiked = ref(false);

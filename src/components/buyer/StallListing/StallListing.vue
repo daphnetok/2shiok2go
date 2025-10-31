@@ -96,14 +96,17 @@
                 <div class="d-flex flex-column w-100">
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="item-name">{{ item.itemName }}</span>
-                    <span class="original-price">${{ item.itemPrice }}</span>
+                    <!-- show original price if discount applied -->
+                    <span class="original-price" v-if="isDiscountApplied()">${{ item.itemPrice }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">${{ (item.itemPrice * ((100-item.discount)/100)).toFixed(2) }}</span>
+                    <span class="discounted-price">${{ isDiscountApplied(item) 
+                                                        ? (item.itemPrice * ((100 - item.discount) / 100)).toFixed(2)
+                                                        : item.itemPrice }}</span>
                   </div>
                 </div>
-              </div>
+              </div> 
 
               
 
