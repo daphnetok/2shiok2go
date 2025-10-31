@@ -43,20 +43,47 @@
             <!-- Order Summary Header Row -->
             <div class="summary-header-row">
               <h3 class="summary">Order Summary</h3>
-              <button @click="clearAllItems" class="clear-cart-btn" :disabled="updating">
-                <i class="fa-solid fa-trash-can"></i>
+              <button v-if="!editMode" @click="enterEditMode" class="edit-cart-btn" :disabled="updating">
+                <i class="fa-solid fa-pen-to-square"></i>
               </button>
+              <div v-else class="edit-mode-actions">
+                <button @click="selectAll" class="select-all-btn">
+                  <i class="fa-solid fa-check-double"></i> Select All
+                </button>
+                <button @click="deleteSelected" class="delete-selected-btn" :disabled="selectedItems.length === 0">
+                  <i class="fa-solid fa-trash-can"></i> Delete ({{ selectedItems.length }})
+                </button>
+                <button @click="cancelEditMode" class="cancel-edit-btn">
+                  <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+              </div>
             </div>
             <!-- Cart Items in Order Summary -->
 
               <transition-group name="list" tag="div">
-                <div v-for="item in cartItems" :key="item.itemId" class="cart-item">
+                <div v-for="item in cartItems" :key="item.itemId" class="cart-item" :class="{ 'edit-mode': editMode, 'closed-stall': item.isClosed }">
+                  <div v-if="editMode" class="item-checkbox">
+                    <input 
+                      type="checkbox" 
+                      :id="`checkbox-${item.itemId}`"
+                      :value="item.itemId"
+                      v-model="selectedItems"
+                      class="checkbox-input"
+                    />
+                    <label :for="`checkbox-${item.itemId}`" class="checkbox-label"></label>
+                  </div>
                   <div class="item-image">
-                    <img :src="item.imageUrl || require('../../assets/img/stall.jpg')" :alt="item.itemName"/>
+                    <img :src="item.imageUrl" :alt="item.itemName"/>
                   </div>
                   <div class="item-details">
                     <h3 class="item-name">{{ item.itemName }}</h3>
-                    <p class="item-hawker">{{ item.hawkerName }}</p>
+                    <p class="item-hawker">
+                      {{ item.hawkerName }}
+                      <span v-if="item.isClosed" class="closed-badge">
+                        <i class="fa-solid fa-door-closed"></i> 
+                        Closed
+                      </span>
+                    </p>
                     <div class="item-pricing">
                       <span class="original-price">${{ item.itemPrice }}</span>
                       <span class="discounted-price">${{ (item.itemPrice * ((100-item.discount)/100)).toFixed(2)}}</span>
@@ -66,8 +93,8 @@
                     <div class="quantity-control">
                       <button @click="decrementItem(item)" 
                               class="qty-btn minus" 
-                              :disabled="updating || parseInt(item.qty) <= 1">
-                        <i class="fa-solid fa-minus" :class="{ 'disabled': parseInt(item.qty) <= 1 }"></i>
+                              :disabled="updating || parseInt(item.qty) <= 1 || editMode || item.isClosed">
+                        <i class="fa-solid fa-minus" :class="{ 'disabled': parseInt(item.qty) <= 1 || item.isClosed }"></i>
                       </button>
                       <input type="number" 
                              v-model="item.qty" 
@@ -75,17 +102,15 @@
                              :min="1" 
                              :max="item.itemQty || 99"
                              @change="updateItemQuantity(item)"
-                             @input="validateQuantity(item)">
+                             @input="validateQuantity(item)"
+                             :disabled="editMode || item.isClosed">
                       <button @click="incrementItem(item)" 
                               class="qty-btn plus" 
-                              :disabled="updating || parseInt(item.qty) >= (item.itemQty || 99)">
-                        <i class="fa-solid fa-plus" :class="{ 'disabled': parseInt(item.qty) >= (item.itemQty || 99) }"></i>
+                              :disabled="updating || parseInt(item.qty) >= (item.itemQty || 99) || editMode || item.isClosed">
+                        <i class="fa-solid fa-plus" :class="{ 'disabled': parseInt(item.qty) >= (item.itemQty || 99) || item.isClosed }"></i>
                       </button>
                     </div>
                     <div class="item-total">${{ calculateItemTotal(item) }}</div>
-                    <button @click="removeItem(item)" class="remove-btn" :disabled="updating">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
                   </div>
                 </div>
               </transition-group>
@@ -125,7 +150,7 @@
               </select>
             </div>
             <router-link :to="'/order-receipt'" class="router">
-              <button @click="checkout" class="checkout-btn">
+              <button @click="checkout" class="checkout-btn" :disabled="editMode">
                 <span>Place Order</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </button>

@@ -16,6 +16,8 @@ export default {
     const errorMsg = ref(null);
     const userId = ref(null);
     const authUnsubscribe = ref(null);
+    const editMode = ref(false);
+    const selectedItems = ref([]);
     
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
@@ -212,7 +214,51 @@ export default {
       await updateCartInFirebase(updatedItems);
     };
     
-    // Remove item from cart
+    // Edit mode functions
+    const enterEditMode = () => {
+      editMode.value = true;
+      selectedItems.value = [];
+    };
+    
+    const cancelEditMode = () => {
+      editMode.value = false;
+      selectedItems.value = [];
+    };
+    
+    const selectAll = () => {
+      if (selectedItems.value.length === cartItems.value.length) {
+        // Deselect all
+        selectedItems.value = [];
+      } else {
+        // Select all
+        selectedItems.value = cartItems.value.map(item => item.itemId);
+      }
+    };
+    
+    const deleteSelected = async () => {
+      if (selectedItems.value.length === 0) return;
+      
+      const itemCount = selectedItems.value.length;
+      const confirmMessage = itemCount === 1 
+        ? 'Are you sure you want to delete this item?' 
+        : `Are you sure you want to delete ${itemCount} items?`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+      
+      const updatedItems = cartItems.value.filter(
+        item => !selectedItems.value.includes(item.itemId)
+      );
+      
+      await updateCartInFirebase(updatedItems);
+      
+      // Exit edit mode and clear selections
+      editMode.value = false;
+      selectedItems.value = [];
+    };
+    
+    // Remove item from cart (kept for backward compatibility)
     const removeItem = async (item) => {
       if (!confirm(`Remove ${item.itemName} from cart?`)) {
         return;
@@ -305,6 +351,8 @@ export default {
       }
     });
     
+    
+    
     return {
       cartItems,
       cartCount,
@@ -312,6 +360,8 @@ export default {
       loading,
       updating,
       errorMsg,
+      editMode,
+      selectedItems,
       goBack,
       incrementItem,
       decrementItem,
@@ -321,7 +371,11 @@ export default {
       calculateItemTotal,
       formatPrice,
       validateQuantity,
-      updateItemQuantity
+      updateItemQuantity,
+      enterEditMode,
+      cancelEditMode,
+      selectAll,
+      deleteSelected
     };
   }
 };
