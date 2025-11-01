@@ -178,12 +178,10 @@
                 <option value="cash">Cash on Delivery</option>
               </select>
             </div>
-            <router-link :to="'/order-receipt'" class="router">
-              <button @click="checkout" class="checkout-btn" :disabled="editMode">
-                <span>Place Order</span>
-                <i class="fa-solid fa-arrow-right"></i>
-              </button>
-            </router-link>
+            <button @click="checkout" class="checkout-btn" :disabled="updating">
+              <span>Place Order</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
           </div>
         </div>
       </div>

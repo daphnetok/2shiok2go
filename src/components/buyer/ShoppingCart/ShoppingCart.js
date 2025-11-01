@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
-import { doc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs, collection, addDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
@@ -443,7 +443,7 @@ export default {
     };
     
     // Checkout
-    const checkout = (event) => {
+    const checkout = () => {
       if (cartItems.value.length === 0) {
         event.preventDefault();
         alert('Your cart is empty!');
@@ -458,6 +458,9 @@ export default {
       }
       
       console.log('Proceeding to checkout with items:', cartItems.value);
+
+      // You can navigate to checkout page here
+      // router.push('/checkout');
     };
     
     // Initialize on mount

@@ -114,6 +114,9 @@
           </div>
         </div>
       </div>
+
+      <!-- Reviews Section -->
+      <ReviewsSection v-if="hawker" :hawker="hawker" />
     </div>
 
     <!-- Toast Notification -->
