@@ -4,8 +4,30 @@ import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
+import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
+
 export default {
   name: "StallListings",
+  components: {
+    ReviewsSection
+  },
+  methods: {
+    isDiscountApplied() {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      if (!this.hawker.discountTime){
+        return false
+      }
+      else{
+        const [discountHour, discountMin] = this.hawker.discountTime.split(':').map(Number);
+        const discountTimeInMinutes = discountHour * 60 + discountMin;
+
+        if (currentTime>=discountTimeInMinutes) return true;
+        else return false;
+      }
+    },
+  },
   setup() {
     const route = useRoute();
     const isLiked = ref(false);
@@ -32,11 +54,18 @@ export default {
       authReady.value = true;
     });
 
+    const showMap = ref(false);
+
+
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
       setTimeout(() => { showToast.value = false; }, duration);
     };
 
+    const toggleMap = () => {
+      showMap.value = !showMap.value;
+    };
+    
     const saveIcons = {
       heart: 'fa-regular fa-heart saveIcon',
       heartFilled: 'fa-solid fa-heart savedIcon'
@@ -148,6 +177,7 @@ export default {
             itemPrice: data.itemPrice,
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
+            discount: data.discount,  // Adding the discount property
             imageUrl: data.imageUrl,
             count: savedCount,
             hover: false
@@ -246,7 +276,7 @@ export default {
           itemName: item.itemName,
           qty: item.count,
           itemPrice: item.itemPrice,
-          discountedPrice: item.discountedPrice,
+          discount: item.discount,
           imageUrl: item.imageUrl,
           hawkerId: hawker.value.userId,
           hawkerName: hawker.value.hawkerName
@@ -342,7 +372,9 @@ export default {
       loading,
       errorMsg,
       showToast,
+      showMap,
       triggerToast,
+      toggleMap,
       saveIcons,
       toggleLike,
       increment,

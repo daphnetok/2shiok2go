@@ -11,7 +11,9 @@
         <router-link class="router" to="/login">
         <button class="signup1">Start Saving Today &nbsp; ➜  </button>
         </router-link>
-        <button class="browse">Browse Deals</button>
+        <router-link class="router" to="/buyer-listings">
+          <button class="browse">Browse Deals</button>
+        </router-link>
       </div>
       <div class="stats">
         <div class="stat">
@@ -43,20 +45,20 @@
   </div>
 </section>
 
-    <!-- About Us Section -->
-    <section class="about">
-      <div><i class="fa-solid fa-leaf leafIcon"></i></div>
-      <h2>Our Mission: Reducing Food Waste, <br> <span>One Meal at a Time</span></h2>
-      <p>At 2Shiok2Go, we're passionate about reducing food wastage in Singapore's vibrant hawker culture. Our platform connects you to unsold, still-fresh hawker meals at discounted prices. By buying from hawkers near you, you're helping reduce food waste and support the community at the same time.</p>
-    </section>
+  <!-- About Us Section -->
+  <section class="about">
+    <i class="fa-solid fa-leaf leafIcon"></i>
+    <h2>Our Mission: Reducing Food Waste, <br> <span>One Meal at a Time</span></h2>
+    <p>At 2Shiok2Go, we're passionate about reducing food wastage in Singapore's vibrant hawker culture. Our platform connects you to unsold, still-fresh hawker meals at discounted prices. By buying from hawkers near you, you're helping reduce food waste and support the community at the same time.</p>
+  </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials">
+  <!-- Testimonials Section -->
+  <section class="testimonials">
     <h2>What Our <span class="user">Users</span> Are Saying</h2>
     <div class="testimonial-container">
       <!-- First set of testimonials -->
       <div class="testimonial-track">
-        <div class="testimonial" v-for="n in 20" :key="'first-' + n">
+        <div class="testimonial" v-for="n in 5" :key="'first-' + n">
           <i v-for="star in 5" :key="star" class="fa-solid fa-star starIcon"></i>
           <p>'Love this platform! Not only am I saving money, but I feel great knowing I'm helping reduce food waste. Plus, the food is always so tasty!'</p>
           <p class="name">- User {{ n }}</p>
@@ -64,7 +66,7 @@
       </div>
       <!-- Duplicate set for seamless loop -->
       <div class="testimonial-track">
-        <div class="testimonial" v-for="n in 20" :key="'second-' + n">
+        <div class="testimonial" v-for="n in 5" :key="'second-' + n">
           <i v-for="star in 5" :key="star" class="fa-solid fa-star starIcon"></i>
           <p>'Love this platform! Not only am I saving money, but I feel great knowing I'm helping reduce food waste. Plus, the food is always so tasty!'</p>
           <p class="name">- User {{ n }}</p>
@@ -81,8 +83,40 @@
     </section>
   </div>
 
-  <footer >
-    © 2025 2Shiok2Go. All rights reserved.
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-tagline">Eat Good. Do Good.</h3>
+        <p class="footer-description">Join us in reducing food waste while enjoying delicious local meals at great prices.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Contact Us</h4>
+        <p class="footer-email">
+          <i class="fa-solid fa-envelope"></i>
+          <a href="mailto:2shiok2go@gmail.com">2shiok2go@gmail.com</a>
+        </p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Follow Us</h4>
+        <div class="social-links">
+          <a href="https://facebook.com/2shiok2go/" class="social-link facebook" aria-label="Facebook">
+            <i class="fa-brands fa-facebook-f"></i>
+          </a>
+          <a href="https://www.instagram.com/2shiok2go/" class="social-link instagram" aria-label="Instagram">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+          <a href="https://x.com/2shiok2go/" class="social-link twitter" aria-label="X (Twitter)">
+            <i class="fa-brands fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 2Shiok2Go. All rights reserved.</p>
+    </div>
   </footer>
 
 </template>

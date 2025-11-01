@@ -1,5 +1,5 @@
 <template>
-  <div class="stall-card card p-4 mb-4">
+  <div class="stall-listing">
     <!-- Show loading state while fetching hawker data -->
     <div v-if="loading && !hawker" class="text-center p-5">
       <p>Loading stall information...</p>
@@ -11,21 +11,48 @@
     </div>
 
     <!-- Show content only when hawker data is available -->
-    <div v-else-if="hawker" class="container reset-style">
+    <div v-else-if="hawker" class="container reset-style" style="position: relative;">
       <div class="row stall-info">
         <div class="col-md-5">
           <img :src="hawker.imageUrl" :alt="hawker.hawkerName" class="stallImg"/>
         </div>
         <div class="col-md-6">
-          <div class="stall-header">
+          <div>
+            <div class="stall-header">
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
           <p class="stall-address">
             <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
+            <button @click="toggleMap" class="map-toggle-btn">
+              <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
+            </button>
           </p>
-          <button class="map-btn">Open in Maps <i class="fa-solid fa-map-location-dot"></i></button>
-          <p class="stall-distance">{{ hawker.distance || '?' }} km away </p>
-          <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
+          
+          <!-- Toggleable Embedded Google Maps -->
+          <div v-if="showMap" class="map-container">
+            <iframe
+              v-if="hawker.address && hawker.address.latitude && hawker.address.longitude"
+              :src="`https://www.google.com/maps?q=${hawker.address.latitude},${hawker.address.longitude}&hl=en&z=14&output=embed`"
+              width="100%"
+              height="200"
+              style="border:0; pointer-events: auto;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+            <div v-else class="map-placeholder" style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-radius:8px;">
+              <p class="text-muted mb-0">Map unavailable</p>
+            </div>
+          </div>
+          
+          <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+          <p><i class="fa-solid fa-star starIcon"></i> 
+            <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
+              {{ hawker.reviews.stallRating.toFixed(2) }} stars
+            </span>
+            <span v-else>No rating yet</span>
+          </p>
+          </div>
         </div>
       </div>
 
@@ -78,18 +105,27 @@
                 <div class="d-flex flex-column w-100">
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="item-name">{{ item.itemName }}</span>
-                    <span class="original-price">${{ item.itemPrice }}</span>
+                    <!-- show original price if discount applied -->
+                    <span class="original-price" v-if="isDiscountApplied()">${{ item.itemPrice }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">{{ item.discountedPrice }}</span>
+                    <span class="discounted-price">${{ isDiscountApplied(item) 
+                                                        ? (item.itemPrice * ((100 - item.discount) / 100)).toFixed(2)
+                                                        : item.itemPrice }}</span>
                   </div>
                 </div>
-              </div>
+              </div> 
+
+              
+
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Reviews Section -->
+      <ReviewsSection v-if="hawker" :hawker="hawker" />
     </div>
 
     <!-- Toast Notification -->
@@ -99,7 +135,7 @@
         <span>Added to cart!</span>
       </div>
     </transition>
-  </div>
+</div>
 </template>
 
 
