@@ -1,5 +1,5 @@
 // to create, cancel, update orders
-import { db } from './firebase'
+import { db } from '../../firebase/config'
 import { collection, addDoc, doc, updateDoc, getDocs, query, where } from 'firebase/firestore'
 
 const ordersRef = collection(db, 'orders')
