@@ -4,8 +4,13 @@ import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
+import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
+
 export default {
   name: "StallListings",
+  components: {
+    ReviewsSection
+  },
   methods: {
     isDiscountApplied() {
       const now = new Date();

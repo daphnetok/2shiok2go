@@ -15,6 +15,7 @@ import HawkerAnalytics from '../views/HawkerAnalytics.vue'
 import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
+import AllReviews from '../views/AllReviews.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -36,6 +37,12 @@ const routes = [
   { path: '/favourites', component: Favourites},
   { path: '/orders-table', component: OrdersTable},
   { path: '/reviews', component: ReviewPage},
+  {
+    path: '/all-reviews/:userId',
+    name: 'AllReviews',
+    component: AllReviews,
+    props: true
+  },
 ]
 
 const router = createRouter({

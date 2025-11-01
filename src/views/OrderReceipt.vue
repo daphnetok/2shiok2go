@@ -166,12 +166,14 @@
           <i class="bi bi-download me-2"></i>
           Download Receipt
         </button>
-        <router-link to="/reviews">
-          <button class="btn btn-success d-flex align-items-center">
-            <i class="bi bi-house-door me-2"></i>
-            Order Collected
-          </button>
-        </router-link>
+        <button 
+          @click="goToReviews" 
+          class="btn btn-success d-flex align-items-center"
+          :disabled="!order"
+        >
+          <i class="bi bi-house-door me-2"></i>
+          Order Collected
+        </button>
       </div>
     </div>
   </main>
@@ -179,9 +181,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+
+const router = useRouter();
 
 // Format price to 2 decimal places
 const formatPrice = (price) => {
@@ -322,6 +327,19 @@ onMounted(() => {
     }
   });
 });
+
+// Navigate to reviews page with order data
+const goToReviews = () => {
+  if (order.value && order.value.orderID) {
+    router.push({
+      path: '/reviews',
+      query: {
+        orderId: order.value.orderID,
+        hawkerId: order.value.hawkerId
+      }
+    });
+  }
+};
 
 onUnmounted(() => {
   if (authUnsubscribe) {
