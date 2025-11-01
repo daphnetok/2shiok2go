@@ -431,19 +431,81 @@ export default {
       showClosedStallsModal.value = false;
     };
 
-    const proceedWithAvailable = () => {
+    const proceedWithAvailable = async () => {
       showClosedStallsModal.value = false;
       // Remove closed stall items from cart
       const availableItems = cartItems.value.filter(item => !item.isClosed);
-      updateCartInFirebase(availableItems);
+      await updateCartInFirebase(availableItems);
       
-      // Proceed to checkout
-      console.log('Proceeding to checkout with available items:', availableItems);
-      // router.push('/order-receipt');
+      // Update cartItems to reflect available items only
+      cartItems.value = availableItems;
+      
+      // Proceed to checkout with available items
+      await checkout();
     };
     
+    // Get next order ID
+    const getNextOrderID = async () => {
+      try {
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef, orderBy('orderID', 'desc'), limit(1));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          return 1;
+        }
+        
+        const lastOrder = querySnapshot.docs[0].data();
+        return (lastOrder.orderID || 0) + 1;
+      } catch (error) {
+        console.error('Error getting next order ID:', error);
+        // Fallback: try without orderBy if index doesn't exist
+        try {
+          const ordersRef = collection(db, 'orders');
+          const querySnapshot = await getDocs(ordersRef);
+          if (querySnapshot.empty) {
+            return 1;
+          }
+          const orders = querySnapshot.docs.map(doc => doc.data());
+          const maxOrderID = Math.max(...orders.map(o => o.orderID || 0), 0);
+          return maxOrderID + 1;
+        } catch (fallbackError) {
+          console.error('Error in fallback order ID query:', fallbackError);
+          return 1;
+        }
+      }
+    };
+
+    // Get hawker address from hawkerListings
+    const getHawkerAddress = async (hawkerId) => {
+      try {
+        const hawkersRef = collection(db, 'hawkerListings');
+        const q = query(hawkersRef, where('userId', '==', hawkerId));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const hawkerData = querySnapshot.docs[0].data();
+          return hawkerData.address || null;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching hawker address:', error);
+        return null;
+      }
+    };
+
+    // Format current date and time
+    const formatDateTime = () => {
+      const now = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const day = days[now.getDay()];
+      const date = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return { day, date, time };
+    };
+
     // Checkout
-    const checkout = () => {
+    const checkout = async () => {
       if (cartItems.value.length === 0) {
         alert('Your cart is empty!');
         return;
@@ -454,11 +516,109 @@ export default {
         showClosedStallsModal.value = true;
         return;
       }
-      
-      console.log('Proceeding to checkout with items:', cartItems.value);
 
-      // Navigate to order receipt page
-      router.push('/order-receipt');
+      // Filter out closed stall items
+      const availableItems = cartItems.value.filter(item => !item.isClosed);
+      
+      if (availableItems.length === 0) {
+        alert('No available items to order. Please check back when stalls are open.');
+        return;
+      }
+
+      // Get payment method
+      const paymentMethodSelect = document.getElementById('payment-method');
+      const paymentMethod = paymentMethodSelect ? paymentMethodSelect.value : 'card';
+
+      updating.value = true;
+      errorMsg.value = null;
+
+      try {
+        // Group items by hawker
+        const itemsByHawker = {};
+        for (const item of availableItems) {
+          const hawkerId = item.hawkerId;
+          if (!itemsByHawker[hawkerId]) {
+            itemsByHawker[hawkerId] = {
+              hawkerId: hawkerId,
+              hawkerName: item.hawkerName,
+              items: []
+            };
+          }
+          itemsByHawker[hawkerId].items.push(item);
+        }
+
+        // Create orders for each hawker
+        const { day, date, time } = formatDateTime();
+        let currentOrderID = await getNextOrderID();
+
+        for (const hawkerId in itemsByHawker) {
+          const hawkerGroup = itemsByHawker[hawkerId];
+          const hawkerItems = hawkerGroup.items;
+
+          // Get hawker address
+          const hawkerAddress = await getHawkerAddress(hawkerId);
+          const formattedAddress = hawkerAddress?.formattedAddress || 'Address not available';
+
+          // Calculate totals
+          let subtotalBeforeDiscount = 0;
+          let totalDiscount = 0;
+          
+          const orderItems = hawkerItems.map(item => {
+            const itemPrice = parseFloat(item.itemPrice);
+            const discount = item.discount || 0;
+            const qty = parseInt(item.qty) || 1;
+            const discountedPrice = itemPrice * ((100 - discount) / 100);
+            const itemTotal = discountedPrice * qty;
+
+            subtotalBeforeDiscount += itemPrice * qty;
+            totalDiscount += (itemPrice * qty) - itemTotal;
+
+            return {
+              itemName: item.itemName,
+              itemPrice: itemPrice,
+              discountedPrice: discountedPrice,
+              qty: qty,
+              imageUrl: item.imageUrl || '',
+              itemTotal: itemTotal
+            };
+          });
+
+          const orderTotal = subtotalBeforeDiscount - totalDiscount;
+
+          // Create order document
+          const orderData = {
+            orderID: currentOrderID++,
+            day: day,
+            date: date,
+            time: time,
+            timestamp: new Date(),
+            paymentMethod: paymentMethod,
+            status: 'preparing',
+            userId: userId.value,
+            buyerId: userId.value, // Also include buyerId for compatibility
+            hawkerId: hawkerId,
+            hawkerName: hawkerGroup.hawkerName,
+            hawkerAddress: formattedAddress,
+            items: orderItems,
+            subtotalBeforeDiscount: subtotalBeforeDiscount,
+            discount: totalDiscount,
+            orderTotal: orderTotal
+          };
+
+          const ordersRef = collection(db, 'orders');
+          await addDoc(ordersRef, orderData);
+          console.log('Order created successfully:', orderData.orderID);
+        }
+
+        // Redirect to order receipt page after successful order creation
+        router.push('/order-receipt');
+      } catch (error) {
+        console.error('Error creating order:', error);
+        errorMsg.value = 'Failed to create order. Please try again.';
+        alert(`Failed to create order: ${error.message}`);
+      } finally {
+        updating.value = false;
+      }
     };
     
     // Initialize on mount
