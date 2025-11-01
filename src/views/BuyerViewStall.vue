@@ -1,5 +1,6 @@
 <template>
-    <main>
+  
+  <div class="container">
         <div class="row">
             <SearchBar/>
         </div>
@@ -7,7 +8,8 @@
             <StallListing/>
         </div>
     <BackToTop />
-    </main>
+  </div>
+
 </template>
 
 <script>
@@ -42,4 +44,6 @@ export default {
   font-size: 1.1rem;
   box-shadow: 0 4px 16px rgba(0,0,0,0.13);
 }
+
+
 </style>

@@ -34,6 +34,7 @@ const routes = [
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
   { path: '/favourites', component: Favourites},
   { path: '/orders-table', component: OrdersTable},
+  { path: '/checkout', component: Checkout},
 ]
 
 const router = createRouter({

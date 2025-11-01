@@ -6,6 +6,23 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
   name: "StallListings",
+  methods: {
+    isDiscountApplied() {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      if (!this.hawker.discountTime){
+        return false
+      }
+      else{
+        const [discountHour, discountMin] = this.hawker.discountTime.split(':').map(Number);
+        const discountTimeInMinutes = discountHour * 60 + discountMin;
+
+        if (currentTime>=discountTimeInMinutes) return true;
+        else return false;
+      }
+    },
+  },
   setup() {
     const route = useRoute();
     const isLiked = ref(false);
@@ -155,6 +172,7 @@ export default {
             itemPrice: data.itemPrice,
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
+            discount: data.discount,  // Adding the discount property
             imageUrl: data.imageUrl,
             count: savedCount,
             hover: false
@@ -253,7 +271,7 @@ export default {
           itemName: item.itemName,
           qty: item.count,
           itemPrice: item.itemPrice,
-          discountedPrice: item.discountedPrice,
+          discount: item.discount,
           imageUrl: item.imageUrl,
           hawkerId: hawker.value.userId,
           hawkerName: hawker.value.hawkerName

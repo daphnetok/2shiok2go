@@ -8,14 +8,26 @@
 .search-box {
   display: flex;
   align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  padding: 5px;
-  width: 100%;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  padding: 7px 15px;
+  width: 90%;
+  margin-right: 5%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .search-box:hover {
-  box-shadow: 0px 0px 10px 4px rgba(0, 128, 0, 0.6); /* Green box-shadow */
+  border-color: #4caf50;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-box:focus-within {
+  border-color: #4caf50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.25);
+  transform: translateY(-1px);
 }
 
 .search-input {
@@ -23,12 +35,191 @@
   outline: none;
   padding: 8px;
   width: 100%;
-  border-radius: 20px;
-  font-size: 14px;
+  background: transparent;
+  font-size: 15px;
+  color: #333;
+  font-weight: 400;
+}
+
+.search-input::placeholder {
+  color: #999;
+  font-weight: 400;
 }
 
 .search-icon {
-  margin-left: 2%;  /* Adjust space between icon and input text */
-  font-size: 18px; /* Adjust the size of the icon */
-  color: #509180;  /* Icon color */
+  margin-left: 0;
+  margin-right: 12px;
+  font-size: 18px;
+  color: #4caf50;
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within .search-icon {
+  color: #2e7d32;
+  transform: scale(1.1);
+}
+
+/* Style for user icon container */
+.user-icon-container {
+  position: relative;
+}
+
+.shopping, .user {
+  font-size: 24px;
+  color: #4caf50;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.shopping:hover, .user:hover {
+  color: #2e7d32;
+  transform: scale(1.1);
+  background-color: none;
+  background: none;
+}
+
+/* Hide the dropdown by default */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  width: 200px;
+  z-index: 10000;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dropdown arrow */
+.user-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-left: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  transform: rotate(45deg);
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 8px;
+  margin: 0;
+}
+
+.user-dropdown ul li {
+  padding: 0;
+  margin: 4px 0;
+}
+
+.user-dropdown ul li a {
+  text-decoration: none;
+  color: #333;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+/* Change background color when hovering over the options */
+.user-dropdown ul li a:hover {
+  background-color: #f1f8f4;
+  color: #2e7d32;
+}
+
+.user-dropdown ul li a:hover .icon {
+  color: #2e7d32;
+  transform: scale(1.1);
+}
+
+/* Show dropdown when hovering over the user icon */
+.user-icon-container:hover .user-dropdown {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.icon {
+  color: #4caf50;
+  padding-right: 12px;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  width: 30px;
+  text-align: center;
+}
+
+.router {
+  background: none;
+  background-color: transparent;
+  padding: 0;
+  text-decoration: none;
+}
+
+/* Animation for dropdown items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.user-icon-container:hover .user-dropdown ul li {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.user-icon-container:hover .user-dropdown ul li:nth-child(1) { 
+  animation-delay: 0.05s; 
+}
+
+.user-icon-container:hover .user-dropdown ul li:nth-child(2) { 
+  animation-delay: 0.1s; 
+}
+
+.user-icon-container:hover .user-dropdown ul li:nth-child(3) { 
+  animation-delay: 0.15s; 
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-box {
+    padding: 10px 16px;
+  }
+  
+  .search-input {
+    font-size: 14px;
+  }
+  
+  .shopping, .user {
+    font-size: 22px;
+  }
+  
+  .user-dropdown {
+    width: 180px;
+  }
+  
+  .user-dropdown ul li a {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+  
+  .icon {
+    font-size: 16px;
+    padding-right: 10px;
+  }
 }

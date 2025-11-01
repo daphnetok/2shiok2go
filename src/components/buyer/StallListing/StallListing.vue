@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="stall-listing">
     <!-- Show loading state while fetching hawker data -->
     <div v-if="loading && !hawker" class="text-center p-5">
       <p>Loading stall information...</p>
@@ -17,11 +17,12 @@
           <img :src="hawker.imageUrl" :alt="hawker.hawkerName" class="stallImg"/>
         </div>
         <div class="col-md-6">
-          <div class="stall-header">
+          <div>
+            <div class="stall-header">
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
           <p class="stall-address">
-            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address || 'Address not available' }}
+            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
             <button @click="toggleMap" class="map-toggle-btn">
               <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
             </button>
@@ -42,6 +43,7 @@
           
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
           <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
+          </div>
         </div>
       </div>
 
@@ -94,14 +96,20 @@
                 <div class="d-flex flex-column w-100">
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="item-name">{{ item.itemName }}</span>
-                    <span class="original-price">${{ item.itemPrice }}</span>
+                    <!-- show original price if discount applied -->
+                    <span class="original-price" v-if="isDiscountApplied()">${{ item.itemPrice }}</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">{{ item.discountedPrice }}</span>
+                    <span class="discounted-price">${{ isDiscountApplied(item) 
+                                                        ? (item.itemPrice * ((100 - item.discount) / 100)).toFixed(2)
+                                                        : item.itemPrice }}</span>
                   </div>
                 </div>
-              </div>
+              </div> 
+
+              
+
             </div>
           </div>
         </div>
@@ -115,7 +123,7 @@
         <span>Added to cart!</span>
       </div>
     </transition>
-  </div>
+</div>
 </template>
 
 
