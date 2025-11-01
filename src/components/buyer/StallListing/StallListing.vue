@@ -31,14 +31,18 @@
           <!-- Toggleable Embedded Google Maps -->
           <div v-if="showMap" class="map-container">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8!2d103.903265!3d1.305055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMTgnMTguMiJOIDEwM8KwNTQnMTEuNyJF!5e0!3m2!1sen!2ssg!4v1234567890123!5m2!1sen!2ssg"
-              width="75%"
-              height="150"
-              style="border:0;"
+              v-if="hawker.address && hawker.address.latitude && hawker.address.longitude"
+              :src="`https://www.google.com/maps?q=${hawker.address.latitude},${hawker.address.longitude}&hl=en&z=14&output=embed`"
+              width="100%"
+              height="200"
+              style="border:0; pointer-events: auto;"
               allowfullscreen=""
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade">
             </iframe>
+            <div v-else class="map-placeholder" style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-radius:8px;">
+              <p class="text-muted mb-0">Map unavailable</p>
+            </div>
           </div>
           
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
