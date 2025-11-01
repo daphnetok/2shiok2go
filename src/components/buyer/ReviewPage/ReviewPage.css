@@ -27,7 +27,7 @@
 
 /* Main Container */
 .review-container {
-  max-width: 600px;
+  max-width: 1000px;
   margin: 0 auto;
   background: white;
   padding: 3rem 2rem;
@@ -265,9 +265,70 @@
 }
 
 .video-media-item.fullscreen .remove-media-btn {
-  z-index: 10000;
+  display: none; /* Hide delete button when fullscreen */
+}
+
+.exit-fullscreen-btn {
+  display: none;
+  position: absolute;
   top: 20px;
   right: 20px;
+  background: rgba(128, 128, 128, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  z-index: 10001;
+  transition: background 0.2s ease;
+}
+
+.exit-fullscreen-btn:hover {
+  background: rgba(128, 128, 128, 1);
+}
+
+.video-media-item.fullscreen .exit-fullscreen-btn {
+  display: flex !important;
+}
+
+.video-progress-container {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10001;
+  padding: 12px 16px;
+}
+
+.video-media-item.fullscreen .video-progress-container {
+  display: block;
+}
+
+.video-progress-track {
+  position: relative;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.video-progress-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: white;
+  transition: width 0.1s linear;
+  border-radius: 2px;
 }
 
 .remove-media-btn {
@@ -292,6 +353,56 @@
 
 .remove-media-btn:hover {
   background: #c0392b;
+}
+
+/* Image Modal */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.modal-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 8px;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.close-modal:hover {
+  opacity: 0.7;
 }
 
 /* Review Text Section */

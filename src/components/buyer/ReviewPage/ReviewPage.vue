@@ -110,8 +110,8 @@
         <div v-if="uploadedPhotos.length > 0 || uploadedVideos.length > 0" class="media-preview">
           <!-- Photos -->
           <div v-for="(photo, index) in uploadedPhotos" :key="'photo-' + index" class="media-item">
-            <img :src="photo.url" :alt="`Photo ${index + 1}`" class="media-thumbnail" />
-            <button @click="removePhoto(index)" class="remove-media-btn">
+            <img :src="photo.url" :alt="`Photo ${index + 1}`" class="media-thumbnail" @click="openImageModal(photo.url)" />
+            <button @click.stop="removePhoto(index)" class="remove-media-btn">
               <i class="fa-solid fa-times"></i>
             </button>
           </div>
@@ -125,6 +125,7 @@
               @click.stop="playVideoPreview($event)"
               @play="expandVideoFullscreen($event)"
               @pause="exitVideoFullscreen($event)"
+              @timeupdate="updateVideoProgress($event, index)"
             ></video>
             <div class="video-play-overlay">
               <i class="fa-solid fa-play"></i>
@@ -132,6 +133,16 @@
             <button @click.stop="removeVideo(index)" class="remove-media-btn">
               <i class="fa-solid fa-times"></i>
             </button>
+            <!-- Fullscreen exit button -->
+            <button @click.stop="exitVideoFullscreen($event)" class="exit-fullscreen-btn" v-if="isVideoFullscreen(index)">
+              <i class="fa-solid fa-times"></i>
+            </button>
+            <!-- Progress bar for fullscreen video -->
+            <div class="video-progress-container" v-if="isVideoFullscreen(index)">
+              <div class="video-progress-track" @click.stop="seekVideo($event, index)">
+                <div class="video-progress-line" :style="{ width: getVideoProgress(index) + '%' }"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -151,6 +162,16 @@
       <div class="submit-section">
         <button type="button" @click="submitReview" class="submit-btn" :disabled="isSubmitting">
           {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
+      <div class="modal-content" @click.stop>
+        <img :src="selectedImage" alt="Review image" />
+        <button class="close-modal" @click="closeImageModal">
+          <i class="fa-solid fa-times"></i>
         </button>
       </div>
     </div>
@@ -187,6 +208,10 @@ export default {
     const videoInput = ref(null);
     const currentOrderData = ref(null);
     const hawkerDocRef = ref(null);
+    const selectedImage = ref(null);
+    const videoProgress = ref({});
+    const videoFullscreen = ref({});
+    const videoDuration = ref({});
 
     // Computed overall rating (average of the three ratings)
     const overallRating = computed(() => {
@@ -255,6 +280,14 @@ export default {
       uploadedPhotos.value.splice(index, 1);
     };
 
+    const openImageModal = (imageUrl) => {
+      selectedImage.value = imageUrl;
+    };
+
+    const closeImageModal = () => {
+      selectedImage.value = null;
+    };
+
     const removeVideo = (index) => {
       uploadedVideos.value.splice(index, 1);
     };
@@ -271,10 +304,30 @@ export default {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item');
       
+      // Find video index
+      let videoIndex = -1;
+      for (let i = 0; i < videoRefs.value.length; i++) {
+        if (videoRefs.value[i] === video) {
+          videoIndex = i;
+          break;
+        }
+      }
+      
       try {
         if (video.paused) {
           // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
+          videoFullscreen.value[videoIndex] = true;
+          
+          // Get video duration
+          if (video.readyState >= 2) {
+            videoDuration.value[videoIndex] = video.duration;
+          } else {
+            video.addEventListener('loadedmetadata', () => {
+              videoDuration.value[videoIndex] = video.duration;
+            });
+          }
+          
           await video.play();
           // Request fullscreen API if available
           try {
@@ -322,9 +375,41 @@ export default {
     };
 
     const exitVideoFullscreen = (event) => {
-      const video = event.target;
-      const videoContainer = video.closest('.video-media-item');
+      // Find video and index
+      let video = null;
+      let videoContainer = null;
+      let videoIndex = -1;
+      
+      if (event && event.target) {
+        // Check if it's the exit button
+        const exitBtn = event.target.closest('.exit-fullscreen-btn');
+        if (exitBtn) {
+          videoContainer = exitBtn.closest('.video-media-item');
+          video = videoContainer?.querySelector('video');
+        } else {
+          video = event.target.tagName === 'VIDEO' ? event.target : event.target.closest('.video-media-item')?.querySelector('video');
+          videoContainer = video?.closest('.video-media-item');
+        }
+      } else if (activeVideoRef.value) {
+        video = activeVideoRef.value;
+        videoContainer = video.closest('.video-media-item');
+      }
+      
+      if (!video || !videoContainer) return;
+      
+      // Find video index
+      for (let i = 0; i < videoRefs.value.length; i++) {
+        if (videoRefs.value[i] === video) {
+          videoIndex = i;
+          break;
+        }
+      }
+      
+      video.pause();
       videoContainer.classList.remove('playing');
+      if (videoIndex >= 0) {
+        videoFullscreen.value[videoIndex] = false;
+      }
       
       // Remove escape key listener
       if (video._escapeHandler) {
@@ -346,6 +431,39 @@ export default {
       }
       
       videoContainer.classList.remove('fullscreen');
+    };
+
+    const isVideoFullscreen = (index) => {
+      return videoFullscreen.value[index] === true;
+    };
+
+    const updateVideoProgress = (event, index) => {
+      const video = event.target;
+      if (video.duration) {
+        const progress = (video.currentTime / video.duration) * 100;
+        videoProgress.value[index] = progress;
+        if (!videoDuration.value[index]) {
+          videoDuration.value[index] = video.duration;
+        }
+      }
+    };
+
+    const getVideoProgress = (index) => {
+      return videoProgress.value[index] || 0;
+    };
+
+    const seekVideo = (event, index) => {
+      const video = videoRefs.value[index];
+      if (!video || !video.duration) return;
+      
+      const progressContainer = event.currentTarget;
+      const rect = progressContainer.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const percentage = (clickX / rect.width) * 100;
+      const seekTime = (percentage / 100) * video.duration;
+      
+      video.currentTime = seekTime;
+      videoProgress.value[index] = percentage;
     };
 
     // Get star fill style for partial stars
@@ -615,7 +733,14 @@ export default {
       expandVideoFullscreen,
       exitVideoFullscreen,
       submitReview,
-      getStarFillStyle
+      getStarFillStyle,
+      selectedImage,
+      openImageModal,
+      closeImageModal,
+      isVideoFullscreen,
+      updateVideoProgress,
+      getVideoProgress,
+      seekVideo
     };
   }
 };

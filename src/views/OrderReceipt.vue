@@ -13,7 +13,7 @@
     </div>
 
     <!-- Receipt Card -->
-    <div class="card shadow rounded-4 p-4 w-100" style="max-width: 600px; border-top: 5px solid #198754;">
+    <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1000px; border-top: 5px solid #198754;">
       <!-- Header -->
       <div class="text-center mb-3">
         <h2 class="h5 fw-bold mb-1 text-success">Order Receipt</h2>
