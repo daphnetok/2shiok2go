@@ -42,7 +42,12 @@
           </div>
           
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
-          <p><i class="fa-solid fa-star starIcon"></i> {{ hawker.rating || 'N/A' }} stars</p>
+          <p><i class="fa-solid fa-star starIcon"></i> 
+            <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
+              {{ hawker.reviews.stallRating.toFixed(2) }} stars
+            </span>
+            <span v-else>No rating yet</span>
+          </p>
           </div>
         </div>
       </div>
