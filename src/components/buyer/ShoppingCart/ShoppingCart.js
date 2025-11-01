@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
@@ -250,17 +250,193 @@ export default {
       router.go(-1);
     };
     
-    // Checkout
-    const checkout = () => {
+    // Get next OrderID by incrementing from latest order
+    const getNextOrderID = async () => {
+      try {
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          orderBy('orderID', 'desc'),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(ordersQuery);
+        
+        if (!querySnapshot.empty) {
+          const lastOrder = querySnapshot.docs[0].data();
+          return (lastOrder.orderID || 0) + 1;
+        }
+        return 1; // First order
+      } catch (error) {
+        console.error('Error getting next OrderID:', error);
+        // Fallback: try to get total count
+        try {
+          const allOrders = await getDocs(collection(db, 'orders'));
+          return allOrders.size + 1;
+        } catch {
+          return 1;
+        }
+      }
+    };
+
+    // Fetch hawker address from hawkerListings
+    const getHawkerAddress = async (hawkerId) => {
+      try {
+        const hawkerQuery = query(
+          collection(db, 'hawkerListings'),
+          where('userId', '==', hawkerId)
+        );
+        const hawkerSnapshot = await getDocs(hawkerQuery);
+        
+        if (!hawkerSnapshot.empty) {
+          const hawkerData = hawkerSnapshot.docs[0].data();
+          return hawkerData.address?.formattedAddress || 'Address not available';
+        }
+        return 'Address not available';
+      } catch (error) {
+        console.error('Error fetching hawker address:', error);
+        return 'Address not available';
+      }
+    };
+
+    // Format date and time
+    const formatDateTime = () => {
+      const now = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const day = days[now.getDay()];
+      const date = now.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const time = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      
+      return {
+        day,
+        date,
+        time,
+        timestamp: now
+      };
+    };
+
+    // Checkout - Create order in Firebase
+    const checkout = async () => {
       if (cartItems.value.length === 0) {
         alert('Your cart is empty!');
         return;
       }
       
-      console.log('Proceeding to checkout with items:', cartItems.value);
+      if (!userId.value) {
+        alert('Please log in to place an order');
+        return;
+      }
 
-      // You can navigate to checkout page here
-      // router.push('/checkout');
+      // Get payment method from select element
+      const paymentMethodSelect = document.getElementById('payment-method');
+      const paymentMethod = paymentMethodSelect?.value || 'card';
+
+      try {
+        updating.value = true;
+        
+        // Group items by hawker (assuming cart may have items from multiple hawkers)
+        // For now, we'll create one order per unique hawker
+        const hawkerGroups = {};
+        
+        for (const item of cartItems.value) {
+          const hawkerId = item.hawkerId || item.userId;
+          if (!hawkerGroups[hawkerId]) {
+            hawkerGroups[hawkerId] = {
+              hawkerId: hawkerId,
+              hawkerName: item.hawkerName,
+              items: []
+            };
+          }
+          hawkerGroups[hawkerId].items.push(item);
+        }
+
+        // Get initial OrderID and format date/time once for all orders
+        let nextOrderID = await getNextOrderID();
+        const dateTime = formatDateTime();
+        const hawkerCount = Object.keys(hawkerGroups).length;
+
+        // Create an order for each hawker
+        const orderPromises = Object.values(hawkerGroups).map(async (group, index) => {
+          // Get hawker address
+          const hawkerAddress = await getHawkerAddress(group.hawkerId);
+          
+          // Format items array with item totals
+          const items = group.items.map(item => {
+            const originalPrice = parsePrice(item.itemPrice);
+            const discountedPrice = originalPrice * ((100 - item.discount) / 100);
+            const qty = parseInt(item.qty) || 1;
+            const itemTotal = discountedPrice * qty;
+            
+            return {
+              itemName: item.itemName,
+              itemPrice: originalPrice,
+              discountedPrice: discountedPrice,
+              qty: qty,
+              imageUrl: item.imageUrl || null,
+              itemTotal: itemTotal
+            };
+          });
+
+          // Calculate order totals
+          const subtotalBeforeDiscount = items.reduce((total, item) => {
+            return total + (item.itemPrice * item.qty);
+          }, 0);
+          
+          const orderTotal = items.reduce((total, item) => {
+            return total + item.itemTotal;
+          }, 0);
+          
+          const discount = subtotalBeforeDiscount - orderTotal;
+
+          // Use sequential OrderID for each hawker order
+          const currentOrderID = nextOrderID + index;
+
+          // Create order document
+          const orderData = {
+            orderID: currentOrderID,
+            day: dateTime.day,
+            date: dateTime.date,
+            time: dateTime.time,
+            timestamp: dateTime.timestamp,
+            paymentMethod: paymentMethod,
+            status: 'preparing',
+            userId: userId.value,
+            hawkerId: group.hawkerId,
+            hawkerName: group.hawkerName,
+            hawkerAddress: hawkerAddress,
+            items: items,
+            subtotalBeforeDiscount: subtotalBeforeDiscount,
+            discount: discount,
+            orderTotal: orderTotal,
+            createdAt: new Date()
+          };
+
+          // Add order to Firebase
+          const orderRef = await addDoc(collection(db, 'orders'), orderData);
+          console.log('Order created successfully with ID:', orderRef.id, 'OrderID:', currentOrderID);
+          
+          return orderRef.id;
+        });
+
+        await Promise.all(orderPromises);
+        
+        // Show success message and navigate to receipt
+        alert('Order placed successfully!');
+        router.push('/order-receipt');
+        
+      } catch (error) {
+        console.error('Error creating order:', error);
+        alert('Failed to place order. Please try again.');
+      } finally {
+        updating.value = false;
+      }
     };
     
     // Initialize on mount
