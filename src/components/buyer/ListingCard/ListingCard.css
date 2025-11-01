@@ -96,9 +96,11 @@
   animation: pulse 2s infinite;
 }
 
+
 .status-badge.open {
   background: rgba(34, 197, 94, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.open .status-dot {
@@ -108,6 +110,7 @@
 .status-badge.closing-soon {
   background: rgba(251, 191, 36, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.closing-soon .status-dot {
@@ -117,15 +120,18 @@
 .status-badge.closed {
   background: rgba(239, 68, 68, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.closed .status-dot {
   background: white;
   animation: none;
 }
+
 .status-badge.opening-soon {
-  background: rgb(27, 106, 234);
+  background: rgba(27, 106, 234, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.opening-soon .status-dot {

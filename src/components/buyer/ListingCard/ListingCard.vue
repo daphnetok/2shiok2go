@@ -70,9 +70,9 @@ export default {
   },
   methods: {
     getStatusClass() {
+      if (!this.hawker.openingTime || !this.hawker.closingTime) return 'unknown';
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
-      
       // Parse opening and closing times
       const [openHour, openMin] = this.hawker.openingTime.split(':').map(Number);
       const [closeHour, closeMin] = this.hawker.closingTime.split(':').map(Number);
@@ -92,7 +92,6 @@ export default {
             // Morning: time until closing
             minutesUntilClose = closingTimeInMinutes - currentTime;
           }
-          
           if (minutesUntilClose <= 30) {
             return 'closing-soon';
           }
