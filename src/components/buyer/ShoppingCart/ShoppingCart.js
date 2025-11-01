@@ -445,22 +445,20 @@ export default {
     // Checkout
     const checkout = () => {
       if (cartItems.value.length === 0) {
-        event.preventDefault();
         alert('Your cart is empty!');
         return;
       }
       
       // Check if there are closed stalls
       if (hasClosedStalls.value) {
-        event.preventDefault();
         showClosedStallsModal.value = true;
         return;
       }
       
       console.log('Proceeding to checkout with items:', cartItems.value);
 
-      // You can navigate to checkout page here
-      // router.push('/checkout');
+      // Navigate to order receipt page
+      router.push('/order-receipt');
     };
     
     // Initialize on mount
