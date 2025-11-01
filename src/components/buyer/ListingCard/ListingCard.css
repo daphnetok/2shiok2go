@@ -123,6 +123,15 @@
   background: white;
   animation: none;
 }
+.status-badge.opening-soon {
+  background: rgb(27, 106, 234);
+  color: white;
+}
+
+.status-badge.opening-soon .status-dot {
+  background: white;
+  animation: none;
+}
 
 @keyframes pulse {
   0%, 100% {
@@ -206,11 +215,12 @@
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   stroke-width: 2;
   transition: all 0.3s ease;
+  margin-left: 5px;
 }
 
 .clock-icon {

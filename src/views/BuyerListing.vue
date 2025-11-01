@@ -22,6 +22,7 @@
         <ListingGrid
           :price-order="filters.priceOrder"
           :dietary="filters.dietary"
+          :status="filters.status"
         />
       </div>
 
@@ -48,7 +49,8 @@ export default {
     return {
       filters: {
         priceOrder: null,
-        dietary: []
+        dietary: [],
+        status: []
       }
     };
   },

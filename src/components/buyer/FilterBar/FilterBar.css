@@ -359,6 +359,27 @@
   color: #666;
 }
 
+.filter-term{
+  color: black;
+}
+
+/* Status Icon Colors */
+.status-open {
+  color: #4caf50;
+}
+
+.status-closed {
+  color: #f44336;
+}
+
+.status-soon {
+  color: rgb(76, 138, 231);
+}
+
+.status-closing {
+  color: #ff9800;
+}
+
 @media (min-width: 768px) {
   .checkbox-option {
     padding: 8px 10px;
@@ -394,3 +415,4 @@
   max-height: 0;
   opacity: 0;
 }
+

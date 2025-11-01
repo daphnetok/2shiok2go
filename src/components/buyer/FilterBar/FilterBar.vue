@@ -71,6 +71,51 @@
             </transition>
           </div>
 
+          <!-- Status Section -->
+          <div class="filter-section">
+            <button 
+              class="filter-section-header" 
+              @click="toggleStatusExpand"
+              :class="{ 'active': isStatusExpanded }"
+            >
+              <div class="filter-title">
+                <i class="fas fa-clock"></i>
+                <span>Status</span>
+                <span v-if="status.length > 0" class="badge-count">{{ status.length }}</span>
+              </div>
+              <i class="fas" :class="isStatusExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+            
+            <transition name="expand">
+              <div v-if="isStatusExpanded" class="filter-content">
+                <label class="checkbox-option">
+                  <input type="checkbox" value="open" v-model="status" @change="emitFilters">
+                  <span class="checkbox-custom"></span>
+                  <i class="fas fa-door-open me-2 status-open"></i>
+                  <span class="filter-term">Open</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" value="closed" v-model="status" @change="emitFilters">
+                  <span class="checkbox-custom"></span>
+                  <i class="fas fa-door-closed me-2 status-closed"></i>
+                  <span class="filter-term">Closed</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" value="opening-soon" v-model="status" @change="emitFilters">
+                  <span class="checkbox-custom"></span>
+                  <i class="fas fa-hourglass-half me-2 status-soon"></i>
+                  <span class="filter-term">Opening Soon</span>
+                </label>
+                <label class="checkbox-option">
+                  <input type="checkbox" value="closing-soon" v-model="status" @change="emitFilters">
+                  <span class="checkbox-custom"></span>
+                  <i class="fas fa-clock me-2 status-closing"></i>
+                  <span class="filter-term">Closing Soon</span>
+                </label>
+              </div>
+            </transition>
+          </div>
+
           <!-- Dietary Restriction Section -->
           <div class="filter-section">
             <button 
@@ -87,34 +132,30 @@
             </button>
             
             <transition name="expand">
-              <div v-show="isDietaryExpanded" class="filter-content">
+              <div v-if="isDietaryExpanded" class="filter-content">
                 <label class="checkbox-option">
                   <input type="checkbox" value="halal" v-model="dietary" @change="emitFilters">
                   <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">
-                    <i class="fas fa-mosque me-2"></i>Halal
-                  </span>
+                  <i class="fas fa-mosque me-2"></i>
+                  <span class="filter-term">Halal</span>
                 </label>
                 <label class="checkbox-option">
                   <input type="checkbox" value="vegetarian" v-model="dietary" @change="emitFilters">
                   <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">
-                    <i class="fas fa-seedling me-2"></i>Vegetarian
-                  </span>
+                  <i class="fas fa-seedling me-2"></i>
+                  <span class="filter-term">Vegetarian</span>
                 </label>
                 <label class="checkbox-option">
                   <input type="checkbox" value="seafood" v-model="dietary" @change="emitFilters">
                   <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">
-                    <i class="fas fa-fish me-2"></i>Seafood
-                  </span>
+                  <i class="fas fa-fish me-2"></i>
+                  <span class="filter-term">Seafood</span>
                 </label>
                 <label class="checkbox-option">
                   <input type="checkbox" value="dairy-free" v-model="dietary" @change="emitFilters">
                   <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">
-                    <i class="fas fa-ban me-2"></i>Dairy-Free
-                  </span>
+                  <i class="fas fa-ban me-2"></i>
+                  <span class="filter-term">Dairy-Free</span>
                 </label>
               </div>
             </transition>
@@ -135,19 +176,24 @@ export default {
   data() {
     return {
       isPriceExpanded: false,
+      isStatusExpanded: false,
       isDietaryExpanded: false,
       priceOrder: null,
+      status: [],
       dietary: []
     };
   },
   computed: {
     hasActiveFilters() {
-      return this.priceOrder !== null || this.dietary.length > 0;
+      return this.priceOrder !== null || this.status.length > 0 || this.dietary.length > 0;
     }
   },
   methods: {
     togglePriceExpand() {
       this.isPriceExpanded = !this.isPriceExpanded;
+    },
+    toggleStatusExpand() {
+      this.isStatusExpanded = !this.isStatusExpanded;
     },
     toggleDietaryExpand() {
       this.isDietaryExpanded = !this.isDietaryExpanded;
@@ -158,12 +204,14 @@ export default {
     },
     clearAllFilters() {
       this.priceOrder = null;
+      this.status = [];
       this.dietary = [];
       this.emitFilters();
     },
     emitFilters() {
       this.$emit('filter-change', {
         priceOrder: this.priceOrder,
+        status: this.status,
         dietary: this.dietary
       });
     }

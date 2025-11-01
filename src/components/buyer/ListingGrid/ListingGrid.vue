@@ -39,6 +39,10 @@ export default {
     dietary: {
       type: Array,
       default: () => []
+    },
+    status: {
+      type: Array,
+      default: () => []
     }
   },
   setup(props) {
@@ -58,30 +62,71 @@ export default {
       return Number.isNaN(d) ? 0 : d;
     };
 
+    // Helper: get status for a hawker (same logic as ListingCard)
+    const getStatus = (hawker) => {
+      if (!hawker.openingTime || !hawker.closingTime) return 'unknown';
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      const [openHour, openMin] = hawker.openingTime.split(':').map(Number);
+      const [closeHour, closeMin] = hawker.closingTime.split(':').map(Number);
+      const openingTimeInMinutes = openHour * 60 + openMin;
+      const closingTimeInMinutes = closeHour * 60 + closeMin;
+      if (closingTimeInMinutes < openingTimeInMinutes) {
+        if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
+          let minutesUntilClose;
+          if (currentTime >= openingTimeInMinutes) {
+            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
+          } else {
+            minutesUntilClose = closingTimeInMinutes - currentTime;
+          }
+          if (minutesUntilClose <= 30) return 'closing-soon';
+          return 'open';
+        } else {
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30) return 'opening-soon';
+          return 'closed';
+        }
+      } else {
+        if (currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes) {
+          const minutesUntilClose = closingTimeInMinutes - currentTime;
+          if (minutesUntilClose <= 30) return 'closing-soon';
+          return 'open';
+        } else if (currentTime < openingTimeInMinutes) {
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30) return 'opening-soon';
+          return 'closed';
+        } else {
+          return 'closed';
+        }
+      }
+    };
+
     const filteredHawkers = computed(() => {
-      const list = (allHawkers.value || []).slice();
+      let list = (allHawkers.value || []).slice();
 
       // Filter by dietaryRestriction (string) if any selected
-      const filtered = props.dietary.length
-        ? list.filter(h => {
-            const tag = getDietary(h); // e.g., "halal"
-            // match if hawker's single tag is included in selected array
-            return props.dietary
-              .map(d => d.toString().toLowerCase().trim())
-              .includes(tag);
-          })
-        : list;
+      if (props.dietary.length) {
+        list = list.filter(h => {
+          const tag = getDietary(h);
+          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
+        });
+      }
+
+      // Filter by status if any selected
+      if (props.status && props.status.length) {
+        list = list.filter(h => props.status.includes(getStatus(h)));
+      }
 
       // Price sort not available in schema; optionally sort by distance if priceOrder provided
       if (props.priceOrder) {
-        filtered.sort((a, b) => {
+        list.sort((a, b) => {
           const da = getDistance(a);
           const db = getDistance(b);
           return props.priceOrder === 'asc' ? da - db : db - da;
         });
       }
 
-      return filtered;
+      return list;
     });
 
     return { filteredHawkers, loading };

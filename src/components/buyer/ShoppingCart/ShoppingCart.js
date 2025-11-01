@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
@@ -18,6 +18,7 @@ export default {
     const authUnsubscribe = ref(null);
     const editMode = ref(false);
     const selectedItems = ref([]);
+    const showClosedStallsModal = ref(false);
     
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
@@ -40,6 +41,75 @@ export default {
       return `$${numPrice.toFixed(2)}`;
     };
     
+    // Helper function to check if stall is closed
+    const isStallClosed = (openingTime, closingTime) => {
+      if (!openingTime || !closingTime) return false;
+      
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      
+      // Parse time string (formats like "09:00", "9:00", "5:00", "0900", with or without spaces)
+      const parseTime = (timeStr) => {
+        if (typeof timeStr === 'number') {
+          // If it's already a number like 930, convert to hours and minutes
+          const hours = Math.floor(timeStr / 100);
+          const minutes = timeStr % 100;
+          return { hours, minutes };
+        }
+        
+        // Trim whitespace and remove colon
+        let cleaned = String(timeStr).trim().replace(':', '');
+        
+        // Handle formats like "5:00" or "500" (should be 05:00)
+        if (cleaned.length === 3) {
+          cleaned = '0' + cleaned; // "500" becomes "0500"
+        } else if (cleaned.length === 2) {
+          cleaned = cleaned + '00'; // "05" becomes "0500"
+        } else if (cleaned.length === 1) {
+          cleaned = '0' + cleaned + '00'; // "5" becomes "0500"
+        }
+        
+        // Pad with zeros if needed (e.g., "900" becomes "0900")
+        cleaned = cleaned.padStart(4, '0');
+        
+        const hours = parseInt(cleaned.substring(0, 2));
+        const minutes = parseInt(cleaned.substring(2, 4));
+        return { hours, minutes };
+      };
+      
+      const opening = parseTime(openingTime);
+      const closing = parseTime(closingTime);
+      
+      // Convert everything to minutes since midnight for easier comparison
+      const currentMinutesSinceMidnight = currentHours * 60 + currentMinutes;
+      const openingMinutes = opening.hours * 60 + opening.minutes;
+      const closingMinutes = closing.hours * 60 + closing.minutes;
+      
+      console.log('Time check:', {
+        current: `${currentHours}:${String(currentMinutes).padStart(2, '0')}`,
+        opening: `${opening.hours}:${String(opening.minutes).padStart(2, '0')}`,
+        closing: `${closing.hours}:${String(closing.minutes).padStart(2, '0')}`,
+        currentMinutes: currentMinutesSinceMidnight,
+        openingMinutes,
+        closingMinutes
+      });
+      
+      // Handle cases where closing time is past midnight (e.g., opens at 18:00, closes at 02:00)
+      if (closingMinutes < openingMinutes) {
+        // Stall is open from opening time through midnight to closing time
+        // Closed if current time is after closing AND before opening
+        const isClosed = currentMinutesSinceMidnight >= closingMinutes && currentMinutesSinceMidnight < openingMinutes;
+        console.log('Overnight stall, isClosed:', isClosed);
+        return isClosed;
+      } else {
+        // Normal case: stall is closed if current time is before opening OR at/after closing
+        const isClosed = currentMinutesSinceMidnight < openingMinutes || currentMinutesSinceMidnight >= closingMinutes;
+        console.log('Normal hours stall, isClosed:', isClosed);
+        return isClosed;
+      }
+    };
+    
     // Fetch cart items and current stock levels from Firebase
     const fetchCartItems = async () => {
       if (!userId.value) {
@@ -60,19 +130,63 @@ export default {
           const cartData = cartSnap.data();
           let items = cartData.items || [];
           
-          // Fetch current stock levels for each item
+          // Fetch current stock levels and hawker info for each item
           const updatedItems = await Promise.all(items.map(async (item) => {
             try {
               const itemRef = doc(db, 'itemListings', item.itemId);
               const itemSnap = await getDoc(itemRef);
+              
+              console.log('Fetching item:', item.itemId);
+              
               if (itemSnap.exists()) {
                 const itemData = itemSnap.data();
-                // Update item with current stock level
+                console.log('Item data:', itemData);
+                
+                // Fetch hawker information from hawkerListings collection
+                let hawkerData = null;
+                let isClosed = false;
+                let openingTime = null;
+                let closingTime = null;
+                
+                // Check for uid field (this is the hawker ID)
+                const hawkerId = itemData.uid || item.uid || itemData.hawkerId || item.hawkerId;
+                console.log('Looking for hawker with ID:', hawkerId);
+                
+                if (hawkerId) {
+                  try {
+                    // Try to get hawker data from hawkerListings collection
+                    // We need to query by userId field
+                    const { collection, query, where, getDocs } = await import('firebase/firestore');
+                    const hawkerListingsRef = collection(db, 'hawkerListings');
+                    const hawkerQuery = query(hawkerListingsRef, where('userId', '==', hawkerId));
+                    const hawkerQuerySnap = await getDocs(hawkerQuery);
+                    
+                    if (!hawkerQuerySnap.empty) {
+                      // Get the first matching hawker listing
+                      hawkerData = hawkerQuerySnap.docs[0].data();
+                      console.log('Hawker data found from hawkerListings:', hawkerData);
+                      openingTime = hawkerData.openingTime;
+                      closingTime = hawkerData.closingTime;
+                      isClosed = isStallClosed(openingTime, closingTime);
+                      console.log('Stall closed status:', isClosed);
+                    } else {
+                      console.log('No hawker listing found for userId:', hawkerId);
+                    }
+                  } catch (hawkerErr) {
+                    console.error(`Error fetching hawker info for item ${item.itemId}:`, hawkerErr);
+                  }
+                } else {
+                  console.log('No hawker uid found in item data');
+                }
+                
+                // Update item with current stock level and closed status
                 return {
                   ...item,
                   itemQty: itemData.itemQty,
-                  // Adjust quantity if it exceeds current stock
-                  qty: Math.min(item.qty, itemData.itemQty)
+                  qty: Math.min(item.qty, itemData.itemQty),
+                  isClosed: isClosed,
+                  openingTime: openingTime,
+                  closingTime: closingTime
                 };
               }
               return item;
@@ -83,7 +197,7 @@ export default {
           }));
           
           cartItems.value = updatedItems;
-          console.log('Cart items loaded with current stock levels:', cartItems.value);
+          console.log('Cart items loaded with current stock levels and stall status:', cartItems.value);
           
           // If any quantities were adjusted, update the cart
           if (updatedItems.some((item, i) => item.qty !== items[i].qty)) {
@@ -108,19 +222,36 @@ export default {
     
     const cartTotal = computed(() => {
       return cartItems.value.reduce((total, item) => {
-        // Calculate price after discount
         const itemPrice = parsePrice(item.itemPrice);
         const price = itemPrice * ((100 - item.discount) / 100);
-
         return total + (price * item.qty);
       }, 0);
+    });
+
+    const hasClosedStalls = computed(() => {
+      return cartItems.value.some(item => item.isClosed);
+    });
+
+    const closedStallItems = computed(() => {
+      return cartItems.value.filter(item => item.isClosed);
+    });
+
+    const closedStallsTotal = computed(() => {
+      return closedStallItems.value.reduce((total, item) => {
+        const itemPrice = parsePrice(item.itemPrice);
+        const price = itemPrice * ((100 - item.discount) / 100);
+        return total + (price * item.qty);
+      }, 0);
+    });
+
+    const availableTotal = computed(() => {
+      return cartTotal.value - closedStallsTotal.value;
     });
 
     // Calculate individual item total
     const calculateItemTotal = (item) => {
       const itemPrice = parsePrice(item.itemPrice);
       const price = itemPrice * ((100 - item.discount) / 100);
-
       return (price * item.qty).toFixed(2);
     };
 
@@ -160,9 +291,8 @@ export default {
     // Validate and update quantity
     const validateQuantity = (item) => {
       let qty = parseInt(item.qty);
-      const maxQty = item.itemQty || 0; // Use actual stock level or 0 if not set
+      const maxQty = item.itemQty || 0;
       
-      // Ensure quantity is a valid number between 1 and stock level
       if (isNaN(qty) || qty < 1) {
         item.qty = 1;
       } else if (maxQty > 0 && qty > maxQty) {
@@ -186,7 +316,7 @@ export default {
 
     // Increment item quantity
     const incrementItem = async (item) => {
-      const maxQty = item.itemQty || 99; // Default to 99 if itemQty not set
+      const maxQty = item.itemQty || 99;
       if (item.qty >= maxQty) return;
       
       const updatedItems = cartItems.value.map(cartItem => {
@@ -258,7 +388,7 @@ export default {
       selectedItems.value = [];
     };
     
-    // Remove item from cart (kept for backward compatibility)
+    // Remove item from cart
     const removeItem = async (item) => {
       if (!confirm(`Remove ${item.itemName} from cart?`)) {
         return;
@@ -296,24 +426,44 @@ export default {
       router.go(-1);
     };
     
+    // Modal functions
+    const closeModal = () => {
+      showClosedStallsModal.value = false;
+    };
+
+    const proceedWithAvailable = () => {
+      showClosedStallsModal.value = false;
+      // Remove closed stall items from cart
+      const availableItems = cartItems.value.filter(item => !item.isClosed);
+      updateCartInFirebase(availableItems);
+      
+      // Proceed to checkout
+      console.log('Proceeding to checkout with available items:', availableItems);
+      // router.push('/order-receipt');
+    };
+    
     // Checkout
-    const checkout = () => {
+    const checkout = (event) => {
       if (cartItems.value.length === 0) {
+        event.preventDefault();
         alert('Your cart is empty!');
         return;
       }
       
+      // Check if there are closed stalls
+      if (hasClosedStalls.value) {
+        event.preventDefault();
+        showClosedStallsModal.value = true;
+        return;
+      }
+      
       console.log('Proceeding to checkout with items:', cartItems.value);
-
-      // You can navigate to checkout page here
-      // router.push('/checkout');
     };
     
     // Initialize on mount
     onMounted(() => {
       console.log('ShoppingCart component mounted');
       
-      // Check current auth state immediately
       const currentUser = auth.currentUser;
       if (currentUser) {
         console.log('User already authenticated:', currentUser.uid);
@@ -325,12 +475,10 @@ export default {
         errorMsg.value = 'Please log in to view your cart';
       }
       
-      // Also listen for auth state changes
       authUnsubscribe.value = onAuthStateChanged(auth, async (user) => {
         console.log('Auth state changed:', user ? user.uid : 'null');
         
         if (user) {
-          // Only fetch if userId changed
           if (userId.value !== user.uid) {
             userId.value = user.uid;
             await fetchCartItems();
@@ -351,17 +499,25 @@ export default {
       }
     });
     
-    
-    
     return {
+      // Reactive state
       cartItems,
-      cartCount,
-      cartTotal,
       loading,
       updating,
       errorMsg,
       editMode,
       selectedItems,
+      showClosedStallsModal,
+      
+      // Computed properties
+      cartCount,
+      cartTotal,
+      hasClosedStalls,
+      closedStallItems,
+      closedStallsTotal,
+      availableTotal,
+      
+      // Methods
       goBack,
       incrementItem,
       decrementItem,
@@ -375,7 +531,9 @@ export default {
       enterEditMode,
       cancelEditMode,
       selectAll,
-      deleteSelected
+      deleteSelected,
+      closeModal,
+      proceedWithAvailable
     };
   }
 };
