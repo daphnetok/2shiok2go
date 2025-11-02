@@ -72,7 +72,7 @@ export default {
       return hawkers.map(hawker => ({
         ...hawker,
         distance: hawker.distance && hawker.distance != 'N/A'
-          ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(2))
+          ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(1))
           :hawker.distance
       }));
     });
