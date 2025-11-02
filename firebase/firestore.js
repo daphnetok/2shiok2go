@@ -44,7 +44,7 @@ export const useLoadListings = () => {
   const unsubscribe = onSnapshot(listingsCollection, snapshot => {
     listings.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
-  onUnmounted(unsubscribe);
+  // onUnmounted(unsubscribe);
   return listings;
 }
 

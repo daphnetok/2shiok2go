@@ -33,6 +33,13 @@ export const inactiveListings = computed(() => {
   );
 });
 
+// both active and inactive listings
+export const userListings = computed(() => {
+  return allListings.value.filter(
+    listing => listing.userId === currentUserId.value
+  )
+})
+
 export const showAlert = (type, message) => {
   alert.value.show = true;
   alert.value.type = type;

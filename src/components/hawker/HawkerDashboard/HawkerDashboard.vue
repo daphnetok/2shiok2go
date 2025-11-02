@@ -44,21 +44,22 @@
     </nav>
 
   <!-- active listings -->
-  <div class="container mt-4">
+  <div class="mt-4">
     <div class="d-flex justify-content-end">
       <router-link to="/create-listing" class="btn btn-success mb-3 ">+ Create a New Listing</router-link></div>
     <div class="row active mb-5">
       <h2>Active Listings</h2>
-      <p v-if="activeListings.length === 0" class="text-secondary">No active listings yet</p>
+      <p v-if="activeListings.length === 0" class="text-secondary text-center">
+        No active listings yet</p>
       
-      <div v-else class="w-100">
-        <div class="card" v-for="listing of activeListings" :key="listing.id">
-          <div class="row g-0" style="align-items: center;">
+      <div v-else>
+        <div class="mb-3 card-style mx-auto" v-for="listing of activeListings" :key="listing.id">
+          <div class="row g-0" style="align-items: center;" @click="editListing(listing.id)">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">
             </div>
             <div class="col-8 col-md-5">
-              <div class="card-body">
+              <div class="card-body" style="height: 125px">
                 <h5 class="card-title">{{ listing.itemName }}</h5>
                 <h5 class="card-text">${{ listing.discountedPrice }}</h5>
                 <h5 class="card-text"><s>${{ listing.itemPrice }}</s></h5>
@@ -91,16 +92,18 @@
 
     <div class="row non-active mb-5">
       <h2 class="text-secondary">Non-Active Listings</h2>
-      <p v-if="inactiveListings.length === 0" class="text-secondary">No inactive listings</p>
+      <p v-if="inactiveListings.length === 0" class="text-secondary text-center">
+        No inactive listings</p>
       
       <div v-else class="w-100">
-        <div class="card" v-for="listing in inactiveListings" :key="listing.id">
-          <div class="row g-0" style="align-items: center;">
+        <div class="mb-3 card-style mx-auto"
+           v-for="listing in inactiveListings" :key="listing.id">
+          <div class="row g-0" style="align-items: center;" @click="editListing(listing.id)">
             <div class="col-4 col-md-2 list-img-container">
               <img :src="listing.imageUrl" class="object-fit-cover rounded">
             </div>
             <div class="col-8 col-md-4">
-              <div class="card-body">
+              <div class="card-body" style="height: 125px">
                 <h5 class="card-title">{{ listing.itemName }}</h5>
                 <h5 class="card-text">${{ listing.discountedPrice }}</h5>
                 <h5 class="card-text"><s>${{ listing.itemPrice }}</s></h5>
@@ -188,4 +191,4 @@
   };
 </script>
 
-<!-- <style src="../assets/css/HawkerDashboard.css"></style> -->
+<style src="../HawkerDashboard/HawkerDashboard.css"></style>

@@ -63,7 +63,7 @@ input[type=file]{
 }
 
 .active{
-    background-color: rgb(241, 255, 241);
+    background-color: rgb(249, 255, 249);
     border-radius: 10px;
     padding: 20px;
 }
