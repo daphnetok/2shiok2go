@@ -8,7 +8,7 @@
         v-model="localDescription"
         @input="updateParent"
         rows="4"
-        placeholder="Write your own description or click on the button below for AI to generate a description of your dish..."
+        placeholder="Add a short description of your dish"
         :disabled="isGenerating"
       ></textarea>
       <div class="m-0">
@@ -29,10 +29,6 @@
       </div>
       
     </div>
-
-    
-
-    
   </div>
 </template>
 
@@ -47,20 +43,31 @@ const props = defineProps({
   selectedFile: File,
   foodName: String,
   description: String,
+  imageUrl: String
 });
 const emit = defineEmits(["update:description"]);
 
 const localDescription = ref(props.description || "");
 const isGenerating = ref(false);
 
+const canGenerate =ref(false);
 watch(
-  () => props.description,
-  (newVal) => (localDescription.value = newVal)
+  () => [props.foodName, props.selectedFile, props.imageUrl],
+  ([newName, newFile, newImage]) => {
+    // enable if there’s a food name + (either an uploaded file or an image url)
+    canGenerate.value = !!newName && (!!newFile || !!newImage);
+  },
+  { immediate: true }
 );
 
-const canGenerate = computed(
-  () => props.selectedFile && props.foodName?.trim().length > 0
-);
+// watch(
+//   () => props.description,
+//   (newVal) => (localDescription.value = newVal)
+// );
+
+// const canGenerate = computed(
+//   () => props.selectedFile && props.foodName?.trim().length > 0
+// );
 
 const updateParent = () => emit("update:description", localDescription.value);
 

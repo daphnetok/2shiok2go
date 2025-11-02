@@ -18,9 +18,7 @@
     transform: translateY(-60%);
     color: #555;
 }
-.price-input{
-    padding-left: 30px;
-}
+
 #discountedPrice{
     font-weight: bold;
 }
@@ -63,12 +61,12 @@ input[type=file]{
 }
 
 .active{
-    background-color: rgb(249, 255, 249);
+    background-color: rgb(255, 255, 255);
     border-radius: 10px;
     padding: 20px;
 }
 .non-active{
-    background-color: rgb(244, 244, 244);
+    background-color: rgb(255, 255, 255);
     border-radius: 10px;
     padding: 20px;
 }

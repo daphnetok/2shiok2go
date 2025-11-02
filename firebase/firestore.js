@@ -107,3 +107,68 @@ export const assignRoleToGoogleUser = async (user, role) => {
     return { success: false, error: error.message };
   }
 }
+
+// Get order count for a specific listing
+export const getOrderCountForListing = async (listingId) => {
+  try {
+    const ordersCollection = collection(db, 'orders');
+    const allOrdersSnapshot = await getDocs(ordersCollection);
+    
+    let totalOrders = 0;
+    
+    allOrdersSnapshot.forEach(doc => {
+      const orderData = doc.data();
+      if (orderData.items && Array.isArray(orderData.items)) {
+        orderData.items.forEach(item => {
+          // Match by itemName or you could add itemId to orders
+          if (item.itemName === listingId) {
+            totalOrders += item.qty || 1;
+          }
+        });
+      }
+    });
+    
+    return totalOrders;
+  } catch (error) {
+    console.error('Error getting order count:', error);
+    return 0;
+  }
+};
+
+// Update stock after order
+export const updateStockAfterOrder = async (listingId, quantityOrdered) => {
+  try {
+    const listingRef = doc(db, 'itemListings', listingId);
+    const listingSnap = await getDoc(listingRef);
+    
+    if (listingSnap.exists()) {
+      const currentStock = listingSnap.data().itemQty || 0;
+      const newStock = Math.max(0, currentStock - quantityOrdered);
+      
+      await updateDoc(listingRef, {
+        itemQty: newStock
+      });
+      
+      console.log(`Stock updated for ${listingId}: ${currentStock} -> ${newStock}`);
+      return { success: true, newStock };
+    }
+    return { success: false, error: 'Listing not found' };
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Listen to real-time order changes for a hawker
+export const useListenToHawkerOrders = (hawkerId) => {
+  const orders = ref([]);
+  const ordersCollection = collection(db, 'orders');
+  const q = query(ordersCollection, where('hawkerId', '==', hawkerId));
+  
+  const unsubscribe = onSnapshot(q, snapshot => {
+    orders.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  });
+  
+  // onUnmounted(unsubscribe);
+  return orders;
+};
