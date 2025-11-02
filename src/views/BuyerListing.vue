@@ -2,7 +2,7 @@
  <div class="container">
     <div class="row">
       <!-- Desktop: Filter on left, full width of its column -->
-      <SearchBar/>
+      <SearchBar @search="handleSearch"/>
     </div>
 
     <div class="row">
@@ -23,6 +23,7 @@
           :price-order="filters.priceOrder"
           :dietary="filters.dietary"
           :status="filters.status"
+          :search-query="searchQuery"
         />
       </div>
 
@@ -32,6 +33,7 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
@@ -44,6 +46,18 @@ export default {
     SearchBar,
     ListingGrid,
     BackToTop
+  },
+  setup() {
+    const searchQuery = ref('')
+    
+    const handleSearch = (query) => {
+      searchQuery.value = query
+    }
+
+    return {
+      searchQuery,
+      handleSearch
+    }
   },
   data() {
     return {
