@@ -1,48 +1,53 @@
 <template>
-  <div class="hawker-analytics" :class="{ 'dark-theme': isDarkTheme }" style="padding-left: 3rem; padding-right: 3rem; min-height: 100vh; transition: all 0.3s ease;">
+  <div class="hawker-analytics" :class="{ 'dark-theme': isDarkTheme }" style="min-height: 100vh; transition: all 0.3s ease;">
     <div class="container-fluid px-4 py-4">
       <div class="row mb-4 align-items-center">
-        <div class="col-md-4">
+        <div class="col-12 col-lg-4 mb-3 mb-lg-0 text-center text-lg-start">
           <h1 class="mb-0 fw-bold dashboard-title" style="font-size: 2rem; letter-spacing: -0.5px;">
             <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
             Hawker Analytics
           </h1>
           <p class="subtitle mt-2 mb-0" style="font-size: 0.95rem; opacity: 0.8;">Monitor your sales performance and manage your schedule</p>
         </div>
-        <div class="col-md-8 text-end d-flex justify-content-end align-items-center gap-3">
-          <div class="btn-group shadow-sm" role="group" style="border-radius: 10px; overflow: hidden;">
-            <button 
-              type="button" 
-              class="btn px-4 py-2 fw-semibold" 
-              :class="globalFilter === 'day' ? 'btn-success' : 'btn-outline-success'"
-              @click="setGlobalFilter('day')"
-              style="border-radius: 0; transition: all 0.3s ease;">
-              <i class="fas fa-calendar-day me-1"></i>Day
+        <div class="col-12 col-lg-8">
+          <div class="d-flex flex-column flex-sm-row justify-content-lg-end align-items-stretch align-items-sm-center gap-2 gap-sm-3">
+            <div class="btn-group shadow-sm flex-shrink-0" role="group" style="border-radius: 10px; overflow: hidden;">
+              <button 
+                type="button" 
+                class="btn px-3 px-md-4 py-2 fw-semibold filter-btn" 
+                :class="globalFilter === 'day' ? 'btn-success' : 'btn-outline-success'"
+                @click="setGlobalFilter('day')"
+                style="border-radius: 0; transition: all 0.3s ease;">
+                <i class="fas fa-calendar-day me-1 d-none d-sm-inline"></i>Day
+              </button>
+              <button 
+                type="button" 
+                class="btn px-3 px-md-4 py-2 fw-semibold filter-btn" 
+                :class="globalFilter === 'week' ? 'btn-success' : 'btn-outline-success'"
+                @click="setGlobalFilter('week')"
+                style="transition: all 0.3s ease;">
+                <i class="fas fa-calendar-week me-1 d-none d-sm-inline"></i>Week
+              </button>
+              <button 
+                type="button" 
+                class="btn px-3 px-md-4 py-2 fw-semibold filter-btn" 
+                :class="globalFilter === 'month' ? 'btn-success' : 'btn-outline-success'"
+                @click="setGlobalFilter('month')"
+                style="border-radius: 0; transition: all 0.3s ease;">
+                <i class="fas fa-calendar-alt me-1 d-none d-sm-inline"></i>Month
+              </button>
+            </div>
+            <button class="btn btn-theme shadow-sm px-3 px-md-4 py-2 fw-semibold no-print" style="border-radius: 10px; transition: all 0.3s ease;" @click="toggleTheme">
+              <i :class="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'" class="me-2"></i>
+              <span class="d-none d-sm-inline">{{ isDarkTheme ? 'Light' : 'Dark' }}</span>
+              <span class="d-sm-none">Theme</span>
             </button>
-            <button 
-              type="button" 
-              class="btn px-4 py-2 fw-semibold" 
-              :class="globalFilter === 'week' ? 'btn-success' : 'btn-outline-success'"
-              @click="setGlobalFilter('week')"
-              style="transition: all 0.3s ease;">
-              <i class="fas fa-calendar-week me-1"></i>Week
-            </button>
-            <button 
-              type="button" 
-              class="btn px-4 py-2 fw-semibold" 
-              :class="globalFilter === 'month' ? 'btn-success' : 'btn-outline-success'"
-              @click="setGlobalFilter('month')"
-              style="border-radius: 0; transition: all 0.3s ease;">
-              <i class="fas fa-calendar-alt me-1"></i>Month
+            <button class="btn btn-success shadow-sm px-3 px-md-4 py-2 fw-semibold no-print" style="border-radius: 10px; transition: all 0.3s ease;" @click="generatePDF">
+              <i class="fas fa-file-pdf me-2"></i>
+              <span class="d-none d-sm-inline">Export PDF</span>
+              <span class="d-sm-none">Export</span>
             </button>
           </div>
-          <button class="btn btn-theme shadow-sm px-4 py-2 fw-semibold" style="border-radius: 10px; transition: all 0.3s ease;" @click="toggleTheme">
-            <i :class="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'" class="me-2"></i>
-            {{ isDarkTheme ? 'Light' : 'Dark' }}
-          </button>
-          <button class="btn btn-success shadow-sm px-4 py-2 fw-semibold" style="border-radius: 10px; transition: all 0.3s ease;" @click="generatePDF">
-            <i class="fas fa-file-pdf me-2"></i>Export PDF
-          </button>
         </div>
       </div>
     </div>
@@ -530,6 +535,11 @@ export default {
 <style scoped>
 @import '@/assets/css/dashboard-theme.css';
 @import '@/assets/css/calendar.css';
+.hawker-analytics {
+  margin: 0 -1.5rem; 
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
 
 /* Light Theme (Default) */
 .hawker-analytics {
@@ -688,5 +698,168 @@ export default {
 .dark-theme .btn-secondary {
   background: #475569 !important;
   border-color: #475569 !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+  .dashboard-title {
+    font-size: 1.75rem !important;
+  }
+  
+  .subtitle {
+    font-size: 0.875rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .filter-btn {
+    font-size: 0.875rem !important;
+  }
+  
+  .btn-group {
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    flex: 1;
+  }
+}
+
+@media (max-width: 575px) {
+  .hawker-analytics {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    margin: 0 -1rem !important;
+  }
+  
+  .stat-card {
+    min-height: 140px !important;
+  }
+  
+  .stat-card h3 {
+    font-size: 1.5rem !important;
+  }
+  
+  .stat-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .stat-icon i {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Print Styles for PDF Export */
+@media print {
+  /* Hide elements not needed in PDF */
+  .no-print,
+  .btn-theme,
+  .btn-group {
+    display: none !important;
+  }
+  
+  /* Reset backgrounds for print */
+  .hawker-analytics,
+  .hawker-analytics.dark-theme {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Adjust title colors for print */
+  .dashboard-title,
+  .dark-theme .dashboard-title {
+    color: #047857 !important;
+    text-shadow: none !important;
+  }
+  
+  .subtitle,
+  .dark-theme .subtitle {
+    color: #065f46 !important;
+  }
+  
+  /* Keep stat card colors vibrant */
+  .stat-card-success,
+  .dark-theme .stat-card-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .stat-card-info,
+  .dark-theme .stat-card-info {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .stat-card-warning,
+  .dark-theme .stat-card-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .stat-card-primary,
+  .dark-theme .stat-card-primary {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Remove hover effects */
+  .stat-card:hover {
+    transform: none !important;
+  }
+  
+  /* Ensure charts are visible */
+  .card,
+  .dark-mode-card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    page-break-inside: avoid;
+  }
+  
+  .card-header,
+  .bg-dark-header,
+  .bg-light-header {
+    background: #f0fdf4 !important;
+    border-bottom: 1px solid #bbf7d0 !important;
+  }
+  
+  .card-body,
+  .dark-body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Fix chart title colors */
+  .card-header h5 {
+    color: #059669 !important;
+  }
+  
+  /* Page breaks for better layout */
+  .row.mb-5 {
+    page-break-inside: avoid;
+  }
+  
+  /* Adjust spacing for print */
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Remove margins that cause issues */
+  .hawker-analytics {
+    margin: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Fix text colors in charts for print */
+  canvas {
+    max-width: 100% !important;
+  }
 }
 </style>

@@ -24,17 +24,18 @@
         <!-- Header with Theme Toggle -->
         <div class="container-fluid" style="padding-left: 3rem; padding-right: 3rem; padding-top: 2rem; padding-bottom: 1rem;">
           <div class="row mb-4 align-items-center">
-            <div class="col-auto">
-              <h2 class="mb-0 fw-bold d-flex align-items-center" style="color: #059669;">
+            <div class="col-12 col-lg-8 mb-3 mb-lg-0 text-center text-lg-start">
+              <h2 class="mb-0 fw-bold d-flex align-items-center justify-content-center justify-content-lg-start" style="color: #059669;">
                 <i class="fas fa-shopping-bag" style="font-size: 2rem; margin-right: 0.75rem;"></i>
                 Recent Orders
               </h2>
               <p class="mb-0 mt-2 text-muted">Track your food rescue orders</p>
             </div>
-            <div class="col text-end">
-              <button class="btn btn-outline-secondary" style="border-radius: 8px;" @click="toggleTheme">
+            <div class="col-12 col-lg-4 text-center text-lg-end">
+              <button class="btn btn-outline-secondary no-print" style="border-radius: 8px;" @click="toggleTheme">
                 <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
-                {{ isDarkMode ? 'Light' : 'Dark' }} Mode
+                <span class="d-none d-sm-inline">{{ isDarkMode ? 'Light' : 'Dark' }} Mode</span>
+                <span class="d-sm-none">Theme</span>
               </button>
             </div>
           </div>
@@ -350,10 +351,12 @@ export default {
 .buyer-dashboard-wrapper {
   display: flex;
   min-height: 100vh;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .buyer-dashboard-wrapper.dark-theme {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
 }
 
 /* Sidebar - Matching FilterBar Style */
@@ -453,14 +456,17 @@ export default {
 .main-content {
   flex: 1;
   overflow-y: auto;
+  background: transparent;
 }
 
 .recent-orders-page {
   min-height: 100vh;
+  background: transparent;
+  padding-bottom: 2rem;
 }
 
 .recent-orders-page.dark-theme {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: transparent;
   color: #e2e8f0;
 }
 
@@ -776,30 +782,69 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .buyer-dashboard-wrapper {
     flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
-    height: auto;
-    position: relative;
+    margin: 0;
+    border-radius: 0;
+    position: static;
+    max-height: none;
+    padding: 12px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .sidebar-nav {
     flex-direction: row;
+    justify-content: space-between;
     overflow-x: auto;
+    gap: 0;
+    padding: 0;
   }
 
   .nav-item {
-    border-left: none;
+    flex-direction: column;
+    padding: 12px 8px;
+    min-width: 0;
+    flex: 1;
+    text-align: center;
+    gap: 6px;
+    border-radius: 0;
+    margin: 0;
+    border: none;
     border-bottom: 3px solid transparent;
   }
 
+  .nav-item span {
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+
+  .nav-item i {
+    font-size: 1.25rem;
+    margin: 0;
+    width: auto;
+  }
+
   .nav-item.active {
-    border-left: none;
+    border-bottom: 3px solid #388e3c;
+    border-radius: 0;
+  }
+
+  .dark-sidebar .nav-item.active {
     border-bottom-color: #10b981;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+  
+  .container-fluid {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
   }
 
   .order-body {
@@ -809,6 +854,7 @@ export default {
   .filter-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
 
   .filter-group {
@@ -818,6 +864,112 @@ export default {
 
   .filter-select {
     width: 100%;
+  }
+  
+  .container-fluid {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .order-footer {
+    flex-direction: column;
+  }
+  
+  .order-footer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .sidebar {
+    padding: 10px 0;
+  }
+  
+  .nav-item {
+    padding: 10px 4px;
+    gap: 4px;
+  }
+  
+  .nav-item span {
+    font-size: 0.65rem;
+  }
+  
+  .nav-item i {
+    font-size: 1rem;
+  }
+  
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .order-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print,
+  .sidebar,
+  .btn,
+  button,
+  .filter-card {
+    display: none !important;
+  }
+  
+  .buyer-dashboard-wrapper,
+  .buyer-dashboard-wrapper.dark-theme {
+    display: block !important;
+    background: white !important;
+  }
+  
+  .main-content {
+    width: 100% !important;
+  }
+  
+  .recent-orders-page,
+  .recent-orders-page.dark-theme {
+    background: white !important;
+    color: black !important;
+  }
+  
+  h2,
+  .dark-theme h2 {
+    color: #059669 !important;
+  }
+  
+  .order-card,
+  .order-card.dark-mode-card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    page-break-inside: avoid;
+  }
+  
+  .order-header,
+  .dark-theme .order-header {
+    background: #f0fdf4 !important;
+    border-bottom: 1px solid #bbf7d0 !important;
+  }
+  
+  .order-body,
+  .order-footer {
+    background: white !important;
+  }
+  
+  .text-muted,
+  .dark-theme .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 </style>

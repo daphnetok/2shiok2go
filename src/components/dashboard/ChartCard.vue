@@ -1,6 +1,6 @@
 <template>
   <div class="card border-0 shadow-sm h-100" :class="{ 'dark-mode-card': darkMode }" style="border-radius: 12px; overflow: hidden;">
-    <div class="card-header border-0 d-flex justify-content-between align-items-center" :class="darkMode ? 'bg-dark-header' : 'bg-white'" style="padding: 1.25rem 1.5rem;">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center" :class="darkMode ? 'bg-dark-header' : 'bg-light-header'" style="padding: 1.25rem 1.5rem;">
       <h5 class="mb-0 fw-semibold" :style="{ color: darkMode ? '#10b981' : '#059669', fontSize: '1.1rem' }">{{ title }}</h5>
       <select v-if="filterOptions" v-model="selectedFilter" 
               class="form-select form-select-sm" 
@@ -14,7 +14,7 @@
       </select>
     </div>
     <div class="card-body" :class="{ 'dark-body': darkMode }" style="padding: 1.5rem;">
-      <div :style="{ height: type === 'doughnut' ? '300px' : 'auto' }">
+      <div :style="{ height: type === 'doughnut' ? '350px' : 'auto' }">
         <canvas ref="chartCanvas"></canvas>
       </div>
     </div>
@@ -81,7 +81,7 @@ export default {
           return
         }
         
-        // Set canvas background color
+        // Set canvas background color to match card body
         const bgColor = this.darkMode ? '#1e293b' : '#ffffff'
         
         // Build scales configuration only for non-doughnut charts
@@ -110,13 +110,16 @@ export default {
             options: {
               responsive: true,
               maintainAspectRatio: this.type === 'doughnut' || this.type === 'pie' ? false : true,
+              layout: {
+                padding: this.type === 'doughnut' || this.type === 'pie' ? 20 : 0
+              },
               plugins: {
                 legend: {
                   labels: {
                     font: { family: "'Inter', sans-serif", size: 11 },
                     padding: 12,
                     usePointStyle: true,
-                    color: this.darkMode ? '#e2e8f0' : '#374151'
+                    color: this.darkMode ? '#e2e8f0' : '#1f2937'
                   }
                 }
               },
@@ -157,11 +160,12 @@ export default {
 /* Dark Mode Styles */
 .dark-mode-card {
   background: #1e293b !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid #334155 !important;
 }
 
 .dark-mode-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
 }
 
 .bg-dark-header {
@@ -169,8 +173,14 @@ export default {
   border-bottom: 1px solid #334155 !important;
 }
 
+.bg-light-header {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border-bottom: 1px solid #bbf7d0 !important;
+}
+
 .dark-body {
   background: #1e293b !important;
+  color: #e2e8f0 !important;
 }
 
 .dark-select {
