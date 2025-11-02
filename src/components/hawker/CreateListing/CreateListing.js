@@ -1,4 +1,4 @@
-import { reactive, ref, onBeforeUnmount, computed, onMounted } from 'vue';
+import { reactive, ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue';
 import { createListing } from '/firebase/firestore';
 import { uploadImage } from '/firebase/storage';
 import { 
@@ -7,7 +7,8 @@ import {
   closeAlert, 
   showConfirmation, 
   confirmationConfirm, 
-  confirmationCancel 
+  confirmationCancel ,
+  userListings
 } from '@/components/hawker/useSharedListings';
 import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -25,7 +26,7 @@ export default {
       tags: [],
       makeActive: false,
       description: "",
-
+      discountTime: "",
     });
 
     const selectedFile = ref(null);
@@ -39,6 +40,8 @@ export default {
     const userRole = ref('');
     const isLoading = ref(true);
     const isHawker = computed(() => userRole.value === 'hawker');
+    const hawkerListings = ref([]);
+    const selectedListing = ref("all");
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -105,7 +108,8 @@ export default {
         orders: 0,
         hawkerName: currentUser.value.displayName,
         userId: currentUser.value.uid,
-        description: form.description
+        description: form.description,
+        discountTime: form.discountTime
       };
       
       await createListing(listingData);
@@ -130,6 +134,7 @@ export default {
       form.tags = [];
       form.makeActive = false;
       selectedFile.value = null;
+      form.discountTime = null;
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
         fileInput.value = "";
@@ -174,12 +179,55 @@ export default {
         if (user) {
           const role = await fetchUserRole(user.uid);
           userRole.value = role || '';
+
+          // Load hawker’s existing listings
+          // unsubscribe = stopListening; 
+          // console.log(userListings)
+
         } else {
           userRole.value = '';
         }
         isLoading.value = false;
       });
     });
+
+    const getCurrentTime = () => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    };
+    form.discountTime = getCurrentTime();
+
+
+    const applyDiscountTime = async () => {
+      try {
+        if (!form.discountTime) {
+          showAlert('error', 'Please set a discount start time first.');
+          return;
+        }
+        const listingsToUpdate =
+          selectedListing.value === 'all'
+            ? userListings.value
+            : userListings.value.filter(l => l.id === selectedListing.value);
+
+        for (const listing of listingsToUpdate) {
+          await updateListing(listing.id, { discountTime: form.discountTime });
+        }
+
+        showAlert('success', 'Discount start time successfully applied!');
+      } catch (error) {
+        console.error('Error updating listings:', error);
+        showAlert('error', 'Failed to apply discount time. Please try again.');
+      }
+    };
+    const toggleSelectAll = () => {
+      if (selectAll.value) {
+        userListings.value = listings.value.map((l) => l.id)
+      } else {
+        userListings.value = []
+      }
+    }
 
     return {
       form,
@@ -204,7 +252,12 @@ export default {
       currentUser,
       userRole,
       isHawker,
-      isLoading
+      isLoading,
+      hawkerListings,
+      selectedListing,
+      applyDiscountTime,
+      toggleSelectAll,
+      userListings
     };
   },
   components : {AIFoodDescription}

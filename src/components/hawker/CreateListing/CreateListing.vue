@@ -24,8 +24,9 @@
         <!-- Redirect Buttons -->
         <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
           <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
-          <router-link to="/hawker-dashboard" class="btn-confirm" @click="goToHome">
-            View All Listings →
+          <router-link to="/hawker-dashboard">
+            <button class="btn-confirm" @click="goToHome"></button>
+          View All Listings →
           </router-link>
         </div>
         <!-- Close Button -->
@@ -60,97 +61,148 @@
     <!-- Listing Form - Only for Hawkers -->
     <div v-else-if="isHawker">
       <form id="form" @submit.prevent="onSubmit">
-        <div class="row">
+        <div class="row mx-3 py-4">
 
         <!-- Image upload-->
-       <div class="col-md-4">
+         <div class="row">
+            <div class="col-md-4">
 
-        <div id="img-container" class="container mb-3" v-show="selectedFile"> 
-          <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
-          <img id="image" :src="previewSelectedFileSRC"> 
-          <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
-            <font-awesome-icon icon="remove" class="fa-lg icon-green" />
-          </span>
-        </div>
+              <div id="img-container" class="container mb-3" v-show="selectedFile"> 
+                <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
+                <img id="image" :src="previewSelectedFileSRC"> 
+                <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
+                  <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+                </span>
+              </div>
+            
+              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2" style="width:80%">
+                <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg green" />
+                  <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo (1)</b></span>
+                  <span v-else class="green"><b>Change Photo (1)</b></span>
+                    <br> by clicking here to browse or drag and drop here </label>
+                <input type="file" accept="image/jpeg, image/png, image/jpg" 
+                  @change="onFileSelected" ref="fileInput">
+              </div>
+
+            </div>
+              
+            <div class="col-md-8 px-md-5">
+              <!-- Item Name field -->
+              <label class="form-label">Item Name</label>
+              <input type="text" class="form-control mb-4" required 
+                  placeholder="Type food name here" v-model="form.itemName" name="itemName">
+
+              <!-- AI Food Description Component -->
+              <AIFoodDescription 
+                :selectedFile="selectedFile"
+                :foodName="form.itemName"
+                v-model:description="form.description"
+              />
+            </div>
        
-        <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4">
-          <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg green" />
-            <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo (1)</b></span>
-            <span v-else class="green"><b>Change Photo (1)</b></span>
-              <br> by clicking here to browse or <br> drag and drop here </label>
-          <input type="file" accept="image/jpeg, image/png, image/jpg" 
-            @change="onFileSelected" ref="fileInput">
-        </div>
-
-       </div>
-        
-        <div class="col-md-8 px-md-5">
-
-        <!-- Item Name field -->
-        <label class="form-label">Item Name</label>
-        <input type="text" class="form-control mb-3" required 
-            placeholder="Type food name here" v-model="form.itemName" name="itemName">
-
-         <!-- AI Food Description Component -->
-        <AIFoodDescription 
-          :selectedFile="selectedFile"
-          :foodName="form.itemName"
-          v-model:description="form.description"
-        />
 
         <!-- Price & Discount fields-->
-        <div class="row mb-3">
-            <div class="price-input-container col">
-              <label class="form-label">Original Price</label>
-              <input type="number" class="form-control mb-3 price-input" required 
-                  step="0.01" v-model.number="form.itemPrice" name="itemPrice">
-            </div>
-            <div class="col">
-              <label class="form-label">Discount (%)</label>
-              <input type="number" class="form-control mb-3" required 
-                  step="0.01" v-model.number="form.discount" name="discount">
-            </div>
+        <div class="row mb-3 px-4">
+          <div class="price-input-container col">
+            <label class="form-label">Original Price</label>
+            <input type="number" class="form-control mb-3 price-input" required 
+                step="0.01" v-model.number="form.itemPrice" name="itemPrice">
           </div>
+          <div class="col">
+            <label class="form-label">Discount (%)</label>
+            <input type="number" class="form-control mb-3" required 
+                step="0.01" v-model.number="form.discount" name="discount">
+          </div>
+          <p>Price after discount: $
+            <span v-if="form.itemPrice">{{ discountedPrice }}</span>
+          </p>
+        </div>
           
 
-          <div>
-              <p>Price after discount: $
-                <span v-if="form.itemPrice">{{ discountedPrice }}</span>
-              </p>
-            <!-- Smart discount suggestion -->
-              <span class="green-bg w-50 mb-3">
-                <!-- <font-awesome-icon icon="wand-magic-sparkles" class="fa-lg green p-2"/> -->
-                ✨ Smart Discount Suggestion: <b>20%</b>
-              </span>
+          <!-- Time of discount -->
+          <div class="row mb-3 px-4">
+            <div class="col-md-6">
+              <label class="form-label">Set Discount Start Time</label>
+              <input
+                type="time"
+                class="form-control"
+                v-model="form.discountTime"
+                required
+              >
+            </div>
+            <!-- This dropdown will appear only if hawker has listings -->
+            <div class="col-md-6" v-if="userListings">
+                <label class="form-label">Apply Discount Start Time To</label>
+
+                <div class="dropdown-container border rounded p-3 bg-light">
+                    <!-- Select All checkbox -->
+                    <div class="form-check">
+                        <input
+                        type="checkbox"
+                        id="selectAll"
+                        class="form-check-input"
+                        v-model="selectAll"
+                        @change="toggleSelectAll"
+                        />
+                        <label for="selectAll" class="form-check-label fw-bold">
+                        All My Listings
+                        </label>
+                    </div>
+
+                    <!-- Individual listings checkboxes -->
+                    <div v-for="listing in userListings"
+                        :key="listing.id"
+                        class="form-check"
+                    >
+                        <input
+                        type="checkbox"
+                        class="form-check-input"
+                        :id="listing.id"
+                        :value="listing.id"
+                        v-model="selectedListings"
+                        @change="emitSelection"
+                        />
+                        <label class="form-check-label" :for="listing.id">
+                        {{ listing.itemName }}
+                        </label>
+                    </div>
+                </div>
+            </div>
           </div>
 
         <!-- Quantity field -->
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-control mb-3 w-50" required 
-           v-model.number="form.itemQty" name="itemQty">
+         <div class="row mb-5 px-4">
+           <div class="col-md-6">
+             <label class="form-label">Quantity</label>
+             <input type="number" class="form-control" required 
+               v-model.number="form.itemQty" name="itemQty">
+          </div>
+         </div>
 
         <!-- Allergen types checkboxes-->
-        <label class="form-label">Allergens (select all that apply)</label>
-        <div class="mb-3">
-          <input type="checkbox" value="Eggs" v-model="form.allergens">
-            <label>Eggs</label>
-          <br>
-          <input type="checkbox" value="Dairy" v-model="form.allergens">
-            <label>Dairy</label>
-          <br>
-          <input type="checkbox" value="Fish" v-model="form.allergens" >
-            <label>Fish</label>
-          <br>
-          <input type="checkbox" value="Soy" v-model="form.allergens">
-            <label>Soy</label>
-          <br>
-          <input type="checkbox" value="Peanuts" v-model="form.allergens">
-            <label>Peanuts</label>
-          <br>
-          <input type="checkbox" value="Sesame" v-model="form.allergens" >
-            <label>Sesame</label>
-          <br>
-        </div>
+         <div class="row mb-3 px-4">
+           <label class="form-label">Allergens (select all that apply)</label>
+           <div class="mb-3">
+             <input type="checkbox" value="Eggs" v-model="form.allergens">
+               <label>Eggs</label>
+             <br>
+             <input type="checkbox" value="Dairy" v-model="form.allergens">
+               <label>Dairy</label>
+             <br>
+             <input type="checkbox" value="Fish" v-model="form.allergens" >
+               <label>Fish</label>
+             <br>
+             <input type="checkbox" value="Soy" v-model="form.allergens">
+               <label>Soy</label>
+             <br>
+             <input type="checkbox" value="Peanuts" v-model="form.allergens">
+               <label>Peanuts</label>
+             <br>
+             <input type="checkbox" value="Sesame" v-model="form.allergens" >
+               <label>Sesame</label>
+             <br>
+           </div>
+         </div>
 
         <!-- Tags -->
         <label class="form-label">Tags</label>
@@ -205,6 +257,8 @@
 </template>
 
 <script src="./CreateListing.js">
+import { allUserListings } from '../useSharedListings.js';
+
 export default {
   name: "CreateAListing"
 }

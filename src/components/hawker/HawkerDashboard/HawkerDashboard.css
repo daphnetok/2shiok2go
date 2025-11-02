@@ -1,0 +1,17 @@
+@media (min-width: 768px) { 
+    .card-style{
+        width: 85%;
+
+    }
+}
+
+.card-style{
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #fff;
+    position: relative;
+    cursor: pointer;
+}

@@ -35,3 +35,8 @@ textarea:disabled {
   color: white;
   font-weight: 600;
 }
+
+.dropdown-container {
+  max-height: 250px;
+  overflow-y: auto;
+}

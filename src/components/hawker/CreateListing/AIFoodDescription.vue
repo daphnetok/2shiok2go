@@ -1,7 +1,7 @@
 <template>
   <div class="ai-description-container mb-5">
     <div>
-      <label for="description" class="form-label">Food Description</label>
+      <label for="description" class="form-label">Description</label>
       <textarea
         class="form-control"
         id="description"
