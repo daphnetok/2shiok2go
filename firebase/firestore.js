@@ -14,6 +14,7 @@ import {
   getDocs,  // Importing getDocs for querying documents
 } from 'firebase/firestore';
 import { ref, onUnmounted } from 'vue';
+import { calculateDistance } from '@/assets/composables/useGeolocation';
 
 const listingsCollection = collection(db, 'itemListings');
 const hawkerCollection = collection(db, 'hawkerListings');
@@ -44,16 +45,33 @@ export const useLoadListings = () => {
   const unsubscribe = onSnapshot(listingsCollection, snapshot => {
     listings.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
-  onUnmounted(unsubscribe);
+  // onUnmounted(unsubscribe);
   return listings;
 }
 
-export const useLoadHawkers = () => {
+export const useLoadHawkers = (userCoords = null) => {
   const hawkers = ref([]);
-  const hawkersCollection = collection(db, 'hawkerListings');
-  const unsubscribe = onSnapshot(hawkersCollection, snapshot => {
-    hawkers.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  });
+  const unsubscribe = onSnapshot(hawkerCollection, snapshot => {
+    hawkers.value = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const hawker = { id: doc.id, ...data };
+
+      // calculate distance if user location is available and hawker has coordinates
+      if (userCoords && userCoords.latitude && userCoords.longitude && 
+        data.address?.latitude && data.address?.longitude) {
+          const distance = calculateDistance(
+            userCoords.latitude,
+            userCoords.longitude,
+            data.address.latitude,
+            data.address.longitude
+          );
+          hawker.distance = distance;
+      } else {
+        hawker.distance = 'N/A';
+      }
+      return hawker;
+    });
+  })
   onUnmounted(unsubscribe);
   return hawkers;
 };
@@ -107,3 +125,68 @@ export const assignRoleToGoogleUser = async (user, role) => {
     return { success: false, error: error.message };
   }
 }
+
+// Get order count for a specific listing
+export const getOrderCountForListing = async (listingId) => {
+  try {
+    const ordersCollection = collection(db, 'orders');
+    const allOrdersSnapshot = await getDocs(ordersCollection);
+    
+    let totalOrders = 0;
+    
+    allOrdersSnapshot.forEach(doc => {
+      const orderData = doc.data();
+      if (orderData.items && Array.isArray(orderData.items)) {
+        orderData.items.forEach(item => {
+          // Match by itemName or you could add itemId to orders
+          if (item.itemName === listingId) {
+            totalOrders += item.qty || 1;
+          }
+        });
+      }
+    });
+    
+    return totalOrders;
+  } catch (error) {
+    console.error('Error getting order count:', error);
+    return 0;
+  }
+};
+
+// Update stock after order
+export const updateStockAfterOrder = async (listingId, quantityOrdered) => {
+  try {
+    const listingRef = doc(db, 'itemListings', listingId);
+    const listingSnap = await getDoc(listingRef);
+    
+    if (listingSnap.exists()) {
+      const currentStock = listingSnap.data().itemQty || 0;
+      const newStock = Math.max(0, currentStock - quantityOrdered);
+      
+      await updateDoc(listingRef, {
+        itemQty: newStock
+      });
+      
+      console.log(`Stock updated for ${listingId}: ${currentStock} -> ${newStock}`);
+      return { success: true, newStock };
+    }
+    return { success: false, error: 'Listing not found' };
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Listen to real-time order changes for a hawker
+export const useListenToHawkerOrders = (hawkerId) => {
+  const orders = ref([]);
+  const ordersCollection = collection(db, 'orders');
+  const q = query(ordersCollection, where('hawkerId', '==', hawkerId));
+  
+  const unsubscribe = onSnapshot(q, snapshot => {
+    orders.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  });
+  
+  // onUnmounted(unsubscribe);
+  return orders;
+};

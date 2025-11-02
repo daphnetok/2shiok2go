@@ -102,8 +102,8 @@
       <button @click="handleSignOut" class="btn btn-danger">
         Sign Out
       </button>
-      <button @click="goToDashboard" class="btn btn-primary" :disabled="!userRole">
-        Go to Dashboard
+      <button @click="handleRedirect" class="btn btn-primary" :disabled="!userRole">
+        {{ userRole === 'buyer' ? 'Start browsing now!' : 'Go to Dashboard' }}
       </button>
     </section>
   </div>
@@ -185,6 +185,11 @@ export default {
 .form-group input:focus, .form-group select:focus {
   outline: none;
   border-color: #4285f4;
+}
+
+.button-group {
+  width: 77%;
+  margin: auto;
 }
 
 button {

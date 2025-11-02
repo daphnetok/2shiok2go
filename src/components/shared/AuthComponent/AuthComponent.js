@@ -153,9 +153,9 @@ export default {
     };
 
     // handle routing
-    const goToDashboard = () => {
+    const handleRedirect = () => {
       if(userRole.value == 'buyer'){
-        router.push('/buyer-dashboard');
+        router.push('/buyer-listings');
       } else if (userRole.value == 'hawker') {
         router.push('/hawker-dashboard')
       }
@@ -199,7 +199,7 @@ export default {
       handleSignOut,
       handleProceedToLogin,
       handleRoleSelect,
-      goToDashboard
+      handleRedirect
     };
   }
 };

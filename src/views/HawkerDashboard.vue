@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-4">
-    <h2>Hawker Dashboard</h2>
+    <!-- <h2>Hawker Dashboard</h2> -->
 
     <!-- loading state -->
     <div v-if="loading" class="text-center">

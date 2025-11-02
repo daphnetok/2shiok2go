@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { updateListing, deleteListing, useLoadListings, createListing } from '/firebase/firestore';
+import { updateListing, deleteListing, useLoadListings, createListing, useListenToHawkerOrders } from '/firebase/firestore';
 import { deleteImage } from '/firebase/storage';
 import { auth } from '/firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -7,6 +7,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 // Initialize shared state ONCE at module load
 const allListings = useLoadListings();
 const currentUserId= ref(null);
+
+// Get current user's hawker ID
+const currentHawkerId = computed(() => auth.currentUser?.uid || null);
 
 onAuthStateChanged(auth, (user) => {
   currentUserId.value = user ? user.uid : null;
@@ -22,16 +25,31 @@ export const alert = ref({
 let confirmResolve = null;
 
 export const activeListings = computed(() => {
-  return allListings.value.filter(listing => 
-    listing.makeActive === true && listing.userId === currentUserId.value
-  );
+  return allListings.value
+    .filter(listing => 
+      listing.makeActive === true && listing.userId === currentUserId.value)
+    .map(listing => ({
+      ...listing,
+      orders: getOrderCountForListing(listing.itemName)
+    }))
 });
 
 export const inactiveListings = computed(() => {
-  return allListings.value.filter(listing => 
-    listing.makeActive === false && listing.userId === currentUserId.value
-  );
+  return allListings.value
+  .filter(listing => 
+    listing.makeActive === false && listing.userId === currentUserId.value)
+  .map(listing => ({
+      ...listing,
+      orders: getOrderCountForListing(listing.itemName)
+    }))
 });
+
+// both active and inactive listings
+export const userListings = computed(() => {
+  return allListings.value.filter(
+    listing => listing.userId === currentUserId.value
+  )
+})
 
 export const showAlert = (type, message) => {
   alert.value.show = true;
@@ -178,3 +196,30 @@ export const duplicateListing = async (listing) => {
     showAlert('error', 'Error duplicating listing: ' + error.message);
   }
 };
+
+
+// Listen to orders for current hawker
+const hawkerOrders = computed(() => {
+  if (!currentHawkerId.value) return ref([]);
+  return useListenToHawkerOrders(currentHawkerId.value);
+});
+
+// Calculate order count for each listing
+const getOrderCountForListing = (listingName) => {
+  if (!hawkerOrders.value || !hawkerOrders.value.value) return 0;
+  
+  let totalOrders = 0;
+  hawkerOrders.value.value.forEach(order => {
+    if (order.items && Array.isArray(order.items)) {
+      order.items.forEach(item => {
+        if (item.itemName === listingName) {
+          totalOrders += item.qty || 1;
+        }
+      });
+    }
+  });
+  
+  return totalOrders;
+};
+
+export { getOrderCountForListing };

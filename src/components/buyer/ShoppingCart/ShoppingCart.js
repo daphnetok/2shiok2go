@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
 import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { updateStockAfterOrder } from '/firebase/firestore';
 
 export default {
   name: 'ShoppingCart',
@@ -536,6 +537,9 @@ export default {
         // Group items by hawker
         const itemsByHawker = {};
         for (const item of availableItems) {
+          // Update stock on hawker side
+          await updateStockAfterOrder(item.itemId, item.qty);
+
           const hawkerId = item.hawkerId;
           if (!itemsByHawker[hawkerId]) {
             itemsByHawker[hawkerId] = {
@@ -608,6 +612,18 @@ export default {
           const ordersRef = collection(db, 'orders');
           await addDoc(ordersRef, orderData);
           console.log('Order created successfully:', orderData.orderID);
+
+
+          // Clear cart after successful checkout
+          const cartRef = doc(db, 'cart', userId.value);
+          await deleteDoc(cartRef);
+          cartItems.value = [];
+          
+          console.log('Stock updated for all items');
+          
+          // Redirect to order receipt page
+          router.push('/order-receipt');
+          
         }
 
         // Redirect to order receipt page after successful order creation

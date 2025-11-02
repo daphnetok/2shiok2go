@@ -1,5 +1,5 @@
-import { reactive, ref, onBeforeUnmount, computed, onMounted } from 'vue';
-import { createListing } from '/firebase/firestore';
+import { reactive, ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue';
+import { createListing, updateListing } from '/firebase/firestore';
 import { uploadImage } from '/firebase/storage';
 import { 
   alert, 
@@ -7,7 +7,8 @@ import {
   closeAlert, 
   showConfirmation, 
   confirmationConfirm, 
-  confirmationCancel 
+  confirmationCancel ,
+  userListings
 } from '@/components/hawker/useSharedListings';
 import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -25,7 +26,7 @@ export default {
       tags: [],
       makeActive: false,
       description: "",
-
+      discountTime: "",
     });
 
     const selectedFile = ref(null);
@@ -39,6 +40,10 @@ export default {
     const userRole = ref('');
     const isLoading = ref(true);
     const isHawker = computed(() => userRole.value === 'hawker');
+    const hawkerListings = ref([]);
+    const selectedListing = ref("all");
+    const selectedListings = ref([]);
+    const selectAll = ref(false);
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -66,56 +71,62 @@ export default {
     };
 
     const onSubmit = async () => {
-      const errors = [];
-      if (!selectedFile.value) {
-        errors.push("Please select an image for the listing.");
-      }
-      if (form.itemPrice < 0) {
-        errors.push("Price cannot be less than 0.");
-      }
-      if (form.itemQty < 0) {
-        errors.push("Quantity cannot be less than 0.");
-      }
-      if (form.discount > 100 || form.discount < 0) {
-        errors.push("Discount must be in the range of 1 to 99.");
-      }
-      if (!currentUser.value) {
-        errors.push("You must be logged in to create a listing.");
-      }
-      if (!currentUser.value?.displayName) {
-        errors.push("Your account doesn't have a display name set.");
-      }
+    const errors = [];
+    if (!selectedFile.value) {
+      errors.push("Please select an image for the listing.");
+    }
+    if (form.itemPrice < 0) {
+      errors.push("Price cannot be less than 0.");
+    }
+    if (form.itemQty < 0) {
+      errors.push("Quantity cannot be less than 0.");
+    }
+    if (form.discount > 100 || form.discount < 0) {
+      errors.push("Discount must be in the range of 1 to 99.");
+    }
+    if (!currentUser.value) {
+      errors.push("You must be logged in to create a listing.");
+    }
+    if (!currentUser.value?.displayName) {
+      errors.push("Your account doesn't have a display name set.");
+    }
 
-      if (errors.length > 0) {
-        const errorMessage = errors.join('\n');
-        showAlert('error', errorMessage);
-        return;
-      }
+    if (errors.length > 0) {
+      const errorMessage = errors.join('\n');
+      showAlert('error', errorMessage);
+      return;
+    }
 
-      isSubmitting.value = true;
-      try {
-        const imageData = await uploadImage(selectedFile.value, 'itemListings');
-        const listingData = {
-          ...form,
-          discountedPrice: parseFloat(discountedPrice.value),
-          imageUrl: imageData.url,
-          imageName: imageData.name,
-          imagePath: imageData.path,
-          orders: 0,
-          hawkerName: currentUser.value.displayName,
-          userId: currentUser.value.uid,
-          description: form.description
-        };
-        await createListing(listingData);
-        showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
-        resetForm();
-      } catch (error) {
-        console.error("Error creating listing: ", error);
-        errorMsg.value = "Error: " + error.message;
-      } finally {
-        isSubmitting.value = false;
-      }
-    };
+    isSubmitting.value = true;
+    try {
+      const imageData = await uploadImage(selectedFile.value, 'itemListings');
+      
+      const listingData = {
+        ...form,
+        discountedPrice: parseFloat(discountedPrice.value),
+        imageUrl: imageData.url,
+        imageName: imageData.name,
+        imagePath: imageData.path,
+        orders: 0,
+        hawkerName: currentUser.value.displayName,
+        userId: currentUser.value.uid,
+        description: form.description,
+        discountTime: form.discountTime
+      };
+      
+      await createListing(listingData);
+      await applyDiscountTime(); // Apply discount time to selected listings right after creating
+      showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
+      resetForm();
+    } catch (error) {
+      console.error("Error creating listing: ", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+      errorMsg.value = "Error: " + error.message;
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
 
     const resetForm = () => {
       form.itemName = "";
@@ -126,6 +137,7 @@ export default {
       form.tags = [];
       form.makeActive = false;
       selectedFile.value = null;
+      form.discountTime = null;
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
         fileInput.value = "";
@@ -170,12 +182,64 @@ export default {
         if (user) {
           const role = await fetchUserRole(user.uid);
           userRole.value = role || '';
+
+          // Load hawker’s existing listings
+          // unsubscribe = stopListening; 
+          // console.log(userListings)
+
         } else {
           userRole.value = '';
         }
         isLoading.value = false;
       });
     });
+
+    const getCurrentTime = () => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    };
+    form.discountTime = getCurrentTime();
+
+
+    const applyDiscountTime = async () => {
+      try {
+        if (!form.discountTime) {
+          showAlert('error', 'Please set a discount start time first.');
+          return;
+        }
+        const listingsToUpdate =
+          selectAll.value
+            ? userListings.value // if "All My Listings" is checked
+            : userListings.value.filter(l => selectedListings.value.includes(l.id));
+
+        for (const listing of listingsToUpdate) {
+          await updateListing(listing.id, { discountTime: form.discountTime });
+        }
+
+        showAlert('success', 'Discount start time successfully applied!');
+      } catch (error) {
+        console.error('Error updating listings:', error);
+        showAlert('error', 'Failed to apply discount time. Please try again.');
+      }
+    };
+
+    const toggleSelectAll = () => {
+      // Get all checkbox IDs from userListings
+      const allIds = userListings.value.map((l) => l.id);
+
+      // If selectAll is true, mark all as checked
+      if (selectAll.value) {
+        selectedListings.value = [...allIds];  // “checkbox.checked = true”
+      } else {
+        selectedListings.value = [];           // uncheck all
+      }
+    };
+
+    const goBack = () => {
+      router.go(-1);
+    };
 
     return {
       form,
@@ -200,7 +264,15 @@ export default {
       currentUser,
       userRole,
       isHawker,
-      isLoading
+      isLoading,
+      hawkerListings,
+      selectedListing,
+      applyDiscountTime,
+      toggleSelectAll,
+      userListings,
+      selectedListings,
+      selectAll,
+      goBack
     };
   },
   components : {AIFoodDescription}
