@@ -45,20 +45,20 @@
   </div>
 </section>
 
-    <!-- About Us Section -->
-    <section class="about">
-      <div><i class="fa-solid fa-leaf leafIcon"></i></div>
-      <h2>Our Mission: Reducing Food Waste, <br> <span>One Meal at a Time</span></h2>
-      <p>At 2Shiok2Go, we're passionate about reducing food wastage in Singapore's vibrant hawker culture. Our platform connects you to unsold, still-fresh hawker meals at discounted prices. By buying from hawkers near you, you're helping reduce food waste and support the community at the same time.</p>
-    </section>
+  <!-- About Us Section -->
+  <section class="about">
+    <i class="fa-solid fa-leaf leafIcon"></i>
+    <h2>Our Mission: Reducing Food Waste, <br> <span>One Meal at a Time</span></h2>
+    <p>At 2Shiok2Go, we're passionate about reducing food wastage in Singapore's vibrant hawker culture. Our platform connects you to unsold, still-fresh hawker meals at discounted prices. By buying from hawkers near you, you're helping reduce food waste and support the community at the same time.</p>
+  </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials">
+  <!-- Testimonials Section -->
+  <section class="testimonials">
     <h2>What Our <span class="user">Users</span> Are Saying</h2>
     <div class="testimonial-container">
       <!-- First set of testimonials -->
       <div class="testimonial-track">
-        <div class="testimonial" v-for="n in 20" :key="'first-' + n">
+        <div class="testimonial" v-for="n in 5" :key="'first-' + n">
           <i v-for="star in 5" :key="star" class="fa-solid fa-star starIcon"></i>
           <p>'Love this platform! Not only am I saving money, but I feel great knowing I'm helping reduce food waste. Plus, the food is always so tasty!'</p>
           <p class="name">- User {{ n }}</p>
@@ -66,7 +66,7 @@
       </div>
       <!-- Duplicate set for seamless loop -->
       <div class="testimonial-track">
-        <div class="testimonial" v-for="n in 20" :key="'second-' + n">
+        <div class="testimonial" v-for="n in 5" :key="'second-' + n">
           <i v-for="star in 5" :key="star" class="fa-solid fa-star starIcon"></i>
           <p>'Love this platform! Not only am I saving money, but I feel great knowing I'm helping reduce food waste. Plus, the food is always so tasty!'</p>
           <p class="name">- User {{ n }}</p>

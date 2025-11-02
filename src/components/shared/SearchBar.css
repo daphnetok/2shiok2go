@@ -11,8 +11,7 @@
   border: 1px solid #ccc;
   border-radius: 20px;
   padding: 5px;
-  width: 90%;
-  margin-right: 5%;
+  width: 100%;
 }
 
 .search-box:hover {
@@ -32,70 +31,4 @@
   margin-left: 2%;  /* Adjust space between icon and input text */
   font-size: 18px; /* Adjust the size of the icon */
   color: #509180;  /* Icon color */
-}
-
-/* Style for user icon container */
-.user-icon-container {
-  position: relative;
-}
-
-/* Hide the dropdown by default */
-.user-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 170px;
-  z-index: 10000;
-}
-
-.user-dropdown ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-}
-
-.user-dropdown ul li {
-  padding: 5px;
-  
-}
-
-.user-dropdown ul li a {
-  text-decoration: none;
-  color: #333;
-  display: block;
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 400;
-}
-
-/* Change background color when hovering over the options */
-.user-dropdown ul li a:hover {
-  background-color: #f0f0f0;
-}
-
-/* Show dropdown when hovering over the user icon */
-.user-icon-container:hover .user-dropdown {
-  display: block;
-}
-
-.icon{
-  color: green;
-  padding-right: 7px ;
-  font-size: 20px;
-}
-
-.shopping, .user{
-  font-size: 24px;
-}
-
-.router{
-    background: none ;
-    background-color: transparent;
-    padding: 0;
 }

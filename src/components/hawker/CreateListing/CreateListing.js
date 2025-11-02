@@ -66,56 +66,60 @@ export default {
     };
 
     const onSubmit = async () => {
-      const errors = [];
-      if (!selectedFile.value) {
-        errors.push("Please select an image for the listing.");
-      }
-      if (form.itemPrice < 0) {
-        errors.push("Price cannot be less than 0.");
-      }
-      if (form.itemQty < 0) {
-        errors.push("Quantity cannot be less than 0.");
-      }
-      if (form.discount > 100 || form.discount < 0) {
-        errors.push("Discount must be in the range of 1 to 99.");
-      }
-      if (!currentUser.value) {
-        errors.push("You must be logged in to create a listing.");
-      }
-      if (!currentUser.value?.displayName) {
-        errors.push("Your account doesn't have a display name set.");
-      }
+    const errors = [];
+    if (!selectedFile.value) {
+      errors.push("Please select an image for the listing.");
+    }
+    if (form.itemPrice < 0) {
+      errors.push("Price cannot be less than 0.");
+    }
+    if (form.itemQty < 0) {
+      errors.push("Quantity cannot be less than 0.");
+    }
+    if (form.discount > 100 || form.discount < 0) {
+      errors.push("Discount must be in the range of 1 to 99.");
+    }
+    if (!currentUser.value) {
+      errors.push("You must be logged in to create a listing.");
+    }
+    if (!currentUser.value?.displayName) {
+      errors.push("Your account doesn't have a display name set.");
+    }
 
-      if (errors.length > 0) {
-        const errorMessage = errors.join('\n');
-        showAlert('error', errorMessage);
-        return;
-      }
+    if (errors.length > 0) {
+      const errorMessage = errors.join('\n');
+      showAlert('error', errorMessage);
+      return;
+    }
 
-      isSubmitting.value = true;
-      try {
-        const imageData = await uploadImage(selectedFile.value, 'itemListings');
-        const listingData = {
-          ...form,
-          discountedPrice: parseFloat(discountedPrice.value),
-          imageUrl: imageData.url,
-          imageName: imageData.name,
-          imagePath: imageData.path,
-          orders: 0,
-          hawkerName: currentUser.value.displayName,
-          userId: currentUser.value.uid,
-          description: form.description
-        };
-        await createListing(listingData);
-        showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
-        resetForm();
-      } catch (error) {
-        console.error("Error creating listing: ", error);
-        errorMsg.value = "Error: " + error.message;
-      } finally {
-        isSubmitting.value = false;
-      }
-    };
+    isSubmitting.value = true;
+    try {
+      const imageData = await uploadImage(selectedFile.value, 'itemListings');
+      
+      const listingData = {
+        ...form,
+        discountedPrice: parseFloat(discountedPrice.value),
+        imageUrl: imageData.url,
+        imageName: imageData.name,
+        imagePath: imageData.path,
+        orders: 0,
+        hawkerName: currentUser.value.displayName,
+        userId: currentUser.value.uid,
+        description: form.description
+      };
+      
+      await createListing(listingData);
+      showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
+      resetForm();
+    } catch (error) {
+      console.error("Error creating listing: ", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+      errorMsg.value = "Error: " + error.message;
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
 
     const resetForm = () => {
       form.itemName = "";

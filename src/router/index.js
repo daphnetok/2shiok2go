@@ -4,6 +4,8 @@ import Home from '../views/Home.vue'
 import BuyerListing from '../views/BuyerListing.vue'
 import CreateListing from '../views/CreateListing.vue'
 import BuyerDashboard from '../views/BuyerDashboard.vue'
+import BuyerRecentOrders from '../views/BuyerRecentOrders.vue'
+import BuyerFavourites from '../views/BuyerFavourites.vue'
 import HawkerDashboard from '../views/HawkerDashboard.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
@@ -14,12 +16,16 @@ import ShoppingCart from '../components/buyer/ShoppingCart/ShoppingCart.vue'
 import HawkerAnalytics from '../views/HawkerAnalytics.vue' 
 import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
+import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
+import AllReviews from '../views/AllReviews.vue'
 
 const routes = [
   { path: '/', component: Home },
   { path: '/buyer-listings', component: BuyerListing },
   { path: '/create-listing', component: CreateListing },
   { path: '/buyer-dashboard', component: BuyerDashboard },
+  { path: '/buyer-recent-orders', component: BuyerRecentOrders },
+  { path: '/buyer-favourites', component: BuyerFavourites },
   { path: '/hawker-dashboard', component: HawkerDashboard },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
@@ -34,6 +40,13 @@ const routes = [
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
   { path: '/favourites', component: Favourites},
   { path: '/orders-table', component: OrdersTable},
+  { path: '/reviews', component: ReviewPage},
+  {
+    path: '/all-reviews/:userId',
+    name: 'AllReviews',
+    component: AllReviews,
+    props: true
+  },
 ]
 
 const router = createRouter({
