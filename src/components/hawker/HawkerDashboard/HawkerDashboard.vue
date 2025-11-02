@@ -29,7 +29,7 @@
     @saved="onListingSaved"
   />
   
-  <div class="dashboard-container">
+  <div class="dashboard-container container">
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
@@ -47,7 +47,7 @@
         <li class="tab-item active">
           <a href="#" class="tab-link">
             <i class="fas fa-home"></i>
-            <span>Listings</span>
+            <span> My Listings</span>
           </a>
         </li>
         <li class="tab-item">
