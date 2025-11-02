@@ -1,11 +1,12 @@
 <template>
   <div class="orders-container container">
+    <!-- navbar -->
     <!-- <nav class="tabs-nav">
       <ul class="tabs-list">
         <li class="tab-item">
           <router-link to="/hawker-dashboard" class="tab-link">
             <i class="fas fa-home"></i>
-            <span>Listings</span>
+            <span>My Listings</span>
           </router-link>
         </li>
         <li class="tab-item active">
@@ -23,7 +24,7 @@
       </ul>
     </nav> -->
 
-    <!-- Header -->
+    <!-- Header Section -->
     <div class="orders-header">
       <div class="header-content">
         <h1 class="page-title">
@@ -31,10 +32,6 @@
           Orders Management
         </h1>
         <div class="header-stats">
-          <!-- <div class="stat-card">
-            <span class="stat-label">Today's Orders</span>
-            <span class="stat-value">{{ todayOrdersCount }}</span>
-          </div> -->
           <div class="stat-card">
             <span class="stat-label">Pending</span>
             <span class="stat-value pending">{{ pendingCount }}</span>
@@ -141,7 +138,7 @@
         <p>Loading orders...</p>
       </div>
 
-      <div v-else-if="filteredTodayOrders.length === 0" class="emptyState">
+      <div v-else-if="filteredTodayOrders.length === 0" class="empty-state">
         <div class="empty-icon">
           <i class="fas fa-inbox"></i>
         </div>
@@ -274,7 +271,7 @@
         <p>Loading history...</p>
       </div>
 
-      <div v-else-if="sortedHistory.length === 0" class="emptyState">
+      <div v-else-if="sortedHistory.length === 0" class="empty-state">
         <div class="empty-icon">
           <i class="fas fa-archive"></i>
         </div>
@@ -320,5 +317,88 @@
   </div>
 </template>
 
-<script src="./OrdersTable.js"></script>
-<style scoped src="./OrdersTable.css"></style>
+<script>
+import { ordersData } from './OrdersTable';
+
+export default {
+  name: 'OrdersPage',
+  data() {
+    return {
+      activeTab: 'today',
+      todayOrders: ordersData.today,
+      historyOrders: ordersData.history,
+      selectedOrders: [],
+      selectAll: false,
+      sortOrder: 'desc',
+    };
+  },
+  computed: {
+    ongoingOrders() {
+      return this.todayOrders
+        .filter(o => !o.completed)
+        .sort((a, b) => a.time.localeCompare(b.time));
+    },
+    completedToday() {
+      return this.todayOrders
+        .filter(o => o.completed)
+        .sort((a, b) => a.time.localeCompare(b.time));
+    },
+    totalOrders() {
+      return this.todayOrders.length;
+    },
+    completedOrders() {
+      return this.todayOrders.filter(o => o.completed).length;
+    },
+    notCompletedOrders() {
+      return this.todayOrders.filter(o => !o.completed).length;
+    },
+    sortedHistory() {
+      return [...this.historyOrders].sort((a, b) => {
+        if (this.sortOrder === 'asc') return a.date.localeCompare(b.date);
+        else return b.date.localeCompare(a.date);
+      });
+    },
+  },
+  methods: {
+    markCompleted(order) {
+      order.completed = true;
+      order.status = 'Ready for Collection';
+      this.selectedOrders = this.selectedOrders.filter(id => id !== order.id);
+    },
+    toggleSelectAll() {
+
+      if (this.selectAll) {
+        this.selectedOrders = this.ongoingOrders.map(o => o.id);
+      } else {
+        this.selectedOrders = [];
+      }
+    },
+    markSelectedCompleted() {
+      this.todayOrders.forEach(order => {
+        if (this.selectedOrders.includes(order.id)) {
+          order.completed = true;
+          order.status = 'Ready for Collection';
+        }
+      });
+      this.selectedOrders = [];
+      this.selectAll = false;
+    },
+    toggleSortOrder() {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    },
+  },
+};
+</script>
+
+<style scoped>
+.nav-link.active {
+  background-color: #0d6efd;
+  color: white !important;
+}
+table {
+  font-size: 0.95rem;
+}
+.hidden{
+    display: none;
+}
+</style>

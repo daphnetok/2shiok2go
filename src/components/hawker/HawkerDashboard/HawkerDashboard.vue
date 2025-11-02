@@ -29,7 +29,7 @@
     @saved="onListingSaved"
   />
   
-  <div class="dashboard-container container">
+  <div class="dashboard-container container container">
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
@@ -276,4 +276,4 @@ export default {
 };
 </script>
 
-<style src="../HawkerDashboard/HawkerDashboard.css"></style>
+<style scoped src="../HawkerDashboard/HawkerDashboard.css"></style>
