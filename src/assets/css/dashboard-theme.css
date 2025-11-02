@@ -1,0 +1,227 @@
+body {
+  background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e8 50%, #f0fdf4 100%) !important;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.container {
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+h2 {
+  background: linear-gradient(135deg, #059669, #047857, #065f46);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 2.5rem;
+}
+
+.ha-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.08);
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(34, 197, 94, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.ha-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #059669, #047857);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ha-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
+}
+
+.ha-card:hover::before {
+  opacity: 1;
+}
+
+.ha-card-info {
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+}
+
+.ha-card-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+}
+
+.ha-card-warning {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 50%, #4d7c0f 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(132, 204, 22, 0.3);
+}
+
+.ha-card-primary {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.3);
+}
+
+.ha-card-body {
+  padding: 1.5rem;
+  position: relative;
+}
+
+.ha-card-header {
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  backdrop-filter: blur(10px);
+}
+
+.ha-card-header.d-flex {
+  justify-content: space-between;
+}
+
+.ha-display-6 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-outline-secondary {
+  border: 2px solid #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-outline-secondary:hover {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #84cc16, #65a30d);
+  border: none;
+  color: white;
+}
+
+.dark-mode body {
+  background: linear-gradient(135deg, #0f1f13 0%, #1a2e1a 30%, #2d4a2d 60%, #3d5e3d 100%) !important;
+}
+
+.dark-mode body::before {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+}
+
+.dark-mode h2 {
+  background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark-mode .ha-card {
+  background: rgba(21, 41, 21, 0.85);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.dark-mode .ha-card:hover {
+  background: rgba(25, 48, 25, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.dark-mode .ha-card-header {
+  background: rgba(15, 35, 15, 0.7);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.25);
+  color: #e2e8f0;
+}
+
+.dark-mode .ha-card-info {
+  background: linear-gradient(135deg, #1a3d1a 0%, #2d5a2d 50%, #3d7a3d 100%);
+  box-shadow: 0 8px 32px rgba(26, 61, 26, 0.5);
+}
+
+.dark-mode .ha-card-success {
+  background: linear-gradient(135deg, #0f2f0f 0%, #1a4a1a 50%, #2d6a2d 100%);
+  box-shadow: 0 8px 32px rgba(15, 47, 15, 0.5);
+}
+
+.dark-mode .ha-card-warning {
+  background: linear-gradient(135deg, #2a3d0a 0%, #3d5a0d 50%, #5a7a1a 100%);
+  box-shadow: 0 8px 32px rgba(42, 61, 10, 0.5);
+}
+
+.dark-mode .ha-card-primary {
+  background: linear-gradient(135deg, #0a2d3d 0%, #0d4a5a 50%, #1a6a7a 100%);
+  box-shadow: 0 8px 32px rgba(10, 45, 61, 0.5);
+}
+
+.dark-mode .form-select,
+.dark-mode .form-control,
+.dark-mode .list-group-item {
+  background-color: rgba(21, 41, 21, 0.8);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #e2e8f0;
+}
