@@ -32,7 +32,7 @@ import '@fortawesome/fontawesome-free/css/all.css';
   flex: 1;
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 1.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

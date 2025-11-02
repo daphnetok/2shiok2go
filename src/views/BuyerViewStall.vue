@@ -1,20 +1,15 @@
 <template>
-    <div class="container">
+  
+  <div class="container">
         <div class="row">
             <SearchBar/>
         </div>
         <div class="row">
             <StallListing/>
         </div>
-        <div class="row mt-4">
-            <div class="col text-center">
-                <router-link to="/checkout">
-                    <button class="btn btn-success">Go to Checkout</button>
-                </router-link>
-            </div>
-        </div>
-    </div>
     <BackToTop />
+  </div>
+
 </template>
 
 <script>
@@ -49,4 +44,6 @@ export default {
   font-size: 1.1rem;
   box-shadow: 0 4px 16px rgba(0,0,0,0.13);
 }
+
+
 </style>

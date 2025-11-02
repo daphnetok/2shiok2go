@@ -50,7 +50,7 @@
             </svg>
             <span class="info-text">
               <span class="label">Distance</span>
-              <span class="value">{{ hawker.distance }} away</span>
+              <span class="value">{{ hawker.distance }}km away</span>
             </span>
           </div>
         </div>
@@ -70,20 +70,67 @@ export default {
   },
   methods: {
     getStatusClass() {
+      if (!this.hawker.openingTime || !this.hawker.closingTime) return 'unknown';
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
+      // Parse opening and closing times
+      const [openHour, openMin] = this.hawker.openingTime.split(':').map(Number);
       const [closeHour, closeMin] = this.hawker.closingTime.split(':').map(Number);
+      const openingTimeInMinutes = openHour * 60 + openMin;
       const closingTimeInMinutes = closeHour * 60 + closeMin;
-      const timeUntilClose = closingTimeInMinutes - currentTime;
 
-      if (timeUntilClose < 30) return 'closing-soon';
-      if (timeUntilClose < 0) return 'closed';
-      return 'open';
+      // Handle overnight stalls (e.g., 18:00 to 02:00)
+      if (closingTimeInMinutes < openingTimeInMinutes) {
+        // Stall operates overnight
+        if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
+          // Currently open
+          let minutesUntilClose;
+          if (currentTime >= openingTimeInMinutes) {
+            // Evening: time until midnight + time from midnight to closing
+            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
+          } else {
+            // Morning: time until closing
+            minutesUntilClose = closingTimeInMinutes - currentTime;
+          }
+          if (minutesUntilClose <= 30) {
+            return 'closing-soon';
+          }
+          return 'open';
+        } else {
+          // Currently closed
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30) {
+            return 'opening-soon';
+          }
+          return 'closed';
+        }
+      } else {
+        // Normal operating hours (e.g., 09:00 to 21:00)
+        if (currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes) {
+          // Currently open
+          const minutesUntilClose = closingTimeInMinutes - currentTime;
+          if (minutesUntilClose <= 30) {
+            return 'closing-soon';
+          }
+          return 'open';
+        } else if (currentTime < openingTimeInMinutes) {
+          // Before opening
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30) {
+            return 'opening-soon';
+          }
+          return 'closed';
+        } else {
+          // After closing
+          return 'closed';
+        }
+      }
     },
     getStatusText() {
       const status = this.getStatusClass();
       if (status === 'closed') return 'Closed';
       if (status === 'closing-soon') return 'Closing Soon';
+      if (status === 'opening-soon') return 'Opening Soon';
       return 'Open Now';
     }
   }

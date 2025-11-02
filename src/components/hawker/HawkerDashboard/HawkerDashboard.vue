@@ -23,6 +23,14 @@
         
       </div>
     </div>
+
+    <!-- Edit Listing Modal -->
+    <EditModal
+      :isVisible="editModalVisible"
+      :listing="listingToEdit"
+      @close="closeEditModal"
+      @saved="onListingSaved"
+    />
     
   <div class="container mt-4">
     <nav class="navbar navbar-expand bg-body-tertiary">
@@ -32,7 +40,9 @@
             <a class="nav-link active-link" aria-current="page" href="#">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            <router-link class="nav-link" to="/orders-table">
+              <a class="nav-link"><font-awesome-icon icon="list" class="fa-lg px-1"/>Orders</a>
+            </router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/hawker-analytics">
@@ -163,10 +173,19 @@
     deleteListingWithImage,
     editListing,
     duplicateListing,
+    editModalVisible,
+    listingToEdit,
+    closeEditModal,
+    onListingSaved
   } from '@/components/hawker/useSharedListings';
+
+  import EditModal from '@/components/hawker/editModal/editModal.vue';
 
   export default {
     name: "HawkerListings",
+    components: {
+      EditModal
+    },
     setup() {
       onMounted(() => {
         console.log("HawkerDashboard mounted");
@@ -186,6 +205,10 @@
         deleteListingWithImage,
         editListing,
         duplicateListing,
+        editModalVisible,
+        listingToEdit,
+        closeEditModal,
+        onListingSaved
       };
     }
   };

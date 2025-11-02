@@ -9,8 +9,9 @@
   position: relative;
   cursor: pointer;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-
 .card:hover {
   transform: translateY(-10px);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
@@ -95,9 +96,11 @@
   animation: pulse 2s infinite;
 }
 
+
 .status-badge.open {
   background: rgba(34, 197, 94, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.open .status-dot {
@@ -107,6 +110,7 @@
 .status-badge.closing-soon {
   background: rgba(251, 191, 36, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.closing-soon .status-dot {
@@ -116,9 +120,21 @@
 .status-badge.closed {
   background: rgba(239, 68, 68, 0.95);
   color: white;
+  font-weight: 600;
 }
 
 .status-badge.closed .status-dot {
+  background: white;
+  animation: none;
+}
+
+.status-badge.opening-soon {
+  background: rgba(27, 106, 234, 0.95);
+  color: white;
+  font-weight: 600;
+}
+
+.status-badge.opening-soon .status-dot {
   background: white;
   animation: none;
 }
@@ -205,11 +221,12 @@
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   stroke-width: 2;
   transition: all 0.3s ease;
+  margin-left: 5px;
 }
 
 .clock-icon {

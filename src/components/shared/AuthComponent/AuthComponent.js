@@ -16,7 +16,7 @@ export default {
   name: 'AuthComponent',
   setup() {
     const user = ref(null);
-    const isLogin = ref(false);
+    const isLogin = ref(true);
     const loading = ref(false);
     const errorMessage = ref('');
     const successMessage = ref('');

@@ -1,0 +1,277 @@
+<template>
+  <div class="buyer-dashboard">
+    <div class="container mt-4">
+      <div class="row mb-4">
+        <div class="col">
+          <h2>2Shiok2Go - Buyer Dashboard</h2>
+        </div>
+        <div class="col text-end">
+          <button class="btn btn-outline-secondary me-2" @click="toggleTheme">
+            <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+            {{ isDarkMode ? 'Light' : 'Dark' }} Mode
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="row mb-4">
+        <div class="col-12">
+          <PetPlayground 
+            :pet="petData"
+            :animation="petAnimation"
+            :message="petMessage"
+            :message-type="petMessageType"
+            @click="petClick"
+            @customize="showCustomization = !showCustomization"
+            @feed="feedPet"
+            @play="playWithPet"
+            @dragover="handleDragOver"
+            @drop="handleDrop"
+          />
+        </div>
+      </div>
+
+      <div class="row mb-4" v-if="showCustomization">
+        <div class="col-12">
+          <Card title="Customize Your Pet">
+            <template #body>
+              <div class="row">
+                <div class="col-md-4">
+                  <label class="form-label">Pet Name</label>
+                  <input type="text" class="form-control" v-model="petData.name">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Body Type</label>
+                  <select class="form-select" v-model="petData.avatar.body">
+                    <option value="cat">Cat 🐱</option>
+                    <option value="dog">Dog 🐶</option>
+                    <option value="bunny">Bunny 🐰</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Color</label>
+                  <input type="color" class="form-control form-control-color" v-model="petData.avatar.color">
+                </div>
+              </div>
+            </template>
+          </Card>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3" v-for="(stat, idx) in kpiStats" :key="idx">
+          <StatCard :title="stat.title" :value="stat.value" :card-class="stat.class" />
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+          <Card title="Recent Orders">
+            <template #body>
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Item</th>
+                      <th>Status</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="order in recentOrders" :key="order.id">
+                      <td>{{ order.id }}</td>
+                      <td>{{ order.item }}</td>
+                      <td><span :class="'badge bg-' + order.statusColor">{{ order.status }}</span></td>
+                      <td>{{ order.amount }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </template>
+          </Card>
+        </div>
+        <div class="col-lg-6 mb-4">
+          <Card title="Quick Deals">
+            <template #body>
+              <div class="deals-grid">
+                <div class="deal-item" v-for="deal in quickDeals" :key="deal.id">
+                  <div class="deal-header">
+                    <strong>{{ deal.title }}</strong>
+                    <span class="badge bg-danger">{{ deal.discount }}</span>
+                  </div>
+                  <div class="deal-body">
+                    <p class="mb-1">{{ deal.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="text-muted">{{ deal.hawker }}</span>
+                      <button class="btn btn-sm btn-primary">Claim</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Card>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <ChartCard title="Monthly Savings" type="line" :data="savingsChartData" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, computed, onMounted } from 'vue'
+import Card from '@/components/dashboard/Card.vue'
+import StatCard from '@/components/dashboard/StatCard.vue'
+import ChartCard from '@/components/dashboard/ChartCard.vue'
+import PetPlayground from '@/components/dashboard/buyer/PetPlayground.vue'
+
+export default {
+  name: 'BuyerDashboard',
+  components: { Card, StatCard, ChartCard, PetPlayground },
+  setup() {
+    const isDarkMode = ref(false)
+    const showCustomization = ref(false)
+    const petAnimation = ref('')
+    const petMessage = ref('')
+    const petMessageType = ref('info')
+    
+    const petData = ref({
+      name: 'Buddy',
+      happiness: 85,
+      energy: 70,
+      level: 3,
+      experience: 250,
+      treats: 12,
+      mood: 'happy',
+      avatar: {
+        body: 'dog',
+        color: '#FFD700',
+        face: 'M 50 50 Q 60 55 70 50'
+      }
+    })
+
+    const kpiStats = ref([
+      { title: 'Total Orders', value: '24', class: 'ha-card-primary' },
+      { title: 'Money Saved', value: '$142', class: 'ha-card-success' },
+      { title: 'Waste Prevented', value: '8.5kg', class: 'ha-card-info' },
+      { title: 'CO2 Reduced', value: '12kg', class: 'ha-card-warning' }
+    ])
+
+    const recentOrders = ref([
+      { id: 'ORD-001', item: 'Nasi Lemak', status: 'Delivered', statusColor: 'success', amount: '$5.50' },
+      { id: 'ORD-002', item: 'Chicken Rice', status: 'Preparing', statusColor: 'warning', amount: '$4.00' },
+      { id: 'ORD-003', item: 'Laksa', status: 'Ready', statusColor: 'info', amount: '$6.00' }
+    ])
+
+    const quickDeals = ref([
+      { id: 1, title: 'Nasi Lemak Special', discount: '30% OFF', description: 'Grab before 6pm today!', hawker: 'Ah Seng Stall' },
+      { id: 2, title: 'Chicken Rice Deal', discount: '25% OFF', description: 'Limited to 20 orders', hawker: 'Uncle Tan Kitchen' },
+      { id: 3, title: 'Laksa Bundle', discount: '40% OFF', description: 'Buy 2 get extra bowl free', hawker: 'Laksa House' }
+    ])
+
+    const savingsChartData = computed(() => ({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Savings ($)',
+        data: [12, 19, 15, 25, 22, 30],
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        fill: true,
+        tension: 0.4
+      }]
+    }))
+
+    const toggleTheme = () => {
+      isDarkMode.value = !isDarkMode.value
+      document.body.classList.toggle('dark-mode', isDarkMode.value)
+      document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
+      localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
+    }
+
+    const feedPet = () => {
+      if (petData.value.treats > 0) {
+        petData.value.treats--
+        petData.value.happiness = Math.min(100, petData.value.happiness + 10)
+        petData.value.energy = Math.min(100, petData.value.energy + 15)
+        petData.value.experience += 5
+        petAnimation.value = 'happy'
+        showMessage('Yummy! +10 happiness', 'success')
+        setTimeout(() => { petAnimation.value = '' }, 600)
+        checkLevelUp()
+      } else {
+        showMessage('No treats left! Order food to earn more.', 'warning')
+      }
+    }
+
+    const playWithPet = () => {
+      if (petData.value.energy >= 10) {
+        petData.value.energy -= 10
+        petData.value.happiness = Math.min(100, petData.value.happiness + 15)
+        petData.value.experience += 8
+        petAnimation.value = 'excited'
+        showMessage('Wheee! +15 happiness', 'success')
+        setTimeout(() => { petAnimation.value = '' }, 500)
+        checkLevelUp()
+      } else {
+        showMessage('Pet is too tired. Feed to restore energy!', 'info')
+      }
+    }
+
+    const petClick = () => {
+      petData.value.happiness = Math.min(100, petData.value.happiness + 2)
+      petData.value.experience += 1
+      petAnimation.value = 'happy'
+      setTimeout(() => { petAnimation.value = '' }, 300)
+    }
+
+    const checkLevelUp = () => {
+      const expNeeded = petData.value.level * 100
+      if (petData.value.experience >= expNeeded) {
+        petData.value.level++
+        petData.value.experience = 0
+        showMessage(`Level Up! Now Level ${petData.value.level}! 🎉`, 'success')
+      }
+    }
+
+    const showMessage = (msg, type) => {
+      petMessage.value = msg
+      petMessageType.value = type
+      setTimeout(() => { petMessage.value = '' }, 3000)
+    }
+
+    const handleDragOver = (e) => {}
+    const handleDrop = (e) => {}
+
+    onMounted(() => {
+      const savedTheme = localStorage.getItem('buyer-theme')
+      if (savedTheme === 'dark') {
+        isDarkMode.value = true
+        document.body.classList.add('dark-mode')
+        document.documentElement.setAttribute('data-bs-theme', 'dark')
+      }
+    })
+
+    return {
+      isDarkMode, showCustomization, petAnimation, petMessage, petMessageType,
+      petData, kpiStats, recentOrders, quickDeals, savingsChartData,
+      toggleTheme, feedPet, playWithPet, petClick, handleDragOver, handleDrop
+    }
+  }
+}
+</script>
+
+<style scoped>
+@import '@/assets/css/dashboard-theme.css';
+
+.deals-grid { display: flex; flex-direction: column; gap: 15px; }
+.deal-item { padding: 15px; border-radius: 10px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; transition: transform 0.2s; }
+.deal-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+.deal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.deal-body p { font-size: 0.9rem; color: #374151; }
+</style>

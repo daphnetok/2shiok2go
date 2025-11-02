@@ -26,7 +26,6 @@ import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue';
 import { ref, onMounted } from 'vue';
 import { db, auth } from '/firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { faLessThanEqual } from '@fortawesome/free-solid-svg-icons';
 
 export default { 
   name: "HawkerDashboard" ,
