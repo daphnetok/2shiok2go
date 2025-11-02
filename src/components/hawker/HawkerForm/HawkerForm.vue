@@ -49,6 +49,16 @@
                 />
             </div>
             <div class="form-group">
+                <label class="form-label">Opening Time</label>
+                <input
+                    type="time"
+                    v-model="form.openingTime"
+                    name="openingTime"
+                    placeholder="Enter your opening time"
+                    required
+                />
+            </div>
+            <div class="form-group">
                 <label class="form-label">Closing Time</label>
                 <input
                     type="time"

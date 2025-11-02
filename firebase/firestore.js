@@ -14,6 +14,7 @@ import {
   getDocs,  // Importing getDocs for querying documents
 } from 'firebase/firestore';
 import { ref, onUnmounted } from 'vue';
+import { calculateDistance } from '@/assets/composables/useGeolocation';
 
 const listingsCollection = collection(db, 'itemListings');
 const hawkerCollection = collection(db, 'hawkerListings');
@@ -48,12 +49,29 @@ export const useLoadListings = () => {
   return listings;
 }
 
-export const useLoadHawkers = () => {
+export const useLoadHawkers = (userCoords = null) => {
   const hawkers = ref([]);
-  const hawkersCollection = collection(db, 'hawkerListings');
-  const unsubscribe = onSnapshot(hawkersCollection, snapshot => {
-    hawkers.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  });
+  const unsubscribe = onSnapshot(hawkerCollection, snapshot => {
+    hawkers.value = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const hawker = { id: doc.id, ...data };
+
+      // calculate distance if user location is available and hawker has coordinates
+      if (userCoords && userCoords.latitude && userCoords.longitude && 
+        data.address?.latitude && data.address?.longitude) {
+          const distance = calculateDistance(
+            userCoords.latitude,
+            userCoords.longitude,
+            data.address.latitude,
+            data.address.longitude
+          );
+          hawker.distance = distance;
+      } else {
+        hawker.distance = 'N/A';
+      }
+      return hawker;
+    });
+  })
   onUnmounted(unsubscribe);
   return hawkers;
 };

@@ -7,7 +7,6 @@
         <div class="row">
             <StallListing/>
         </div>
-    <BackToTop />
   </div>
 
 </template>
@@ -17,7 +16,6 @@
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
-import BackToTop from '@/components/buyer/BackToTop/BackToTop.vue';
 
 export default { 
   name: "BuyerListings",
@@ -25,7 +23,6 @@ export default {
     FilterBar,
     SearchBar,
     StallListing,
-    BackToTop
   }
 };
 </script>

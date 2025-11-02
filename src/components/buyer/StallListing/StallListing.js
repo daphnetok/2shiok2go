@@ -42,6 +42,12 @@ export default {
     const userId = ref(null);
     const authReady = ref(false);
     
+    // Modal-related refs
+    const showModal = ref(false);
+    const selectedItem = ref(null);
+    const modalQuantity = ref(0);
+    const buyerNotes = ref('');
+    
     // Listen for auth state changes
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -56,7 +62,6 @@ export default {
 
     const showMap = ref(false);
 
-
     const triggerToast = (duration = 1500) => {
       showToast.value = true;
       setTimeout(() => { showToast.value = false; }, duration);
@@ -69,6 +74,59 @@ export default {
     const saveIcons = {
       heart: 'fa-regular fa-heart saveIcon',
       heartFilled: 'fa-solid fa-heart savedIcon'
+    };
+
+    // Modal functions
+    const openItemModal = (item) => {
+      selectedItem.value = item;
+      modalQuantity.value = item.count || 0;
+      buyerNotes.value = item.notes || '';
+      showModal.value = true;
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      console.log('Opening modal for item:', item.itemName, 'Image URL:', item.imageUrl);
+    };
+
+    const handleImageError = (event) => {
+      console.error('Image failed to load:', event.target.src);
+      event.target.src = 'https://via.placeholder.com/800x400?text=No+Image+Available';
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
+      selectedItem.value = null;
+      modalQuantity.value = 0;
+      buyerNotes.value = '';
+      document.body.style.overflow = 'auto'; // Restore scrolling
+    };
+
+    const incrementModal = () => {
+      if (selectedItem.value && modalQuantity.value < selectedItem.value.itemQty) {
+        modalQuantity.value++;
+      }
+    };
+
+    const decrementModal = () => {
+      if (modalQuantity.value > 0) {
+        modalQuantity.value--;
+      }
+    };
+
+    const addToCartFromModal = async () => {
+      if (!selectedItem.value || modalQuantity.value === 0) return;
+
+      // Update the item's count and notes
+      selectedItem.value.count = modalQuantity.value;
+      selectedItem.value.notes = buyerNotes.value;
+
+      // Save to cart
+      await saveToCart(selectedItem.value);
+      saveItemToList(selectedItem.value);
+
+      // Show success message
+      triggerToast();
+      
+      // Close modal
+      closeModal();
     };
 
     // Fetch hawker data from Firestore
@@ -111,7 +169,7 @@ export default {
       }
     };
 
-    // NEW: Load cart data and restore quantities
+    // Load cart data and restore quantities
     const loadCartData = async () => {
       if (!userId.value) {
         console.log('No user logged in, skipping cart load');
@@ -126,10 +184,13 @@ export default {
           const cartData = cartSnap.data();
           const cartItems = cartData.items || [];
           
-          // Create a map of itemId to quantity for easy lookup
+          // Create a map of itemId to item data for easy lookup
           const cartMap = {};
           cartItems.forEach(item => {
-            cartMap[item.itemId] = item.qty;
+            cartMap[item.itemId] = {
+              qty: item.qty,
+              notes: item.notes || ''
+            };
           });
           
           console.log('Cart data loaded:', cartMap);
@@ -168,8 +229,8 @@ export default {
           const data = doc.data();
           const itemId = doc.id;
           
-          // Restore count from cart if it exists
-          const savedCount = cartMap[itemId] || 0;
+          // Restore count and notes from cart if it exists
+          const savedData = cartMap[itemId] || { qty: 0, notes: '' };
           
           const item = {
             id: itemId,
@@ -177,14 +238,16 @@ export default {
             itemPrice: data.itemPrice,
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
-            discount: data.discount,  // Adding the discount property
+            discount: data.discount,
             imageUrl: data.imageUrl,
-            count: savedCount,
+            description: data.description || '',
+            count: savedData.qty,
+            notes: savedData.notes,
             hover: false
           };
           
           // Add to selectedItems if count > 0
-          if (savedCount > 0) {
+          if (savedData.qty > 0) {
             selectedItems.value.push({ ...item });
           }
           
@@ -279,7 +342,8 @@ export default {
           discount: item.discount,
           imageUrl: item.imageUrl,
           hawkerId: hawker.value.userId,
-          hawkerName: hawker.value.hawkerName
+          hawkerName: hawker.value.hawkerName,
+          notes: item.notes || ''
         };
 
         if (cartSnap.exists()) {
@@ -352,6 +416,7 @@ export default {
         }
       } else if (existingItemIndex !== -1) {
         selectedItems.value[existingItemIndex].count = item.count;
+        selectedItems.value[existingItemIndex].notes = item.notes;
       } else {
         selectedItems.value.push({ ...item });
       }
@@ -379,7 +444,18 @@ export default {
       toggleLike,
       increment,
       decrement,
-      selectedItems
+      selectedItems,
+      // Modal
+      showModal,
+      selectedItem,
+      modalQuantity,
+      buyerNotes,
+      openItemModal,
+      closeModal,
+      incrementModal,
+      decrementModal,
+      addToCartFromModal,
+      handleImageError
     };
   }
 };

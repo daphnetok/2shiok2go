@@ -79,7 +79,7 @@
 
         <div v-else class="row">
           <div v-for="item in foodItems" :key="item.id" class="col-md-4">
-            <div class="listing-card">
+            <div class="listing-card" @click="openItemModal(item)">
               <div class="img-container">
                 <img class="foodImg" :src="item.imageUrl" :alt="item.itemName"/>
                 <div class="counter-btn"
@@ -108,6 +108,7 @@
                     <!-- show original price if discount applied -->
                     <span class="original-price" v-if="isDiscountApplied()">${{ item.itemPrice }}</span>
                   </div>
+                  
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
                     <span class="discounted-price">${{ isDiscountApplied(item) 
@@ -116,9 +117,6 @@
                   </div>
                 </div>
               </div> 
-
-              
-
             </div>
           </div>
         </div>
@@ -127,6 +125,91 @@
       <!-- Reviews Section -->
       <ReviewsSection v-if="hawker" :hawker="hawker" />
     </div>
+
+    <!-- Item Details Modal -->
+    <transition name="modal-fade">
+      <div v-if="showModal" class="modal-overlay" @click="closeModal">
+        <div class="modal-container" @click.stop>
+          <button class="modal-close" @click="closeModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>  
+            <div class="modal-info-section">
+              <div class="modal-image-section">
+                <img :src="selectedItem.imageUrl" :alt="selectedItem.itemName" class="modal-image"/>
+              </div>
+
+              <div class="modal-heading">
+              <h2 class="modal-title">{{ selectedItem.itemName }}</h2>
+              
+              <div class="modal-price-section">
+                <span v-if="isDiscountApplied(selectedItem)" class="modal-original-price">
+                  ${{ selectedItem.itemPrice }}
+                </span>
+                <span class="modal-current-price">
+                  ${{ isDiscountApplied(selectedItem) 
+                      ? (selectedItem.itemPrice * ((100 - selectedItem.discount) / 100)).toFixed(2)
+                      : selectedItem.itemPrice }}
+                </span>
+              </div>
+
+              </div>
+              
+              <!-- Description in Modal -->
+              <div v-if="selectedItem.description" class="modal-description">
+                <p>{{ selectedItem.description }}</p>
+              </div>
+              
+              <div class="modal-stock-info">
+                <span :class="{ 'low-stock': selectedItem.itemQty <= 5 }">
+                  {{ selectedItem.itemQty }} available
+                </span>
+              </div>
+              
+              <div class="modal-notes-section">
+                <label class="modal-label" for="buyer-notes">Special Instructions</label>
+                <textarea 
+                  id="buyer-notes"
+                  v-model="buyerNotes"
+                  class="notes-textarea"
+                  placeholder="Add any special requests or dietary requirements..."
+                  rows="4"
+                  maxlength="200"
+                ></textarea>
+                <span class="char-count">{{ buyerNotes.length }}/200</span>
+              </div>
+
+              <div class="modal-quantity-section">
+                <div class="quantity-controls">
+                  <button 
+                    class="qty-btn" 
+                    @click="decrementModal"
+                    :disabled="modalQuantity <= 0">
+                    <i class="fa-solid fa-minus"></i>
+                  </button>
+                  <span class="qty-display">{{ modalQuantity }}</span>
+                  <button 
+                    class="qty-btn" 
+                    @click="incrementModal"
+                    :disabled="modalQuantity >= selectedItem.itemQty">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="modal-actions">
+                <button class="btn-cancel" @click="closeModal">Cancel</button>
+                <button 
+                  class="btn-add-to-cart" 
+                  @click="addToCartFromModal"
+                  :disabled="modalQuantity === 0">
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+
+      </div>
+    </transition>
 
     <!-- Toast Notification -->
     <transition name="slide-up">
