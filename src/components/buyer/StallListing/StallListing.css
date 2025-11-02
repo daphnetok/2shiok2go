@@ -208,21 +208,6 @@
   50% { transform: scale(1.1); }
   75% { transform: scale(1.2); }
 }
-<<<<<<< HEAD
-.map-btn {
-  margin: 5px 0;
-  border: 2px solid green;
-  border-radius: 20px;
-  color: green;
-  background-color: rgb(236, 255, 234);
-  padding: 3px 8px;
-}
-.stall-address, .map-btn{
-    display: inline;
-}
-.pinIcon{
-    color: rgb(235, 86, 86);
-=======
 
 /* Listings Section (scoped) */
 .stall-listing .row.mt-4 {
@@ -251,7 +236,6 @@
   flex: 0 0 calc(33.333% - 20px);
   max-width: calc(33.333% - 20px);
   padding: 0;
->>>>>>> origin
 }
 
 /* Listing Card */

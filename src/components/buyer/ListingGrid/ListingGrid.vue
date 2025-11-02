@@ -150,14 +150,24 @@ export default {
         list = list.filter(h => props.status.includes(getStatus(h)));
       }
 
-      // Price sort not available in schema; optionally sort by distance if priceOrder provided
-      if (props.priceOrder) {
-        list.sort((a, b) => {
-          const da = getDistance(a);
-          const db = getDistance(b);
-          return props.priceOrder === 'asc' ? da - db : db - da;
-        });
-      }
+      // //TODO: Add price sorting when price field is available in schema
+      // if (props.priceOrder) {
+      //   
+      // }
+
+      // default sort by distance
+      const sortOrder = 'asc';
+      list.sort((a, b) => {
+        const da = getDistance(a);
+        const db = getDistance(b);
+
+        // handle 'N/A' distances
+        if (da === 'N/A' && db === 'N/A') return 0;
+        if (da === 'N/A') return 1;
+        if (db === 'N/A') return -1;
+
+        return sortOrder === 'asc' ? da - db : db - da;
+      })
 
       return list;
     });
