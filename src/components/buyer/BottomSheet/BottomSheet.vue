@@ -35,6 +35,7 @@
         </ul>
       </div>
     </div>
+    <div class="modal-extension"></div>
   </div>
 </template>
 

@@ -14,23 +14,31 @@ export default {
     const isDragging = ref(false);
     const isMouseDown = ref(false);
     const isClosing = ref(false);
-    const justDragged = ref(false);  // ✅ NEW
+    const justDragged = ref(false);
 
     const getY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
 
     const resetSheetPosition = () => {
       if (!sheet.value) return;
+      
+      sheet.value.style.transition = 'none';
+      sheet.value.style.transform = 'translateY(100%)';
+      void sheet.value.offsetHeight;
+      
       sheet.value.style.transition = 'transform 0.3s ease-out';
       sheet.value.style.transform = 'translateY(0)';
       sheet.value.style.pointerEvents = '';
     };
 
-    watch(() => props.isOpen, (val) => {
-      if (val) nextTick(() => resetSheetPosition());
+    watch(() => props.isOpen, async (val) => {
+      if (val) {
+        await nextTick();
+        if (sheet.value) resetSheetPosition();
+      }
     });
 
     onMounted(() => {
-      resetSheetPosition();
+      if (props.isOpen && sheet.value) resetSheetPosition();
     });
 
     const startClose = () => {
@@ -72,7 +80,8 @@ export default {
       if (!sheet.value) return;
 
       if (diff < 0) {
-        diff = diff * 0.4;
+        // progressive resistance for upward drag, capping at -100px
+        diff = Math.max(diff * 0.4, -100)
       }
       sheet.value.style.transform = `translateY(${diff}px)`;
 
@@ -85,7 +94,6 @@ export default {
       
       if ((!isDragging.value && !isMouseDown.value) || isClosing.value) return;
       
-      // ✅ Set flag to prevent immediate backdrop click
       justDragged.value = true;
       setTimeout(() => { justDragged.value = false; }, 100);
       
@@ -107,7 +115,6 @@ export default {
     const onXClick = () => startClose();
     
     const onBackdropClick = () => {
-      // ✅ Ignore clicks that happen right after dragging
       if (justDragged.value) return;
       startClose();
     };
