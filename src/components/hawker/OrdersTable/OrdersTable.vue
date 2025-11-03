@@ -153,21 +153,23 @@
           class="order-card"
           :class="[order.status, { 'selected': selectedOrders.includes(order.id) }]"
         >
-          <!-- Selection Checkbox -->
-          <div class="order-select" v-if="order.status === 'preparing'">
-            <label class="checkbox-container-small">
-              <input 
-                type="checkbox" 
-                :value="order.id" 
-                v-model="selectedOrders"
-              />
-              <span class="checkmark-small"></span>
-            </label>
-          </div>
 
           <!-- Order Header -->
           <div class="order-header">
             <div class="order-id-section">
+
+            <!-- Selection Checkbox -->
+            <div class="order-select" v-if="order.status === 'preparing'">
+              <label class="checkbox-container-small">
+                <input 
+                  type="checkbox" 
+                  :value="order.id" 
+                  v-model="selectedOrders"
+                />
+                <span class="checkmark-small"></span>
+              </label>
+            </div>
+            
               <span class="order-id">#{{ order.orderID }}</span>
               <span class="order-time">
                 <i class="fas fa-clock"></i>
@@ -204,7 +206,7 @@
           <!-- Order Total -->
           <div class="order-total">
             <span class="total-label">Total</span>
-            <span class="total-amount">${{ order.orderTotal?.toFixed(2) || '0.00' }}</span>
+            <span class="total-label">${{ order.orderTotal?.toFixed(2) || '0.00' }}</span>
           </div>
 
           <!-- Customer Info -->
@@ -271,7 +273,7 @@
         <p>Loading history...</p>
       </div>
 
-      <div v-else-if="sortedHistory.length === 0" class="empty-state">
+      <div v-else-if="sortedHistory.length === 0" class="emptyState">
         <div class="empty-icon">
           <i class="fas fa-archive"></i>
         </div>
@@ -298,7 +300,10 @@
           <span class="col-id">#{{ order.orderID }}</span>
           <span class="col-date">{{ formatDate(order.timestamp) }}</span>
           <span class="col-time">{{ formatTime(order.timestamp) }}</span>
-          <span class="col-items">{{ getItemsSummary(order.items) }}</span>
+          <td>
+            <p v-for="i in order.items" :key="i.itemNamename" 
+                class="col-items">{{ i.itemName }}</p>
+          </td>
           <span class="col-total">${{ order.orderTotal?.toFixed(2) }}</span>
           <span class="col-status">
             <span class="status-badge completed">

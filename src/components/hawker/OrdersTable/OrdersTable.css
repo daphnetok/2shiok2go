@@ -206,15 +206,15 @@
 .checkmark {
   width: 20px;
   height: 20px;
-  border: 2px solid #c8e6c9;
+  border: 2px solid #b3cafa;
   border-radius: 6px;
   position: relative;
   transition: all 0.2s ease;
 }
 
 .checkbox-container input[type="checkbox"]:checked ~ .checkmark {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #2563eb 0%, #2563eb 100%);
+  border-color: #2563eb;
 }
 
 .checkbox-container input[type="checkbox"]:checked ~ .checkmark::after {
@@ -416,7 +416,7 @@
 }
 
 .order-select {
-  position: absolute;
+  /* position: absolute; */
   top: 16px;
   right: 16px;
 }
@@ -434,15 +434,15 @@
 .checkmark-small {
   width: 20px;
   height: 20px;
-  border: 2px solid #c8e6c9;
+  border: 2px solid #b3cafa;
   border-radius: 6px;
   position: relative;
   transition: all 0.2s ease;
 }
 
 .checkbox-container-small input[type="checkbox"]:checked ~ .checkmark-small {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #2563eb 0%, #2563eb 100%);
+  border-color: #2563eb;
 }
 
 .checkbox-container-small input[type="checkbox"]:checked ~ .checkmark-small::after {
@@ -614,11 +614,6 @@
   color: #666;
 }
 
-.total-amount {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #0c850c;
-}
 
 /* Customer Info */
 .customer-info {
@@ -743,7 +738,7 @@
   grid-template-columns: 100px 120px 100px 1fr 100px 120px 80px;
   gap: 16px;
   padding: 16px 20px;
-  align-items: center;
+  /* align-items: center; */
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.2s ease;
 }
@@ -828,7 +823,7 @@
 }
 
 /* Empty State */
-.empty-state {
+.emptyState {
   text-align: center;
   padding: 60px 20px;
   background: white;
@@ -842,13 +837,13 @@
   margin-bottom: 20px;
 }
 
-.empty-state h3 {
+.emptyState h3 {
   font-size: 1.5rem;
   color: #1a1a1a;
   margin-bottom: 10px;
 }
 
-.empty-state p {
+.emptyState p {
   color: #666;
 }
 

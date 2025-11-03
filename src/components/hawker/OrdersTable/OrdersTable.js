@@ -58,13 +58,13 @@ export default {
       });
     });
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = Timestamp.fromDate(today);
+
     // Fetch today's orders
     const fetchTodayOrders = () => {
       if (!hawkerId.value) return;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayTimestamp = Timestamp.fromDate(today);
 
       const ordersRef = collection(db, 'orders');
       const q = query(
@@ -88,10 +88,6 @@ export default {
     // Fetch order history
     const fetchOrderHistory = () => {
       if (!hawkerId.value) return;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayTimestamp = Timestamp.fromDate(today);
 
       const ordersRef = collection(db, 'orders');
       const q = query(
@@ -214,7 +210,9 @@ export default {
     const getItemsSummary = (items) => {
       if (!items || items.length === 0) return '';
       if (items.length === 1) return items[0].itemName;
-      return `${items[0].itemName} +${items.length - 1} more`;
+      else{
+        return items;
+      }
     };
 
     const viewOrderDetails = (order) => {

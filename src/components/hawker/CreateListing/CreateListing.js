@@ -14,6 +14,7 @@ import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
 import { getDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
@@ -44,6 +45,7 @@ export default {
     const selectedListing = ref("all");
     const selectedListings = ref([]);
     const selectAll = ref(false);
+    const router = useRouter();
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
