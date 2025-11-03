@@ -60,7 +60,7 @@
             </div>
           </div>
           
-          <div class="row mx-auto">
+          <div class="row mx-4">
             <!-- Price & Discount -->
             <div class="row mb-3">
               <div class="col">
@@ -141,35 +141,41 @@
                 </div>
             </div>
             
-            <!-- Quantity -->
-            <label class="form-label">Quantity</label>
-            <input
-              type="number"
-              class="form-control mb-3 w-50"
-              required
-              v-model.number="editForm.itemQty"
-            />
+            <div class="mb-3">
+              <!-- Quantity -->
+              <label class="form-label">Quantity</label>
+              <input
+                type="number"
+                class="form-control mb-3 w-50"
+                required
+                v-model.number="editForm.itemQty"
+              />
+            </div>
 
             <!-- Allergens -->
-            <label class="form-label">Allergens</label>
-            <div class="mb-3">
-              <div v-for="allergen in allergenOptions" :key="allergen">
-                <input type="checkbox" :value="allergen" v-model="editForm.allergens" />
-                <label class="text-dark">{{ allergen }}</label>
-              </div>
-            </div>
+             <div class="mb-3">
+               <label class="form-label">Allergens</label>
+               <div class="mb-3">
+                 <div v-for="allergen in allergenOptions" :key="allergen">
+                   <input type="checkbox" :value="allergen" v-model="editForm.allergens" />
+                   <label class="text-dark">{{ allergen }}</label>
+                 </div>
+               </div>
+             </div>
 
             <!-- Tags -->
-            <label class="form-label">Tags</label>
-            <div class="mb-3">
-              <div v-for="tag in tagOptions" :key="tag">
-                <input type="checkbox" :value="tag" v-model="editForm.tags" />
-                <label class="text-dark">{{ tag }}</label>
-              </div>
-            </div>
+             <div class="mb-3">
+               <label class="form-label">Tags</label>
+               <div class="mb-3">
+                 <div v-for="tag in tagOptions" :key="tag">
+                   <input type="checkbox" :value="tag" v-model="editForm.tags" />
+                   <label class="text-dark">{{ tag }}</label>
+                 </div>
+               </div>
+             </div>
 
             <!-- Make Active Toggle -->
-            <div class="form-check form-switch mb-3">
+            <div class="form-check form-switch mb-3 mx-2">
               <input
                 v-model="editForm.makeActive"
                 class="form-check-input"
@@ -185,7 +191,7 @@
             </div>
 
             <!-- Buttons -->
-            <div class="button-group">
+            <div class="button-group m-0 w-100">
               <button
                 type="button"
                 class="btn btn-secondary"

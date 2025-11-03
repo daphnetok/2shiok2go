@@ -1,7 +1,17 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { db } from '/firebase/config';
-import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  updateDoc,
+  doc,
+  Timestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default {
   name: 'OrdersManagement',
@@ -18,34 +28,45 @@ export default {
     const isStatusFilterOpen = ref(false);
     const activeStatusFilters = ref([]);
 
-    // Get current hawker ID
-    const hawkerId = computed(() => auth.currentUser?.uid);
+    let unsubscribeToday = null;
+    let unsubscribeHistory = null;
+
+    const hawkerId = ref(null);
 
     // Computed properties
     const todayOrdersCount = computed(() => todayOrders.value.length);
-    
-    const pendingCount = computed(() => 
+
+    const pendingCount = computed(() =>
       todayOrders.value.filter(o => o.status === 'pending' || o.status === 'preparing').length
     );
-    
-    const completedCount = computed(() => 
+
+    const completedCount = computed(() =>
       todayOrders.value.filter(o => o.status === 'completed').length
+    );
+
+    const selectedPendingCount = computed(() =>
+      todayOrders.value.filter(
+        o => selectedOrders.value.includes(o.id) && o.status === 'pending'
+      ).length
+    );
+
+    const selectedPreparingCount = computed(() =>
+      todayOrders.value.filter(
+        o => selectedOrders.value.includes(o.id) && o.status === 'preparing'
+      ).length
     );
 
     const filteredTodayOrders = computed(() => {
       let orders = todayOrders.value;
-      
+
       if (activeStatusFilters.value.length > 0) {
         orders = orders.filter(o => activeStatusFilters.value.includes(o.status));
       }
-      
+
       return orders.sort((a, b) => {
-        // Sort by status priority first (pending > preparing > ready > completed)
         const statusOrder = { pending: 0, preparing: 1, ready: 2, completed: 3 };
         const statusDiff = statusOrder[a.status] - statusOrder[b.status];
         if (statusDiff !== 0) return statusDiff;
-        
-        // Then by time (newest first)
         return b.timestamp?.toMillis() - a.timestamp?.toMillis();
       });
     });
@@ -63,60 +84,66 @@ export default {
     const todayTimestamp = Timestamp.fromDate(today);
 
     // Fetch today's orders
-    const fetchTodayOrders = () => {
-      if (!hawkerId.value) return;
+    const fetchTodayOrders = (uid) => {
+      if (!uid) return;
 
       const ordersRef = collection(db, 'orders');
       const q = query(
         ordersRef,
-        where('hawkerId', '==', hawkerId.value),
+        where('hawkerId', '==', uid),
         where('timestamp', '>=', todayTimestamp)
       );
 
-      onSnapshot(q, (snapshot) => {
-        todayOrders.value = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        loading.value = false;
-      }, (error) => {
-        console.error('Error fetching today\'s orders:', error);
-        loading.value = false;
-      });
+      unsubscribeToday = onSnapshot(
+        q,
+        (snapshot) => {
+          todayOrders.value = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          loading.value = false;
+        },
+        (error) => {
+          console.error("Error fetching today's orders:", error);
+          loading.value = false;
+        }
+      );
     };
 
     // Fetch order history
-    const fetchOrderHistory = () => {
-      if (!hawkerId.value) return;
+    const fetchOrderHistory = (uid) => {
+      if (!uid) return;
 
       const ordersRef = collection(db, 'orders');
       const q = query(
         ordersRef,
-        where('hawkerId', '==', hawkerId.value),
+        where('hawkerId', '==', uid),
         where('timestamp', '<', todayTimestamp)
       );
 
-      onSnapshot(q, (snapshot) => {
-        historyOrders.value = snapshot.docs
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
-          .filter(order => order.status === 'completed');
-        loadingHistory.value = false;
-      }, (error) => {
-        console.error('Error fetching order history:', error);
-        loadingHistory.value = false;
-      });
+      unsubscribeHistory = onSnapshot(
+        q,
+        (snapshot) => {
+          historyOrders.value = snapshot.docs
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }))
+            .filter(order => order.status === 'completed');
+          loadingHistory.value = false;
+        },
+        (error) => {
+          console.error('Error fetching order history:', error);
+          loadingHistory.value = false;
+        }
+      );
     };
 
     // Order actions
     const acceptOrder = async (order) => {
       try {
         const orderRef = doc(db, 'orders', order.id);
-        await updateDoc(orderRef, {
-          status: 'preparing'
-        });
+        await updateDoc(orderRef, { status: 'preparing' });
       } catch (error) {
         console.error('Error accepting order:', error);
         alert('Failed to accept order');
@@ -126,9 +153,7 @@ export default {
     const markOrderReady = async (order) => {
       try {
         const orderRef = doc(db, 'orders', order.id);
-        await updateDoc(orderRef, {
-          status: 'ready'
-        });
+        await updateDoc(orderRef, { status: 'ready' });
       } catch (error) {
         console.error('Error marking order ready:', error);
         alert('Failed to mark order as ready');
@@ -148,21 +173,54 @@ export default {
       }
     };
 
-    const markSelectedReady = async () => {
-      if (!confirm(`Mark ${selectedOrders.value.length} order(s) as ready?`)) return;
+    // Bulk actions
+    const acceptSelectedOrders = async () => {
+      const pendingOrders = todayOrders.value.filter(
+        o => selectedOrders.value.includes(o.id) && o.status === 'pending'
+      );
+      if (pendingOrders.length === 0) return;
+
+      if (!confirm(`Accept ${pendingOrders.length} pending order(s)?`)) return;
 
       try {
-        const promises = selectedOrders.value.map(orderId => {
-          const orderRef = doc(db, 'orders', orderId);
-          return updateDoc(orderRef, { status: 'ready' });
+        const promises = pendingOrders.map(order => {
+          const orderRef = doc(db, 'orders', order.id);
+          return updateDoc(orderRef, { status: 'preparing' });
         });
-        
+
         await Promise.all(promises);
+        alert(`${pendingOrders.length} order(s) accepted.`);
+      } catch (error) {
+        console.error('Error accepting orders:', error);
+        alert('Failed to accept selected orders');
+      } finally {
         selectedOrders.value = [];
         selectAll.value = false;
+      }
+    };
+
+    const markSelectedReady = async () => {
+      const preparingOrders = todayOrders.value.filter(
+        o => selectedOrders.value.includes(o.id) && o.status === 'preparing'
+      );
+      if (preparingOrders.length === 0) return;
+
+      if (!confirm(`Mark ${preparingOrders.length} order(s) as ready?`)) return;
+
+      try {
+        const promises = preparingOrders.map(order => {
+          const orderRef = doc(db, 'orders', order.id);
+          return updateDoc(orderRef, { status: 'ready' });
+        });
+
+        await Promise.all(promises);
+        alert(`${preparingOrders.length} order(s) marked as ready.`);
       } catch (error) {
-        console.error('Error marking selected orders:', error);
-        alert('Failed to update orders');
+        console.error('Error marking ready orders:', error);
+        alert('Failed to mark selected orders as ready');
+      } finally {
+        selectedOrders.value = [];
+        selectAll.value = false;
       }
     };
 
@@ -170,7 +228,7 @@ export default {
     const toggleSelectAll = () => {
       if (selectAll.value) {
         selectedOrders.value = filteredTodayOrders.value
-          .filter(o => o.status === 'preparing')
+          .filter(o => o.status === 'preparing' || o.status === 'pending')
           .map(o => o.id);
       } else {
         selectedOrders.value = [];
@@ -210,19 +268,60 @@ export default {
     const getItemsSummary = (items) => {
       if (!items || items.length === 0) return '';
       if (items.length === 1) return items[0].itemName;
-      else{
-        return items;
-      }
+      else return items;
     };
 
     const viewOrderDetails = (order) => {
-      // Implement order details modal/page
       console.log('View order:', order);
     };
 
+    const deleteSelectedOrders = async () => {
+      if (selectedOrders.value.length === 0) return;
+      if (!confirm(`Delete ${selectedOrders.value.length} order(s)? This cannot be undone.`)) return;
+
+      try {
+        const promises = selectedOrders.value.map(orderId => {
+          const orderRef = doc(db, 'orders', orderId);
+          return deleteDoc(orderRef);
+        });
+
+        await Promise.all(promises);
+        alert(`${selectedOrders.value.length} order(s) deleted successfully.`);
+        selectedOrders.value = [];
+        selectAll.value = false;
+      } catch (error) {
+        console.error('Error deleting orders:', error);
+        alert('Failed to delete selected orders');
+      }
+    };
+
+    const toggleSelectAllHistory = () => {
+      if (selectAll.value) {
+        selectedOrders.value = sortedHistory.value.map(o => o.id);
+      } else {
+        selectedOrders.value = [];
+      }
+    };
+
+    //  Wait for Firebase Auth to load
     onMounted(() => {
-      fetchTodayOrders();
-      fetchOrderHistory();
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          hawkerId.value = user.uid;
+          fetchTodayOrders(user.uid);
+          fetchOrderHistory(user.uid);
+        } else {
+          console.warn('No user logged in');
+          loading.value = false;
+          loadingHistory.value = false;
+        }
+      });
+    });
+
+    // Cleanup listeners when leaving the page
+    onUnmounted(() => {
+      if (unsubscribeToday) unsubscribeToday();
+      if (unsubscribeHistory) unsubscribeHistory();
     });
 
     return {
@@ -244,6 +343,7 @@ export default {
       markOrderReady,
       markOrderCollected,
       markSelectedReady,
+      acceptSelectedOrders,
       toggleSelectAll,
       toggleStatusFilter,
       toggleSortOrder,
@@ -251,7 +351,11 @@ export default {
       formatTime,
       getStatusText,
       getItemsSummary,
-      viewOrderDetails
+      viewOrderDetails,
+      deleteSelectedOrders,
+      toggleSelectAllHistory,
+      selectedPendingCount,
+      selectedPreparingCount
     };
   }
 };
