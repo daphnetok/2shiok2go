@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
-import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
 import { runTransaction } from 'firebase/firestore';
@@ -21,6 +21,18 @@ export default {
     const editMode = ref(false);
     const selectedItems = ref([]);
     const showClosedStallsModal = ref(false);
+    
+    // Card information state
+    const savedCards = ref([]);
+    const cardSelection = ref('new');
+    const selectedCardIndex = ref(0);
+    const saveCardForFuture = ref(false);
+    const newCard = ref({
+      cardholderName: '',
+      cardNumber: '',
+      expiryDate: '',
+      cvv: ''
+    });
     
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
@@ -110,6 +122,124 @@ export default {
         console.log('Normal hours stall, isClosed:', isClosed);
         return isClosed;
       }
+    };
+    
+    // Format card number with spaces
+    const formatCardNumber = (event) => {
+      let value = event.target.value.replace(/\s/g, '');
+      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+      newCard.value.cardNumber = formattedValue;
+    };
+
+    // Format expiry date
+    const formatExpiryDate = (event) => {
+      let value = event.target.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+      }
+      newCard.value.expiryDate = value;
+    };
+
+    // Format CVV (numbers only)
+    const formatCVV = (event) => {
+      newCard.value.cvv = event.target.value.replace(/\D/g, '');
+    };
+
+    // Fetch saved cards from Firebase
+    const fetchSavedCards = async () => {
+      if (!userId.value) return;
+      
+      try {
+        const userRef = doc(db, 'users', userId.value);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          savedCards.value = userData.cardInfo || [];
+          
+          // Set default selection
+          if (savedCards.value.length > 0) {
+            cardSelection.value = 'saved';
+            selectedCardIndex.value = 0;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching saved cards:', error);
+      }
+    };
+
+    // Save card to Firebase
+    const saveCardToFirebase = async () => {
+      if (!userId.value || !saveCardForFuture.value) return;
+      
+      try {
+        const userRef = doc(db, 'users', userId.value);
+        const cardData = {
+          cardholderName: newCard.value.cardholderName,
+          lastFour: newCard.value.cardNumber.replace(/\s/g, '').slice(-4),
+          expiryDate: newCard.value.expiryDate,
+          addedAt: new Date()
+        };
+        
+        // Get current cards or initialize empty array
+        const userSnap = await getDoc(userRef);
+        let currentCards = [];
+        
+        if (userSnap.exists()) {
+          currentCards = userSnap.data().cardInfo || [];
+        }
+        
+        // Add new card
+        currentCards.push(cardData);
+        
+        // Update or create user document
+        await updateDoc(userRef, {
+          cardInfo: currentCards
+        }).catch(async () => {
+          // If document doesn't exist, create it
+          await setDoc(userRef, {
+            cardInfo: currentCards
+          }, { merge: true });
+        });
+        
+        console.log('Card saved successfully');
+        savedCards.value = currentCards;
+      } catch (error) {
+        console.error('Error saving card:', error);
+      }
+    };
+
+    // Validate card information
+    const validateCardInfo = () => {
+      if (cardSelection.value === 'saved') {
+        return savedCards.value.length > 0;
+      }
+      
+      // Validate new card
+      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
+      const expiryParts = newCard.value.expiryDate.split('/');
+      
+      if (!newCard.value.cardholderName.trim()) {
+        alert('Please enter cardholder name');
+        return false;
+      }
+      
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        alert('Please enter a valid card number');
+        return false;
+      }
+      
+      if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+        alert('Please enter a valid expiry date (MM/YY)');
+        return false;
+      }
+      
+      if (newCard.value.cvv.length !== 3) {
+        alert('Please enter a valid CVV');
+        return false;
+      }
+      
+      return true;
     };
     
     // Fetch cart items and current stock levels from Firebase
@@ -447,6 +577,21 @@ export default {
     };
     
     // Get next order ID
+    const getNextOrderID = async () => {
+      const counterRef = doc(db, 'meta', 'orderCounter');
+      return await runTransaction(db, async (transaction) => {
+        const counterSnap = await transaction.get(counterRef);
+        let newOrderID = 1;
+        if (counterSnap.exists()) {
+          newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
+          transaction.update(counterRef, { lastOrderID: newOrderID });
+        } else {
+          transaction.set(counterRef, { lastOrderID: 1 });
+        }
+        return newOrderID;
+      });
+    };
+        // Get next order ID
     // const getNextOrderID = async () => {
     //   try {
     //     const ordersRef = collection(db, 'orders');
@@ -477,21 +622,6 @@ export default {
     //     }
     //   }
     // };
-
-    const getNextOrderID = async () => {
-    const counterRef = doc(db, 'meta', 'orderCounter');
-    return await runTransaction(db, async (transaction) => {
-      const counterSnap = await transaction.get(counterRef);
-      let newOrderID = 1;
-      if (counterSnap.exists()) {
-        newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
-        transaction.update(counterRef, { lastOrderID: newOrderID });
-      } else {
-        transaction.set(counterRef, { lastOrderID: 1 });
-      }
-      return newOrderID;
-    });
-  };
 
     // Get hawker address from hawkerListings
     const getHawkerAddress = async (hawkerId) => {
@@ -542,6 +672,11 @@ export default {
         return;
       }
       
+      // Validate card information
+      if (!validateCardInfo()) {
+        return;
+      }
+      
       // Get payment method
       const paymentMethodSelect = document.getElementById('payment-method');
       const paymentMethod = paymentMethodSelect ? paymentMethodSelect.value : 'card';
@@ -550,6 +685,11 @@ export default {
       errorMsg.value = null;
       
       try {
+        // Save card if user opted to
+        if (cardSelection.value === 'new' && saveCardForFuture.value) {
+          await saveCardToFirebase();
+        }
+        
         // Group items by hawker
         const itemsByHawker = {};
         for (const item of availableItems) {
@@ -673,6 +813,7 @@ export default {
         console.log('User already authenticated:', currentUser.uid);
         userId.value = currentUser.uid;
         fetchCartItems();
+        fetchSavedCards();
       } else {
         console.log('No user authenticated on mount');
         loading.value = false;
@@ -686,6 +827,7 @@ export default {
           if (userId.value !== user.uid) {
             userId.value = user.uid;
             await fetchCartItems();
+            await fetchSavedCards();
           }
         } else {
           userId.value = null;
@@ -713,6 +855,13 @@ export default {
       selectedItems,
       showClosedStallsModal,
       
+      // Card state
+      savedCards,
+      cardSelection,
+      selectedCardIndex,
+      saveCardForFuture,
+      newCard,
+      
       // Computed properties
       cartCount,
       cartTotal,
@@ -737,7 +886,10 @@ export default {
       selectAll,
       deleteSelected,
       closeModal,
-      proceedWithAvailable
+      proceedWithAvailable,
+      formatCardNumber,
+      formatExpiryDate,
+      formatCVV
     };
   }
 };

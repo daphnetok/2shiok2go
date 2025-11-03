@@ -41,6 +41,7 @@
         <i class="fa-solid fa-arrow-left"></i>
       </button>
       <h2 class="m-0">Create A New Listing</h2>
+      
     </div>
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
 
@@ -265,6 +266,8 @@
 </template>
 
 <script src="./CreateListing.js">
+import HawkerForm from '../HawkerForm/HawkerForm.js';
+
 
 export default {
   name: "CreateAListing"

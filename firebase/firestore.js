@@ -80,6 +80,63 @@ export const createHawker = hawkerData => {
   return addDoc(hawkerCollection, hawkerData);
 }
 
+// NEW: Get a single hawker by ID
+export const getHawkerById = async (hawkerId) => {
+  try {
+    const docRef = doc(db, 'hawkerListings', hawkerId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting hawker:', error);
+    throw error;
+  }
+};
+
+// NEW: Update a hawker
+export const updateHawker = async (hawkerId, data) => {
+  try {
+    const docRef = doc(db, 'hawkerListings', hawkerId);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating hawker:', error);
+    throw error;
+  }
+};
+
+// NEW: Delete a hawker
+export const deleteHawker = async (hawkerId) => {
+  try {
+    const docRef = doc(db, 'hawkerListings', hawkerId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('Error deleting hawker:', error);
+    throw error;
+  }
+};
+
+// NEW: Get hawkers by user ID (for user's own stalls)
+export const getHawkersByUserId = async (userId) => {
+  try {
+    const q = query(hawkerCollection, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    const hawkers = [];
+    querySnapshot.forEach((doc) => {
+      hawkers.push({ id: doc.id, ...doc.data() });
+    });
+    return hawkers;
+  } catch (error) {
+    console.error('Error getting user hawkers:', error);
+    throw error;
+  }
+};
+
 // Get favourites function to get all hawkers favorited by the user (uid)
 export const getFavourites = async (uid) => {
   try {
