@@ -1,9 +1,16 @@
 <template>
   <div class="card border-0 shadow-sm h-100" :class="{ 'dark-mode-card': darkMode }" style="border-radius: 12px; overflow: hidden;">
-    <div class="card-header border-0" :class="darkMode ? 'bg-dark-header' : 'bg-white'" style="padding: 1.25rem 1.5rem;">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center" :class="darkMode ? 'bg-dark-header' : 'bg-white'" style="padding: 1.25rem 1.5rem;">
       <h5 class="mb-0 fw-semibold" :style="{ color: darkMode ? '#10b981' : '#059669', fontSize: '1.1rem' }">
         <i class="fas fa-list-check me-2"></i>To-Do List
       </h5>
+      <button v-if="items.length > 0" 
+              @click="$emit('clear-all')" 
+              class="btn btn-sm btn-outline-danger"
+              style="border-radius: 6px; padding: 0.375rem 0.75rem; font-size: 0.8rem;"
+              title="Clear all tasks">
+        <i class="fas fa-trash-alt me-1"></i>Clear All
+      </button>
     </div>
     <div class="card-body" :class="{ 'dark-body': darkMode }" style="padding: 1.5rem;">
       <div class="todo-list mb-3">
@@ -23,22 +30,39 @@
               {{ item.text }}
             </span>
           </div>
+          <button @click="$emit('delete', idx)" 
+                  class="btn btn-sm btn-danger"
+                  style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 4px;"
+                  title="Delete task">
+            <i class="fas fa-trash"></i>
+          </button>
         </div>
       </div>
-      <div class="input-group">
-        <input v-model="newTodo" type="text" class="form-control" 
-               :class="{ 'dark-input': darkMode }"
-               :style="{ 
-                 borderRadius: '8px 0 0 8px', 
-                 borderColor: darkMode ? '#334155' : '#d1d5db', 
-                 padding: '0.625rem 0.875rem',
-                 background: darkMode ? '#0f172a' : 'white',
-                 color: darkMode ? '#e2e8f0' : '#374151'
-               }"
-               placeholder="Add new task..." @keyup.enter="addTodo">
-        <button class="btn btn-success" style="border-radius: 0 8px 8px 0; padding: 0.625rem 1.25rem;" @click="addTodo">
-          <i class="fas fa-plus me-1"></i>Add
-        </button>
+      
+      <!-- Add New Task Section -->
+      <div class="add-task-section" :style="{ 
+        marginTop: '1rem',
+        paddingTop: '1rem', 
+        borderTop: darkMode ? '1px solid #334155' : '1px solid #e5e7eb'
+      }">
+        <div class="input-group" style="gap: 0.5rem;">
+          <input v-model="newTodo" type="text" class="form-control" 
+                 :class="{ 'dark-input': darkMode }"
+                 :style="{ 
+                   borderRadius: '8px', 
+                   borderColor: darkMode ? '#334155' : '#d1d5db', 
+                   padding: '0.625rem 0.875rem',
+                   background: darkMode ? '#0f172a' : 'white',
+                   color: darkMode ? '#e2e8f0' : '#374151',
+                   flex: '1'
+                 }"
+                 placeholder="Add new task..." @keyup.enter="addTodo">
+          <button class="btn btn-success" 
+                  style="border-radius: 8px; padding: 0.625rem 1.25rem; white-space: nowrap;" 
+                  @click="addTodo">
+            <i class="fas fa-plus me-1"></i>Add
+          </button>
+        </div>
       </div>
     </div>
   </div>

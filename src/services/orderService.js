@@ -31,7 +31,13 @@ export async function updateOrder(orderId, updates) {
 
 // Get orders by hawker or buyer
 export async function getOrdersByUser(userId, role) {
-  const q = query(ordersRef, where(role === 'hawker' ? 'hawkerID' : 'buyerID', '==', userId))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  try {
+    const fieldName = role === 'hawker' ? 'hawkerId' : 'buyerId'
+    const q = query(ordersRef, where(fieldName, '==', userId))
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error(`Error fetching orders for ${role}:`, error)
+    throw error
+  }
 }

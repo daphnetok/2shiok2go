@@ -5,13 +5,46 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Pet subcollection under users
+      match /pet/{petDoc} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Support Tickets subcollection under users
+      match /supportTickets/{ticketId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
     
     // Hawker listings
     match /hawkerListings/{hawkerId} {
       allow read: if true; // Anyone can read hawker listings
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null;
+      // Allow hawker owner to update all fields
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow any authenticated user to update ONLY the favouritedUser field
+      allow update: if request.auth != null && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favouritedUser']);
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Reviews subcollection under hawkerListings
+      match /reviews/{reviewId} {
+        allow read: if true; // Anyone can read reviews
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
+        allow delete: if request.auth != null;
+      }
+      
+      // Todo List subcollection under hawkerListings
+      match /toDoList/{todoId} {
+        allow read, write: if request.auth != null && request.auth.uid == get(/databases/$(database)/documents/hawkerListings/$(hawkerId)).data.userId;
+      }
+      
+      // Calendar Events subcollection under hawkerListings
+      match /calendarEvents/{eventId} {
+        allow read, write: if request.auth != null && request.auth.uid == get(/databases/$(database)/documents/hawkerListings/$(hawkerId)).data.userId;
+      }
     }
     
     // Item listings
@@ -22,9 +55,18 @@ service cloud.firestore {
     
     // Orders collection
     match /orders/{orderId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.hawkerId);
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.hawkerId);
+      // Allow read if user is authenticated (queries will filter by buyerId/hawkerId in code)
+      allow read: if request.auth != null;
+      // Allow create if authenticated and user is the buyer
+      allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid;
+      // Allow update if user is the buyer or hawker
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.buyerId || 
+         request.auth.uid == resource.data.hawkerId);
+      // Allow delete if user is the buyer or hawker
+      allow delete: if request.auth != null && 
+        (request.auth.uid == resource.data.buyerId || 
+         request.auth.uid == resource.data.hawkerId);
     }
     
     // Reviews collection

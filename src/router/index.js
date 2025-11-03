@@ -18,6 +18,7 @@ import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
+import ContactSupport from '../views/ContactSupport.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -36,7 +37,8 @@ const routes = [
     props: true 
   },
   { path: '/cart', component: ShoppingCart },
-  { path: '/order-receipt', component: OrderReceipt }, 
+  { path: '/order-receipt', component: OrderReceipt },
+  { path: '/order-receipt/:orderId', component: OrderReceipt, name: 'OrderReceipt' }, 
   { path: '/hawker-analytics', component: HawkerAnalytics }, 
   { path: '/favourites', component: Favourites},
   { path: '/orders-table', component: OrdersTable},
@@ -47,6 +49,7 @@ const routes = [
     component: AllReviews,
     props: true
   },
+  { path: '/contact-support', component: ContactSupport, name: 'ContactSupport' },
 ]
 
 const router = createRouter({

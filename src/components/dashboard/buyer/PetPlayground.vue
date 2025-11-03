@@ -162,28 +162,34 @@
           </div>
         </div>
       </div>
-      <div class="pet-stats row g-3 mt-4">
-        <div class="col-4">
+      <div class="pet-stats row g-2 mt-4">
+        <div class="col-6">
           <div class="stat-item">
-            <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; color: #059669;">Happiness</span>
-            <div class="progress" style="height: 28px; border-radius: 8px; background: rgba(16, 185, 129, 0.1);">
-              <div class="progress-bar bg-success fw-semibold" style="border-radius: 8px;" :style="{ width: pet.happiness + '%' }">{{ pet.happiness }}%</div>
+            <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; color: #059669;">
+              😊 Happiness
+            </span>
+            <div class="progress-container">
+              <div class="progress" style="height: 32px; border-radius: 16px; background: rgba(16, 185, 129, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
+                <div class="progress-bar happiness-bar" 
+                     :style="{ width: pet.happiness + '%' }">
+                  <span class="progress-text">{{ pet.happiness }}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-4">
+        <div class="col-6">
           <div class="stat-item">
-            <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; color: #d97706;">Energy</span>
-            <div class="progress" style="height: 28px; border-radius: 8px; background: rgba(245, 158, 11, 0.1);">
-              <div class="progress-bar bg-warning fw-semibold" style="border-radius: 8px;" :style="{ width: pet.energy + '%' }">{{ pet.energy }}%</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="stat-item">
-            <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; color: #1e40af;">Level {{ pet.level }}</span>
-            <div class="progress" style="height: 28px; border-radius: 8px; background: rgba(59, 130, 246, 0.1);">
-              <div class="progress-bar bg-info fw-semibold" style="border-radius: 8px;" :style="{ width: (pet.experience % 100) + '%' }">{{ pet.experience % 100 }}/100</div>
+            <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; color: #d97706;">
+              ⚡ Energy
+            </span>
+            <div class="progress-container">
+              <div class="progress" style="height: 32px; border-radius: 16px; background: rgba(245, 158, 11, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
+                <div class="progress-bar energy-bar" 
+                     :style="{ width: pet.energy + '%' }">
+                  <span class="progress-text">{{ pet.energy }}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -223,6 +229,100 @@ export default {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15) !important;
 }
+
+/* Enhanced Progress Bars */
+.progress-container {
+  position: relative;
+}
+
+.progress-bar {
+  position: relative;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: width 0.6s ease;
+  overflow: hidden;
+}
+
+.progress-text {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  font-weight: 700;
+}
+
+/* Happiness Bar - Teal/Cyan Gradient */
+.happiness-bar {
+  background: linear-gradient(90deg, 
+    #10b981 0%, 
+    #059669 50%, 
+    #10b981 100%
+  );
+  background-size: 200% 100%;
+  animation: happinessGradientShift 3s ease infinite;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  position: relative;
+}
+
+.happiness-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: happinessShine 2s infinite;
+}
+
+@keyframes happinessGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes happinessShine {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* Energy Bar - Yellow/Orange Gradient */
+.energy-bar {
+  background: linear-gradient(90deg, 
+    #fbbf24 0%, 
+    #f59e0b 50%, 
+    #fbbf24 100%
+  );
+  background-size: 200% 100%;
+  animation: energyGradientShift 3s ease infinite;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  position: relative;
+}
+
+.energy-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: energyShine 2.5s infinite;
+}
+
+@keyframes energyGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes energyShine {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
 .pet-container { 
   position: relative; 
   height: 400px; 

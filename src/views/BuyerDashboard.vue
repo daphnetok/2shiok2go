@@ -70,10 +70,10 @@
             </div>
             <div class="col-lg-4">
               <div class="stat-card stat-card-warning h-100">
-                <div class="stat-icon">🔥</div>
+                <div class="stat-icon">🌍</div>
                 <div class="stat-content">
-                  <h3 class="stat-value">{{ stats.pointsEarned }}</h3>
-                  <p class="stat-label">Points Earned</p>
+                  <h3 class="stat-value">{{ stats.carbonSaved }}</h3>
+                  <p class="stat-label">Carbon Saved</p>
                   <p class="stat-detail">🎯 {{ stats.achievement }}</p>
                 </div>
               </div>
@@ -138,14 +138,40 @@
                   <PetPlayground :pet="petData" :animation="petAnimation" :message="petMessage"
                     :message-type="petMessageType" @click="petClick" @customize="showCustomization = !showCustomization"
                     @feed="feedPet" @play="playWithPet" @dragover="handleDragOver" @drop="handleDrop" />
-                  <div class="pet-progress mt-3">
-                    <p class="mb-2 fw-semibold">🐶 "2Shiok Buddy" — Your food rescue pet!</p>
-                    <p class="mb-2 text-muted">"Feed your buddy by rescuing meals! {{ petData.mealsToLevelUp }} more to
-                      level up!"</p>
-                    <div class="progress" style="height: 30px; border-radius: 15px;">
-                      <div class="progress-bar bg-success" :style="{ width: petData.progress + '%' }"
-                        style="border-radius: 15px; font-weight: 600; font-size: 0.9rem;">
-                        {{ petData.progress }}%
+                  <div class="pet-progress mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div>
+                        <p class="mb-1 fw-bold" style="color: #059669; font-size: 1rem;">
+                          <i class="fas fa-paw me-2"></i>{{ petData.name || '2Shiok Buddy' }}
+                        </p>
+                        <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                          <span class="fw-bold" style="color: #10b981;">{{ currentLevelName.name }}</span> • {{ petData.mealsToLevelUp }} meals to next level
+                        </p>
+                      </div>
+                      <div class="level-badge">
+                        <span class="level-number">{{ petData.level }}</span>
+                      </div>
+                    </div>
+                    <div class="progress-container">
+                      <div class="progress-track">
+                        <div class="progress-fill" :style="{ width: petData.progress + '%' }">
+                          <div class="progress-shine"></div>
+                        </div>
+                        <span class="progress-text">{{ Math.round(petData.progress) }}%</span>
+                      </div>
+                      <div class="progress-milestones">
+                        <div class="milestone" :class="{ 'reached': petData.progress >= 25 }" style="left: 25%;">
+                          <i class="fas fa-star"></i>
+                        </div>
+                        <div class="milestone" :class="{ 'reached': petData.progress >= 50 }" style="left: 50%;">
+                          <i class="fas fa-star"></i>
+                        </div>
+                        <div class="milestone" :class="{ 'reached': petData.progress >= 75 }" style="left: 75%;">
+                          <i class="fas fa-star"></i>
+                        </div>
+                        <div class="milestone crown" :class="{ 'reached': petData.progress >= 100 }" style="left: 100%;">
+                          <i class="fas fa-crown"></i>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -367,6 +393,18 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- Save Button -->
+                    <div class="save-button-container">
+                      <button class="btn-save-pet" @click="handleSaveAll" :disabled="isSaving">
+                        <i v-if="!isSaving" class="fas fa-save"></i>
+                        <i v-else class="fas fa-spinner fa-spin"></i>
+                        <span>{{ isSaving ? 'Saving...' : 'Save All Changes' }}</span>
+                      </button>
+                      <div v-if="petMessage" class="pet-message" :class="petMessageType">
+                        {{ petMessage }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -379,10 +417,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import Card from '@/components/shared/Card.vue'
 import ChartCard from '@/components/dashboard/ChartCard.vue'
@@ -398,10 +436,12 @@ export default {
     const petAnimation = ref('')
     const petMessage = ref('')
     const petMessageType = ref('info')
+    const isSaving = ref(false)
 
     // User Info
     const username = ref('Guest')
-    const rescuedMealsCount = ref(5)
+    const rescuedMealsCount = ref(0)
+    const currentUserId = ref(null)
     const auth = getAuth()
 
     // Fetch user data from Firestore
@@ -411,30 +451,391 @@ export default {
         const userSnap = await getDoc(userRef)
         if (userSnap.exists()) {
           const userData = userSnap.data()
-          username.value = userData.displayName || 'Guest'
+          username.value = userData.displayName || userData.name || 'Guest'
         }
       } catch (error) {
         console.error('Error fetching user data:', error)
       }
     }
 
-    // Listen to auth state changes
-    onAuthStateChanged(auth, (user) => {
+    // Fetch orders from Firestore and calculate stats
+    const fetchOrdersData = async (uid, shouldSave = false) => {
+      try {
+        console.log('📦 Fetching orders for user:', uid)
+        const ordersRef = collection(db, 'orders')
+        
+        // Try with orderBy first (requires index)
+        let ordersSnapshot
+        try {
+          const q = query(ordersRef, where('buyerId', '==', uid), orderBy('timestamp', 'desc'))
+          ordersSnapshot = await getDocs(q)
+        } catch (indexError) {
+          if (indexError.code === 'failed-precondition' || indexError.code === 9) {
+            console.warn('⚠️ Index not found, using simple query without orderBy')
+            const indexUrl = indexError.message.match(/https:\/\/[^\s]+/)?.[0]
+            if (indexUrl) {
+              console.warn('🔗 Create index at:', indexUrl)
+            }
+            // Fallback: query without orderBy
+            const simpleQuery = query(ordersRef, where('buyerId', '==', uid))
+            ordersSnapshot = await getDocs(simpleQuery)
+          } else {
+            throw indexError
+          }
+        }
+        
+        console.log('📊 Found orders:', ordersSnapshot.size)
+        
+        if (!ordersSnapshot.empty) {
+          let orders = ordersSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          
+          // Sort manually by timestamp if we didn't use orderBy
+          orders.sort((a, b) => {
+            const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp || 0)
+            const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp || 0)
+            return dateB - dateA
+          })
+          
+          // Calculate current month stats
+          const now = new Date()
+          const currentMonthOrders = orders.filter(order => {
+            const orderDate = order.timestamp?.toDate ? order.timestamp.toDate() : new Date(order.timestamp)
+            return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear()
+          })
+          
+          rescuedMealsCount.value = currentMonthOrders.length
+          
+          // 1. Calculate total money saved (sum of discounts: normalPrice - discountedPrice)
+          let totalSaved = 0
+          let totalOriginalPrice = 0
+          let totalMeals = 0
+          
+          console.log('📊 Calculating stats from', currentMonthOrders.length, 'orders')
+          
+          currentMonthOrders.forEach(order => {
+            if (order.items && Array.isArray(order.items)) {
+              order.items.forEach(item => {
+                // Try to get the prices - check multiple field names
+                let normalPrice = item.originalPrice || item.normalPrice || 0
+                let discountedPrice = item.discountedPrice || item.salePrice || item.price || 0
+                const quantity = item.quantity || item.qty || 1
+                
+                // If we only have 'price' field, that's likely the discounted price
+                // We need to calculate original price from discount percentage if available
+                if (normalPrice === 0 && discountedPrice > 0) {
+                  // Check if there's a discount percentage or amount
+                  if (item.discount) {
+                    if (item.discount < 1) {
+                      // It's a percentage (e.g., 0.3 = 30% off)
+                      normalPrice = discountedPrice / (1 - item.discount)
+                    } else if (item.discount < 100) {
+                      // It's a percentage as whole number (e.g., 30 = 30% off)
+                      normalPrice = discountedPrice / (1 - (item.discount / 100))
+                    } else {
+                      // It's a fixed discount amount
+                      normalPrice = discountedPrice + item.discount
+                    }
+                  } else if (item.discountPercentage) {
+                    // Discount percentage field
+                    normalPrice = discountedPrice / (1 - (item.discountPercentage / 100))
+                  } else {
+                    // No original price info, assume 20% discount as average
+                    normalPrice = discountedPrice / 0.8
+                  }
+                }
+                
+                console.log('Item:', item.name || 'Unknown', '| Normal:', normalPrice.toFixed(2), '| Discounted:', discountedPrice.toFixed(2), '| Qty:', quantity)
+                
+                // Calculate savings if we have both prices and there's a discount
+                if (normalPrice > discountedPrice && discountedPrice > 0) {
+                  const savings = (normalPrice - discountedPrice) * quantity
+                  totalSaved += savings
+                  console.log('  → Savings:', savings.toFixed(2))
+                } else {
+                  console.log('  → No discount calculated')
+                }
+                
+                totalOriginalPrice += normalPrice * quantity
+                totalMeals += quantity  // Each item counts as a meal
+              })
+            }
+          })
+          
+          console.log('💰 Total Saved:', totalSaved.toFixed(2), '| Total Original:', totalOriginalPrice.toFixed(2), '| Total Meals:', totalMeals)
+          
+          // 2. Calculate kg saved: meals * appropriate weight per meal (0.4kg average for hawker food)
+          const avgWeightPerMeal = 0.4  // 400g is typical for a hawker meal portion
+          const totalWeight = totalMeals * avgWeightPerMeal
+          
+          // 3. Calculate carbon saved
+          // Research shows: 1kg of food waste = approximately 2.5kg CO₂ equivalent
+          // This includes production, transportation, and decomposition emissions
+          const carbonPerKgFood = 2.5  // kg CO₂ per kg of food
+          const totalCarbonSaved = totalWeight * carbonPerKgFood
+          
+          const avgDiscount = totalOriginalPrice > 0 ? Math.round((totalSaved / totalOriginalPrice) * 100) : 0
+          
+          // Ensure displayed savings is non-negative
+          stats.value.moneySaved = `$${Math.max(0, totalSaved).toFixed(2)}`
+          stats.value.avgDiscount = Math.max(0, avgDiscount)
+          stats.value.foodRescued = `${totalWeight.toFixed(1)} kg`
+          stats.value.mealsCount = totalMeals
+          
+          // Carbon saved with proper unit display
+          stats.value.carbonSaved = totalCarbonSaved >= 1 
+            ? `${totalCarbonSaved.toFixed(1)} kg CO₂` 
+            : `${(totalCarbonSaved * 1000).toFixed(0)} g CO₂`
+          
+          // Update achievement level with cute names based on meals rescued
+          const getAchievementLevel = (meals) => {
+            if (meals >= 50) return '🌟 Eco Champion'
+            if (meals >= 30) return '💚 Green Guardian'
+            if (meals >= 20) return '🌿 Planet Protector'
+            if (meals >= 10) return '🌱 Earth Friend'
+            if (meals >= 5) return '🌾 Meal Saver'
+            return '🌏 Eco Starter'
+          }
+          
+          stats.value.achievement = getAchievementLevel(totalMeals)
+          
+          // Update the display count (this is shown in the welcome message)
+          rescuedMealsCount.value = totalMeals
+          
+          // Update pet level and treats based on meals count
+          // Pass shouldSave parameter from parent function
+          await updatePetFromMeals(totalMeals, shouldSave)
+          
+          // Find top dish (most ordered item)
+          const itemCounts = {}
+          orders.forEach(order => {
+            if (order.items && Array.isArray(order.items)) {
+              order.items.forEach(item => {
+                const itemName = item.name || item.itemName || 'Unknown'
+                const quantity = item.quantity || item.qty || 1
+                itemCounts[itemName] = (itemCounts[itemName] || 0) + quantity
+              })
+            }
+          })
+          
+          if (Object.keys(itemCounts).length > 0) {
+            const topItemName = Object.keys(itemCounts).reduce((a, b) => 
+              itemCounts[a] > itemCounts[b] ? a : b
+            )
+            const firstOrder = orders.find(o => 
+              o.items?.some(i => (i.name || i.itemName) === topItemName)
+            )
+            
+            topDish.value.name = topItemName
+            topDish.value.orderCount = itemCounts[topItemName]
+            topDish.value.stall = firstOrder?.hawkerName || "Hawker's Stall"
+            topDish.value.stallId = firstOrder?.hawkerId || ''
+          }
+          
+          console.log('✅ Stats calculated:', stats.value)
+        } else {
+          console.log('⚠️ No orders found for this user')
+        }
+      } catch (error) {
+        console.error('❌ Error fetching orders:', error)
+        console.error('Error details:', error.message)
+        console.error('Error code:', error.code)
+      }
+    }
+
+    // Update pet level, treats, and progress based on meals count
+    const updatePetFromMeals = async (totalMeals, shouldSave = false) => {
+      console.log('🐾 Updating pet from meals count:', totalMeals)
+      
+      // Calculate level from meals (every 10 meals = 1 level)
+      const calculatedLevel = Math.floor(totalMeals / 10) + 1
+      
+      // Calculate progress within current level (0-100)
+      const mealsInCurrentLevel = totalMeals % 10
+      const calculatedProgress = (mealsInCurrentLevel / 10) * 100
+      
+      // Each order gives 1 treat
+      const calculatedTreats = totalMeals
+      
+      // Update pet data (but don't overwrite customizations)
+      const oldLevel = petData.value.level
+      petData.value.level = calculatedLevel
+      petData.value.progress = calculatedProgress
+      petData.value.treats = calculatedTreats
+      petData.value.mealsToLevelUp = 10 - mealsInCurrentLevel
+      
+      console.log('📊 Pet updated:', {
+        level: calculatedLevel,
+        progress: calculatedProgress,
+        treats: calculatedTreats,
+        mealsToLevelUp: petData.value.mealsToLevelUp
+      })
+      
+      // If level increased, show level up message
+      if (calculatedLevel > oldLevel) {
+        showMessage(`🎉 Level Up! Now Level ${calculatedLevel}!`, 'success')
+      }
+      
+      // Only save to Firebase if explicitly requested (e.g., when new order is added)
+      if (shouldSave) {
+        console.log('💾 Saving pet stats to Firebase...')
+        await savePetData()
+      }
+    }
+
+    // Fetch pet customization from Firestore
+    const fetchPetData = async (uid) => {
+      try {
+        console.log('🐾 Fetching pet data from Firebase...')
+        const petRef = doc(db, 'users', uid, 'pet', 'customization')
+        const petSnap = await getDoc(petRef)
+        
+        if (petSnap.exists()) {
+          const savedPet = petSnap.data()
+          console.log('✅ Pet data loaded:', savedPet)
+          
+          // Store current calculated values (from meals)
+          const currentLevel = petData.value.level
+          const currentProgress = petData.value.progress
+          const currentTreats = petData.value.treats
+          const currentMealsToLevelUp = petData.value.mealsToLevelUp
+          
+          // Update pet data with saved values
+          petData.value.name = savedPet.name || petData.value.name
+          petData.value.happiness = savedPet.happiness ?? petData.value.happiness
+          petData.value.energy = savedPet.energy ?? petData.value.energy
+          petData.value.mood = savedPet.mood || petData.value.mood
+          petData.value.experience = savedPet.experience ?? petData.value.experience
+          
+          // IMPORTANT: Keep calculated values for level/progress/treats (from meals count)
+          // Don't overwrite with potentially stale Firebase data
+          petData.value.level = currentLevel
+          petData.value.progress = currentProgress
+          petData.value.treats = currentTreats
+          petData.value.mealsToLevelUp = currentMealsToLevelUp
+          
+          // Load avatar customizations
+          if (savedPet.avatar) {
+            petData.value.avatar = { ...petData.value.avatar, ...savedPet.avatar }
+          }
+          
+          console.log('✅ Pet customizations loaded, stats preserved:', {
+            name: petData.value.name,
+            level: petData.value.level,
+            treats: petData.value.treats,
+            avatar: petData.value.avatar
+          })
+        } else {
+          console.log('📝 No pet data found, using defaults')
+          // Initialize default pet data in Firestore
+          await savePetData()
+        }
+      } catch (error) {
+        console.error('❌ Error fetching pet data:', error)
+        console.error('Error details:', error.message)
+        console.log('⚠️ Using default pet data')
+      }
+    }
+
+    // Save pet customization to Firestore
+    const savePetData = async () => {
+      if (!currentUserId.value) {
+        console.warn('⚠️ No user ID, cannot save pet data')
+        return
+      }
+      
+      try {
+        console.log('💾 Saving pet data to Firebase...', {
+          name: petData.value.name,
+          level: petData.value.level,
+          avatar: petData.value.avatar
+        })
+        
+        const petRef = doc(db, 'users', currentUserId.value, 'pet', 'customization')
+        await setDoc(petRef, {
+          name: petData.value.name,
+          happiness: petData.value.happiness,
+          energy: petData.value.energy,
+          level: petData.value.level,
+          progress: petData.value.progress,
+          experience: petData.value.experience,
+          treats: petData.value.treats,
+          mood: petData.value.mood,
+          mealsToLevelUp: petData.value.mealsToLevelUp,
+          avatar: petData.value.avatar,
+          lastUpdated: new Date()
+        }, { merge: true }) // Use merge to avoid overwriting other fields
+        
+        console.log('✅ Pet data saved successfully to Firebase')
+        return true
+      } catch (error) {
+        console.error('❌ Error saving pet data:', error)
+        console.error('Error details:', error.message)
+        
+        // Show error message to user
+        petMessage.value = '❌ Failed to save. Please try again.'
+        petMessageType.value = 'error'
+        setTimeout(() => { petMessage.value = '' }, 3000)
+        return false
+      }
+    }
+
+    // Listen to auth state changes and fetch all data
+    let ordersUnsubscribe = null // Store unsubscribe function
+    
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        fetchUserData(user.uid)
+        currentUserId.value = user.uid
+        await fetchUserData(user.uid)
+        await fetchOrdersData(user.uid) // This updates level/treats/progress
+        await fetchPetData(user.uid) // This loads customizations AFTER stats are calculated
+        
+        // Save the calculated stats to Firebase (in case they changed)
+        console.log('💾 Syncing calculated stats to Firebase...')
+        await savePetData()
+        
+        // Set up real-time listener for orders
+        console.log('👂 Setting up real-time orders listener...')
+        const ordersRef = collection(db, 'orders')
+        const ordersQuery = query(ordersRef, where('buyerId', '==', user.uid))
+        
+        ordersUnsubscribe = onSnapshot(ordersQuery, async (snapshot) => {
+          console.log('🔔 Orders changed! Updating stats and pet...')
+          // Re-fetch and recalculate everything, then save
+          await fetchOrdersData(user.uid, true) // Pass true to save after update
+        }, (error) => {
+          console.error('❌ Error listening to orders:', error)
+        })
       } else {
         username.value = 'Guest'
+        currentUserId.value = null
+        
+        // Clean up listener if user logs out
+        if (ordersUnsubscribe) {
+          ordersUnsubscribe()
+          ordersUnsubscribe = null
+        }
+      }
+    })
+    
+    // Clean up listener on component unmount
+    onUnmounted(() => {
+      if (ordersUnsubscribe) {
+        console.log('🧹 Cleaning up orders listener...')
+        ordersUnsubscribe()
       }
     })
 
     // Main Stats
     const stats = ref({
-      moneySaved: '$18.40',
-      avgDiscount: 27,
-      foodRescued: '3.8 kg',
-      mealsCount: 5,
-      pointsEarned: '1,240 pts',
-      achievement: 'Waste Warrior Lv. 2'
+      moneySaved: '$0.00',
+      avgDiscount: 0,
+      foodRescued: '0 kg',
+      mealsCount: 0,
+      carbonSaved: '0 g CO₂',
+      achievement: '🌏 Eco Starter'
     })
 
     // Top Dish
@@ -541,56 +942,95 @@ export default {
     }
 
     // Selection handlers with unlock checks
-    const selectAnimal = (animal) => {
+    const selectAnimal = async (animal) => {
+      if (!animal) return
+      
       if (animal.locked && !isUnlocked(animal.unlockLevel)) {
         petMessage.value = `🔒 Unlock ${animal.name} at Level ${animal.unlockLevel}! Keep rescuing meals!`
         petMessageType.value = 'warning'
         setTimeout(() => { petMessage.value = '' }, 3000)
         return
       }
+      
       petData.value.avatar.body = animal.value
-      petMessage.value = `✨ Changed to ${animal.name}! Looking cute!`
-      petMessageType.value = 'success'
+      petMessage.value = `✨ Selected ${animal.name}! Click "Save All Changes" to save.`
+      petMessageType.value = 'info'
       setTimeout(() => { petMessage.value = '' }, 2000)
     }
 
-    const selectColor = (color) => {
+    const selectColor = async (color) => {
+      if (!color) return
+      
       if (color.locked && !isUnlocked(color.unlockLevel)) {
         petMessage.value = `🔒 Unlock ${color.name} color at Level ${color.unlockLevel}!`
         petMessageType.value = 'warning'
         setTimeout(() => { petMessage.value = '' }, 3000)
         return
       }
+      
       petData.value.avatar.color = color.value
-      petMessage.value = `🎨 New color applied!`
-      petMessageType.value = 'success'
+      petMessage.value = `🎨 Color selected! Click "Save All Changes" to save.`
+      petMessageType.value = 'info'
       setTimeout(() => { petMessage.value = '' }, 2000)
     }
 
-    const selectBackground = (bg) => {
+    const selectBackground = async (bg) => {
+      if (!bg) return
+      
       if (bg.locked && !isUnlocked(bg.unlockLevel)) {
         petMessage.value = `🔒 Unlock ${bg.name} background at Level ${bg.unlockLevel}!`
         petMessageType.value = 'warning'
         setTimeout(() => { petMessage.value = '' }, 3000)
         return
       }
+      
       petData.value.avatar.background = bg.value
-      petMessage.value = `🖼️ Background changed to ${bg.name}!`
-      petMessageType.value = 'success'
+      petMessage.value = `🖼️ Background selected! Click "Save All Changes" to save.`
+      petMessageType.value = 'info'
       setTimeout(() => { petMessage.value = '' }, 2000)
     }
 
-    const selectAccessory = (acc) => {
+    const selectAccessory = async (acc) => {
+      if (!acc) return
+      
       if (acc.locked && !isUnlocked(acc.unlockLevel)) {
         petMessage.value = `🔒 Unlock ${acc.name} at Level ${acc.unlockLevel}!`
         petMessageType.value = 'warning'
         setTimeout(() => { petMessage.value = '' }, 3000)
         return
       }
+      
       petData.value.avatar.accessory = acc.value
-      petMessage.value = acc.value === 'none' ? '👌 Accessory removed!' : `${acc.emoji} ${acc.name} equipped!`
-      petMessageType.value = 'success'
+      petMessage.value = acc.value === 'none' ? '👌 Accessory removed!' : `${acc.emoji} ${acc.name} selected!`
+      petMessageType.value = 'info'
       setTimeout(() => { petMessage.value = '' }, 2000)
+    }
+
+    // Handle Save All button click
+    const handleSaveAll = async () => {
+      if (isSaving.value) return
+      
+      isSaving.value = true
+      petMessage.value = ''
+      
+      try {
+        const success = await savePetData()
+        
+        if (success) {
+          petMessage.value = '✅ All changes saved successfully!'
+          petMessageType.value = 'success'
+        } else {
+          petMessage.value = '❌ Failed to save changes. Please try again.'
+          petMessageType.value = 'error'
+        }
+      } catch (error) {
+        console.error('❌ Error in handleSaveAll:', error)
+        petMessage.value = '❌ An error occurred. Please try again.'
+        petMessageType.value = 'error'
+      } finally {
+        isSaving.value = false
+        setTimeout(() => { petMessage.value = '' }, 3000)
+      }
     }
 
     // Chart Filters
@@ -692,6 +1132,27 @@ export default {
       }
     })
 
+    // Level Names - 10 Cute Food Wastage Themed Levels
+    const levelNames = [
+      { level: 1, name: '🌱 Leftover Learner', description: 'Just starting your food rescue journey!' },
+      { level: 2, name: '🍃 Waste Watcher', description: 'You\'re keeping an eye on food waste!' },
+      { level: 3, name: '🌿 Rescue Rookie', description: 'Getting the hang of saving meals!' },
+      { level: 4, name: '🌾 Sustainability Star', description: 'Shining bright with eco-friendly choices!' },
+      { level: 5, name: '🌳 Green Guardian', description: 'A true protector of our planet!' },
+      { level: 6, name: '🏆 Waste Warrior', description: 'Fighting food waste like a hero!' },
+      { level: 7, name: '💚 Eco Champion', description: 'Leading the charge against waste!' },
+      { level: 8, name: '🌟 Planet Protector', description: 'Making a real difference every day!' },
+      { level: 9, name: '👑 Sustainability Sovereign', description: 'Royalty in the world of eco-warriors!' },
+      { level: 10, name: '🌍 Earth\'s Hero', description: 'The ultimate food rescue legend!' }
+    ]
+
+    // Computed property to get level name
+    const currentLevelName = computed(() => {
+      const level = petData.value.level
+      const levelIndex = Math.min(Math.max(level - 1, 0), levelNames.length - 1)
+      return levelNames[levelIndex]
+    })
+
     // Filter Update Functions
     const updateFoodRescuedFilter = (filter) => {
       selectedFoodRescuedFilter.value = filter
@@ -710,7 +1171,7 @@ export default {
     }
 
     // Pet Functions
-    const feedPet = () => {
+    const feedPet = async () => {
       if (petData.value.treats > 0) {
         petData.value.treats--
         petData.value.happiness = Math.min(100, petData.value.happiness + 10)
@@ -721,12 +1182,15 @@ export default {
         showMessage('Yummy! +10 happiness', 'success')
         setTimeout(() => { petAnimation.value = '' }, 600)
         checkLevelUp()
+        
+        // Save to Firebase
+        await savePetData()
       } else {
         showMessage('No treats left! Order food to earn more.', 'warning')
       }
     }
 
-    const playWithPet = () => {
+    const playWithPet = async () => {
       if (petData.value.energy >= 10) {
         petData.value.energy -= 10
         petData.value.happiness = Math.min(100, petData.value.happiness + 15)
@@ -736,23 +1200,32 @@ export default {
         showMessage('Wheee! +15 happiness', 'success')
         setTimeout(() => { petAnimation.value = '' }, 500)
         checkLevelUp()
+        
+        // Save to Firebase
+        await savePetData()
       } else {
         showMessage('Pet is too tired. Feed to restore energy!', 'info')
       }
     }
 
-    const petClick = () => {
+    const petClick = async () => {
       petData.value.happiness = Math.min(100, petData.value.happiness + 2)
       petData.value.experience += 1
       petAnimation.value = 'happy'
       setTimeout(() => { petAnimation.value = '' }, 300)
+      
+      // Save to Firebase (debounced to avoid too many writes)
+      await savePetData()
     }
 
-    const checkLevelUp = () => {
+    const checkLevelUp = async () => {
       if (petData.value.progress >= 100) {
         petData.value.level++
         petData.value.progress = 0
         showMessage(`Level Up! Now Level ${petData.value.level}! 🎉`, 'success')
+        
+        // Save level up to Firebase
+        await savePetData()
       }
       petData.value.mealsToLevelUp = Math.ceil((100 - petData.value.progress) / 10)
     }
@@ -791,7 +1264,7 @@ export default {
     })
 
     return {
-      isDarkMode, showCustomization, petAnimation, petMessage, petMessageType,
+      isDarkMode, showCustomization, petAnimation, petMessage, petMessageType, isSaving,
       username, rescuedMealsCount, stats, topDish, stallHighlight, smartInsight,
       petData, timeFilters, orderFilters,
       foodRescuedChartData, savingsComparisonChartData,
@@ -799,7 +1272,9 @@ export default {
       toggleTheme, feedPet, playWithPet, petClick, handleDragOver, handleDrop,
       orderTopDish,
       animalTypes, colorPalette, backgrounds, accessories, accessoryColors,
-      isUnlocked, selectAnimal, selectColor, selectBackground, selectAccessory
+      isUnlocked, selectAnimal, selectColor, selectBackground, selectAccessory,
+      handleSaveAll,
+      currentLevelName
     }
   }
 }
@@ -814,10 +1289,6 @@ export default {
   min-height: 100vh;
   transition: all 0.3s ease;
   position: relative;
-}
-
-.buyer-dashboard-wrapper.dark-theme {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
 }
 
 /* Sidebar - Matching FilterBar Style */
@@ -1153,18 +1624,323 @@ export default {
   color: #ddd6fe;
 }
 
+/* Pet Progress Bar - Professional Design */
+.pet-progress {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-radius: 16px;
+  border: 2px solid #bbf7d0;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.dark-theme .pet-progress {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  margin-bottom: 1rem;
+}
+
+.dark-theme .level-badge {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+}
+
+.progress-container {
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.progress-track {
+  position: relative;
+  height: 32px;
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 16px;
+  overflow: visible;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 2px solid #e5e7eb;
+}
+
+.dark-theme .progress-track {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: #334155;
+}
+
+.progress-fill {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    #10b981 0%, 
+    #059669 25%,
+    #047857 50%,
+    #059669 75%,
+    #10b981 100%);
+  background-size: 200% 100%;
+  border-radius: 14px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 
+    0 2px 8px rgba(16, 185, 129, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.dark-theme .progress-fill {
+  background: linear-gradient(135deg, 
+    #059669 0%, 
+    #047857 25%,
+    #065f46 50%,
+    #047857 75%,
+    #059669 100%);
+  background-size: 200% 100%;
+  box-shadow: 
+    0 2px 8px rgba(5, 150, 105, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.progress-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shine 2.5s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  50%,
+  100% {
+    left: 100%;
+  }
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+  text-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+
+.progress-milestones {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.milestone {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: 3px solid #d1d5db;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    0 0 0 0 rgba(16, 185, 129, 0);
+  color: #9ca3af;
+}
+
+.dark-theme .milestone {
+  background: #0f172a;
+  border-color: #475569;
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 0 0 0 rgba(16, 185, 129, 0);
+}
+
+.milestone.reached {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-color: #f59e0b;
+  color: white;
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 
+    0 4px 12px rgba(245, 158, 11, 0.5),
+    0 0 0 4px rgba(251, 191, 36, 0.2);
+  animation: starPop 0.5s ease-out;
+}
+
+@keyframes starPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+.dark-theme .milestone.reached {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #d97706;
+  box-shadow: 
+    0 4px 12px rgba(217, 119, 6, 0.6),
+    0 0 0 4px rgba(245, 158, 11, 0.3);
+}
+
+.milestone.crown {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-color: #f59e0b;
+  color: white;
+  border-width: 4px;
+}
+
+.milestone.crown.reached {
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 
+    0 6px 16px rgba(251, 191, 36, 0.7),
+    0 0 0 6px rgba(251, 191, 36, 0.3);
+  animation: crownPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes crownPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1.35);
+    box-shadow: 
+      0 6px 16px rgba(251, 191, 36, 0.7),
+      0 0 0 6px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.45) rotate(5deg);
+    box-shadow: 
+      0 8px 20px rgba(251, 191, 36, 0.9),
+      0 0 0 8px rgba(251, 191, 36, 0.4);
+  }
+}
+
 /* Pet Section */
 .pet-section {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.pet-section:hover {
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12);
+  transform: translateY(-2px);
 }
 
 .dark-theme .pet-section.dark-mode-card {
-  background: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-color: #334155;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Success Animation */
+@keyframes saveSuccess {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.save-success {
+  animation: saveSuccess 0.6s ease-out;
+}
+
+/* Pet Message Styling */
+.pet-message {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  font-weight: 600;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pet-message.success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 2px solid #10b981;
+}
+
+.pet-message.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 2px solid #ef4444;
 }
 
 /* Card Component Dark Mode */
@@ -1188,13 +1964,52 @@ export default {
 }
 
 .pet-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid transparent;
+  background: linear-gradient(to right, #e5e7eb, #e5e7eb) bottom / 100% 3px no-repeat;
+  position: relative;
+}
+
+.pet-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 30%;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.pet-header:hover::after {
+  width: 50%;
 }
 
 .dark-theme .pet-header {
-  border-color: #334155;
+  background: linear-gradient(to right, #334155, #334155) bottom / 100% 3px no-repeat;
+}
+
+.dark-theme .pet-header::after {
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+}
+
+.pet-header h4 {
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.dark-theme .pet-header h4 {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .pet-content {
@@ -1223,48 +2038,60 @@ export default {
 /* Customization Panel */
 .customization-wrapper {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 2rem;
   padding: 1rem 0;
+  align-items: start;
 }
 
 .preview-section {
   position: sticky;
-  top: 1rem;
+  top: 2rem;
   height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow: visible;
 }
 
 .preview-card {
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
   border: 2px solid #e5e7eb;
+  transition: transform 0.2s ease;
+}
+
+.preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.18);
 }
 
 .dark-theme .preview-card {
   background: #1e293b;
   border-color: #334155;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .preview-label {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   font-weight: 600;
   font-size: 0.875rem;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .pet-preview {
-  padding: 2rem 1rem;
-  min-height: 300px;
+  padding: 2.5rem 1.5rem;
+  min-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.03) 0%, transparent 100%);
 }
 
 .avatar-preview-container {
@@ -1275,8 +2102,15 @@ export default {
 }
 
 .preview-avatar {
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.2)) 
+          drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   animation: float 3s ease-in-out infinite;
+  transition: filter 0.3s ease;
+}
+
+.preview-avatar:hover {
+  filter: drop-shadow(0 12px 24px rgba(16, 185, 129, 0.3)) 
+          drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
 }
 
 .pet-name-display {
@@ -1298,7 +2132,36 @@ export default {
 .options-section {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #e5e7eb;
+}
+
+.options-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.options-section::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.options-section::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.options-section::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.dark-theme .options-section::-webkit-scrollbar-track {
+  background: #1e293b;
 }
 
 .customization-group {
@@ -1307,6 +2170,11 @@ export default {
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s ease;
+}
+
+.customization-group:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .dark-theme .customization-group {
@@ -1332,23 +2200,39 @@ export default {
 
 .custom-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.25rem;
   border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.custom-input:hover {
+  border-color: #d1d5db;
 }
 
 .custom-input:focus {
   outline: none;
   border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  transform: translateY(-1px);
 }
 
 .dark-theme .custom-input {
   background: #0f172a;
   border-color: #334155;
   color: #e2e8f0;
+}
+
+.dark-theme .custom-input:hover {
+  border-color: #475569;
+}
+
+.dark-theme .custom-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
 }
 
 .option-grid {
@@ -1385,6 +2269,13 @@ export default {
   opacity: 0.5;
   cursor: not-allowed;
   background: #f3f4f6;
+  pointer-events: auto; /* Keep auto so click handler can show lock message */
+}
+
+.option-card.locked:hover {
+  transform: none;
+  border-color: #e5e7eb;
+  box-shadow: none;
 }
 
 .dark-theme .option-card {
@@ -1467,6 +2358,12 @@ export default {
 .color-option.locked {
   opacity: 0.3;
   cursor: not-allowed;
+  pointer-events: auto; /* Keep auto so click handler can show lock message */
+}
+
+.color-option.locked:hover {
+  transform: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
 }
 
 .color-lock {
@@ -1557,6 +2454,84 @@ export default {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* Save Button Container */
+.save-button-container {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+.dark-theme .save-button-container {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-save-pet {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save-pet:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-save-pet:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save-pet:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.btn-save-pet i {
+  font-size: 1.25rem;
+}
+
+.dark-theme .btn-save-pet {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.dark-theme .btn-save-pet:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+/* Pet Message inside Save Container */
+.save-button-container .pet-message {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.pet-message.info {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  color: #075985;
+  border: 2px solid #38bdf8;
+}
+
 @keyframes float {
 
   0%,
@@ -1573,10 +2548,19 @@ export default {
 @media (max-width: 992px) {
   .customization-wrapper {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .preview-section {
     position: relative;
+    top: 0;
+    max-height: none;
+  }
+
+  .options-section {
+    max-height: none;
+    overflow-y: visible;
+    padding-right: 0;
   }
 
   .option-grid {
@@ -1595,10 +2579,20 @@ export default {
 @media (max-width: 575px) {
   .customization-wrapper {
     padding: 0.5rem 0;
+    gap: 1rem;
   }
 
   .customization-group {
     padding: 1rem;
+  }
+
+  .preview-card {
+    margin-bottom: 1rem;
+  }
+
+  .pet-preview {
+    padding: 1.5rem 1rem;
+    min-height: 250px;
   }
 
   .option-grid {
