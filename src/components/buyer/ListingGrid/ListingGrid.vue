@@ -1,6 +1,21 @@
 <template>
   <div class="listings-container">
-    <h2>Near Me</h2>
+    <div class="header-with-location clickable" @click="toggleModal">
+      <h2>Near Me</h2>
+      <h3 v-if="isLoadingAddress" class="location-text loading">
+        Loading Address...
+      </h3>
+      <h3 v-else-if="formattedAddress" class="location-text">
+        - {{ formattedAddress }}
+      </h3>
+    </div>
+
+    <!-- location modal -->
+     <LocationModal
+      :isOpen="isModalOpen"
+      :formattedAddress="formattedAddress"
+      @close="toggleModal"
+    />
     
     <!-- location permission notice -->
     <div v-if="locationError" class="alert alert-warning">
@@ -27,168 +42,60 @@
   </div>
 </template>
 
-<script>
-import { computed, onMounted, ref, watch } from 'vue';
-import ListingCard from '../ListingCard/ListingCard.vue';
-import { useLoadHawkers } from '/firebase/firestore';
-import { useGeolocation } from '@/assets/composables/useGeolocation';
-
-export default {
-  name: 'ListingGrid',
-  components: { ListingCard },
-  props: {
-    priceOrder: {
-      type: String,
-      default: null // 'asc' | 'desc' | null
-    },
-    dietary: {
-      type: Array,
-      default: () => []
-    },
-    status: {
-      type: Array,
-      default: () => []
-    }
-  },
-  setup(props) {
-    const { userLocation, locationError, getUserLocation } = useGeolocation();
-    const hawkersRef = ref(null);
-    const ROAD_FACTOR = 1.1 // for urban road detour estimate
-
-    // fetch user location on mount
-    onMounted(async () => {
-      await getUserLocation();
-    });
-
-    watch(
-      userLocation,
-      (newLocation) => {
-        hawkersRef.value = useLoadHawkers(newLocation);
-        console.log(newLocation);
-      }
-    );
-
-    // load hawkers with user location (reactive)
-    const allHawkers = computed(() => {
-      const hawkers = hawkersRef.value?.value || [];
-
-      // apply road factor to all hawker distances
-      return hawkers.map(hawker => ({
-        ...hawker,
-        distance: hawker.distance && hawker.distance != 'N/A'
-          ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(1))
-          :hawker.distance
-      }));
-    });
-
-    const loading = computed(() => {
-      hawkersRef.value?.value === null;
-    });
-
-    // Helpers aligned to your schema
-    const getDietary = (h) => {
-      // dietaryRestriction is a string like "Halal"
-      return (h.dietaryRestriction ?? '').toString().toLowerCase().trim();
-    };
-
-    const getDistance = (h) => {
-      return h.distance ?? 'N/A';
-    };
-
-    // Helper: get status for a hawker (same logic as ListingCard)
-    const getStatus = (hawker) => {
-      if (!hawker.openingTime || !hawker.closingTime) return 'unknown';
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      const [openHour, openMin] = hawker.openingTime.split(':').map(Number);
-      const [closeHour, closeMin] = hawker.closingTime.split(':').map(Number);
-      const openingTimeInMinutes = openHour * 60 + openMin;
-      const closingTimeInMinutes = closeHour * 60 + closeMin;
-      if (closingTimeInMinutes < openingTimeInMinutes) {
-        if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
-          let minutesUntilClose;
-          if (currentTime >= openingTimeInMinutes) {
-            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
-          } else {
-            minutesUntilClose = closingTimeInMinutes - currentTime;
-          }
-          if (minutesUntilClose <= 30) return 'closing-soon';
-          return 'open';
-        } else {
-          const minutesUntilOpen = openingTimeInMinutes - currentTime;
-          if (minutesUntilOpen <= 30) return 'opening-soon';
-          return 'closed';
-        }
-      } else {
-        if (currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes) {
-          const minutesUntilClose = closingTimeInMinutes - currentTime;
-          if (minutesUntilClose <= 30) return 'closing-soon';
-          return 'open';
-        } else if (currentTime < openingTimeInMinutes) {
-          const minutesUntilOpen = openingTimeInMinutes - currentTime;
-          if (minutesUntilOpen <= 30) return 'opening-soon';
-          return 'closed';
-        } else {
-          return 'closed';
-        }
-      }
-    };
-
-    const filteredHawkers = computed(() => {
-      let list = (allHawkers.value || []).slice();
-
-      // Filter by dietaryRestriction (string) if any selected
-      if (props.dietary.length) {
-        list = list.filter(h => {
-          const tag = getDietary(h);
-          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
-        });
-      }
-
-      // Filter by status if any selected
-      if (props.status && props.status.length) {
-        list = list.filter(h => props.status.includes(getStatus(h)));
-      }
-
-      // //TODO: Add price sorting when price field is available in schema
-      // if (props.priceOrder) {
-      //   
-      // }
-
-      // default sort by distance
-      const sortOrder = 'asc';
-      list.sort((a, b) => {
-        const da = getDistance(a);
-        const db = getDistance(b);
-
-        // handle 'N/A' distances
-        if (da === 'N/A' && db === 'N/A') return 0;
-        if (da === 'N/A') return 1;
-        if (db === 'N/A') return -1;
-
-        return sortOrder === 'asc' ? da - db : db - da;
-      })
-
-      return list;
-    });
-
-    return { filteredHawkers, loading, locationError };
-  }
-};
-</script>
+<script src="./ListingGrid.js"></script>
 
 <style scoped>
 .listings-container {
   padding: 20px;
 }
 
-h2 {
-  margin-bottom: 20px;
-  color: #333;
+.header-with-location {
   display: flex;
-  justify-content:flex-start;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.header-with-location.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.header-with-location.clickable:hover {
+  opacity: 0.7;
+}
+
+
+h2 {
+  margin-bottom: 0;
+  color: #333;
   padding-left: 10px;
 
+}
+
+.location-text {
+  color: #333;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.location-text.loading {
+  color: #999;
+  font-style: italic;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
 }
 
 .loading, .empty-state {
@@ -209,11 +116,20 @@ h2 {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
   }
+
+  .location-text {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
   .listings-grid {
     grid-template-columns: 1fr;
+  }
+
+  .header-with-location {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

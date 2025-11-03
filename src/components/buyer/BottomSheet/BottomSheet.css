@@ -1,0 +1,124 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bottom-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  will-change: transform;
+  touch-action: none;
+}
+
+.sheet-handle-area {
+  padding: 10px;
+  cursor: grab;
+  display: flex;
+  justify-content: center;
+  user-select: none;
+}
+
+.sheet-handle-area:active {
+  cursor: grabbing;
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background-color: #ddd;
+  border-radius: 2px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.current-location-section {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.location-icon {
+  font-size: 2rem;
+}
+
+.location-details {
+  flex: 1;
+}
+
+.location-label {
+  margin: 0 0 4px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.location-address {
+  margin: 0;
+  color: #666;
+}
+
+.coming-soon {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.coming-soon p {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.coming-soon ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.coming-soon ul li {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #999;
+}
