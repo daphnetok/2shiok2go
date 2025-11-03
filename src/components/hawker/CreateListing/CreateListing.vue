@@ -1,39 +1,108 @@
 <template>
   <div class="container mt-4">
-     <!-- Alert Box -->
-    <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
+     <!-- Backdrop Overlay -->
+  <transition name="backdrop-fade">
+    <div 
+      v-if="alert.show" 
+      class="alert-backdrop"
+      @click="handleBackdropClick"
+    ></div>
+  </transition>
+
+  <!-- Alert Box -->
+  <transition name="alert-scale">
+    <div 
+      v-if="alert.show" 
+      class="custom-alert-container" 
+      :class="alert.type"
+    >
       <div class="custom-alert-content">
-        <!-- Icon for success/error -->
-        <span class="alert-icon" v-if="alert.type === 'success'">
-          <i class="fas fa-check-circle"></i>
-        </span>
-        <span class="alert-icon" v-else-if="alert.type === 'error'">
-          <i class="fas fa-exclamation-circle"></i>
-        </span>
-        <!-- Message -->
-        <div class="alert-message-wrapper">
-          <h5 class="alert-message" style="white-space: pre-wrap;">{{ alert.message }}</h5>
-        </div>
-        <br>
-        <!-- Confirmation Buttons -->
-        <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-          <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
-          <button v-if="alert.actionType === 'delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
-          <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
-        </div>
-        <!-- Redirect Buttons -->
-        <div v-else-if="alert.type === 'redirect'" class="confirmation-buttons">
-          <button class="btn-cancel" @click="createNewListing">+ Create Another Listing</button>
-          <router-link to="/hawker-dashboard">
-            <button class="btn-confirm" @click="goHome">View All My Listings →</button>
-          </router-link>
-        </div>
-        <!-- Close Button -->
-        <button v-else class="alert-close-btn" @click="closeAlert">
+        <!-- Close Button (top right) -->
+        <button 
+          v-if="alert.type !== 'confirmation'" 
+          class="alert-close-btn-top" 
+          @click="closeAlert"
+        >
           <i class="fas fa-times"></i>
         </button>
+
+        <!-- Icon Section -->
+        <div class="alert-icon-section">
+          <div class="alert-icon-circle" :class="alert.type">
+            <i 
+              class="fas" 
+              :class="{
+                'fa-check': alert.type === 'success',
+                'fa-exclamation': alert.type === 'error',
+                'fa-question': alert.type === 'confirmation',
+                'fa-info': alert.type === 'redirect'
+              }"
+            ></i>
+          </div>
+        </div>
+
+        <!-- Message Section -->
+        <div class="alert-message-section">
+          <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+          <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+          <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+          <h3 v-else-if="alert.type === 'redirect'" class="alert-title">Listing Created!</h3>
+          
+          <p class="alert-message">{{ alert.message }}</p>
+        </div>
+
+        <!-- Action Buttons Section -->
+        <div class="alert-actions">
+          <!-- Confirmation Buttons -->
+          <div v-if="alert.type === 'confirmation'" class="button-group">
+            <button class="btn-secondary" @click="confirmationCancel">
+              <i class="fas fa-times"></i>
+              <span>Cancel</span>
+            </button>
+            <button 
+              v-if="alert.actionType === 'Delete'" 
+              class="btn-danger" 
+              @click="confirmationConfirm"
+            >
+              <i class="fas fa-trash"></i>
+              <span>Delete</span>
+            </button>
+            <button 
+              v-else 
+              class="btn-primary" 
+              @click="confirmationConfirm"
+            >
+              <i class="fas fa-check"></i>
+              <span>Confirm</span>
+            </button>
+          </div>
+
+          <!-- Redirect Buttons -->
+          <div v-else-if="alert.type === 'redirect'" class="button-group-vertical">
+            <button class="btn-primary-large" @click="goToHome">
+              <i class="fas fa-th-large"></i>
+              <span>View All My Listings</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="btn-secondary-outline" @click="createNewListing">
+              <i class="fas fa-plus"></i>
+              <span>Create Another Listing</span>
+            </button>
+          </div>
+
+          <!-- Success/Error Close Button -->
+          <button 
+            v-else 
+            class="btn-close-primary" 
+            @click="closeAlert"
+          >
+            <span>Got it</span>
+            <i class="fas fa-check"></i>
+          </button>
+        </div>
       </div>
     </div>
+  </transition>
 
 
     <div class="top-header mx-3">
@@ -186,8 +255,8 @@
 
         <!-- Allergen types checkboxes-->
          <div class="row mb-3 px-4">
-           <label class="form-label">Allergens (select all that apply)</label>
-           <div class="m-2 border rounded p-3 bg-white w-50">
+           <label class="form-label">Allergens</label>
+           <div class="border rounded p-3 bg-white" style="margin-left:10px; width:451px">
              <input type="checkbox" value="Eggs" v-model="form.allergens">
                <label class="text-dark">Eggs</label>
              <br>
@@ -212,7 +281,7 @@
         <!-- Tags -->
          <div class="row mb-3 px-4">
            <label class="form-label">Tags</label>
-           <div class="mb-5 m-2 border rounded p-3 bg-white w-50">
+           <div class="mb-5 border rounded p-3 bg-white" style="margin-left:10px; width:451px">
              <input type="checkbox" value="Halal" v-model="form.tags" >
                <label class="text-dark">Halal</label>
              <br>
@@ -229,7 +298,7 @@
          </div>
 
         <!-- Make Active Toggle Switch -->
-         <div class="row mb-3 px-4">
+         <div class="row mb-3 px-4 " style="margin-left:10px">
            <div class="form-check form-switch mb-3">
              <input v-model="form.makeActive" class="form-check-input" 
                type="checkbox" value="toList" role="switch">

@@ -14,7 +14,7 @@
       
       <p v-else class="alert-message">{{ alert.message }}</p>
       <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-        <button class="btn-cancel" @click="confirmationCancel">Cancel</button>
+        <button class="" @click="confirmationCancel">Cancel</button>
         <button v-if="alert.actionType === 'Delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
         <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
       </div>
@@ -30,6 +30,30 @@
   />
   
   <div class="dashboard-container container container">
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <ul class="tabs-list">
+        <li class="tab-item active" style="padding:0">
+          <a href="#" class="tab-link">
+            <i class="fas fa-home"></i>
+            <span> My Listings</span>
+          </a>
+        </li>
+        <li class="tab-item">
+          <router-link to="/orders-table" class="tab-link">
+            <i class="fas fa-list"></i>
+            <span>Orders Management</span>
+          </router-link>
+        </li>
+        <li class="tab-item">
+          <router-link to="/hawker-analytics" class="tab-link">
+            <i class="fas fa-chart-simple"></i>
+            <span>Analytics</span>
+          </router-link>
+        </li>
+      </ul>
+    </nav>
+
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
@@ -41,29 +65,6 @@
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="tabs-nav">
-      <ul class="tabs-list">
-        <li class="tab-item active">
-          <a href="#" class="tab-link">
-            <i class="fas fa-home"></i>
-            <span> My Listings</span>
-          </a>
-        </li>
-        <li class="tab-item">
-          <router-link to="/orders-table" class="tab-link">
-            <i class="fas fa-list"></i>
-            <span>Orders</span>
-          </router-link>
-        </li>
-        <li class="tab-item">
-          <router-link to="/hawker-analytics" class="tab-link">
-            <i class="fas fa-chart-simple"></i>
-            <span>Analytics</span>
-          </router-link>
-        </li>
-      </ul>
-    </nav>
 
     <!-- Active Listings Section -->
     <section class="listings-section">
@@ -90,6 +91,12 @@
           <!-- Image Section -->
           <div class="listing-image-container">
             <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+
+            <!-- Discount start time -->
+            <div v-if="listing.discountTime" class="discount-time-badge">
+              Starts: {{ listing.discountTime }}
+            </div>
+            
             <div class="listing-overlay">
               <div class="quick-actions">
                 <button class="action-btn edit" @click="editListing(listing.id)" title="Edit">
@@ -107,8 +114,8 @@
             <h3 class="listing-name">{{ listing.itemName }}</h3>
             
             <div class="price-section">
-              <span class="current-price">${{ listing.discountedPrice }}</span>
-              <span class="original-price">${{ listing.itemPrice }}</span>
+              <span class="current-price">${{ listing.discountedPrice.toFixed(2) }}</span>
+              <span class="original-price">${{ listing.itemPrice.toFixed(2) }}</span>
               <span class="discount-badge" v-if="listing.discount">
                 -{{ listing.discount }}%
               </span>
@@ -116,9 +123,6 @@
 
             <div class="stats-section">
               <div class="stat-item">
-                <div class="stat-icon stock-icon">
-                  <i class="fas fa-box"></i>
-                </div>
                 <div class="stat-info">
                   <span class="stat-label">Stock</span>
                   <span class="stat-value" :class="getStockClass(listing.itemQty)">
@@ -127,15 +131,12 @@
                 </div>
               </div>
 
-              <div class="stat-item">
-                <div class="stat-icon orders-icon">
-                  <i class="fas fa-shopping-bag"></i>
-                </div>
+              <!-- <div class="stat-item">
                 <div class="stat-info">
                   <span class="stat-label">Orders</span>
                   <span class="stat-value">{{ listing.orders || 0 }}</span>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -164,6 +165,12 @@
           <!-- Image Section -->
           <div class="listing-image-container">
             <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+
+            <!-- Discount start time -->
+            <div v-if="listing.discountTime" class="discount-time-badge">
+              Starts: {{ listing.discountTime }}
+            </div>
+
             <div class="inactive-overlay">
               <span class="inactive-badge">Inactive</span>
             </div>
@@ -196,9 +203,6 @@
 
             <div class="stats-section">
               <div class="stat-item">
-                <div class="stat-icon stock-icon">
-                  <i class="fas fa-box"></i>
-                </div>
                 <div class="stat-info">
                   <span class="stat-label">Stock</span>
                   <span class="stat-value">{{ listing.itemQty }}</span>

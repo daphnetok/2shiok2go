@@ -139,7 +139,7 @@ export default {
       form.tags = [];
       form.makeActive = false;
       selectedFile.value = null;
-      form.discountTime = null;
+      form.description = "";
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
         fileInput.value = "";
@@ -156,8 +156,15 @@ export default {
     });
 
     const goToHome = () => {
-      closeAlert();
+      this.closeAlert();
+      this.$router.push('/hawker-dashboard');
     };
+    // handleBackdropClick = () => {
+    //   // Only close on backdrop click for success/error, not confirmation
+    //   if (this.alert.type !== 'confirmation' && this.alert.type !== 'redirect') {
+    //     this.closeAlert();
+    //   }
+    // }
 
     const createNewListing = () => {
       closeAlert();
