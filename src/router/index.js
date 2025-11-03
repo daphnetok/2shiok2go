@@ -18,6 +18,7 @@ import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
+import HawkerForm from '../components/hawker/HawkerForm/HawkerForm.vue'
 import ContactSupport from '../views/ContactSupport.vue'
 
 const routes = [
@@ -49,6 +50,7 @@ const routes = [
     component: AllReviews,
     props: true
   },
+  { path: '/hawker-form', component: HawkerForm},
   { path: '/contact-support', component: ContactSupport, name: 'ContactSupport' },
 ]
 

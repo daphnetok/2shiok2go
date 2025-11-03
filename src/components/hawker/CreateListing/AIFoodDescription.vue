@@ -14,18 +14,18 @@
       <div class="m-0">
         <button
         type="button"
-        class="btn btn-outline-primary btn-sm mb-2 mx-0"
+        class="generate-btn"
         id="generateDescBtn"
         @click="generateDescription"
         :disabled="!canGenerate || isGenerating"
         >
-          {{ isGenerating ? "Generating..." : "Generate AI Description ✨" }}
+          {{ isGenerating ? "Generating..." : "✨ Generate AI Description" }}
         </button>
-        <small class="text-muted d-block">
+        <!-- <small id="hints" class="text-muted d-block">
             <span v-if="!selectedFile">Upload an image first</span>
             <span v-else-if="!foodName">Enter food name to generate description</span>
-            <span v-else>✨ Click the button above to generate an AI description</span>
-        </small>
+            <span v-else>Click the button above to generate an AI description</span>
+        </small> -->
       </div>
       
     </div>
@@ -59,15 +59,6 @@ watch(
   },
   { immediate: true }
 );
-
-// watch(
-//   () => props.description,
-//   (newVal) => (localDescription.value = newVal)
-// );
-
-// const canGenerate = computed(
-//   () => props.selectedFile && props.foodName?.trim().length > 0
-// );
 
 const updateParent = () => emit("update:description", localDescription.value);
 
@@ -106,7 +97,7 @@ const generateDescription = async () => {
         1. Describes the key ingredients visible in the photo
         2. Mentions the cooking style or preparation method
         3. Highlights what makes this dish appealing and delicious
-        4. Uses descriptive words that make customers want to order it
+        4. Appeals to Singaporeans
 
         Keep the total description under 200 characters. Make it sound delicious and inviting.`,
     },

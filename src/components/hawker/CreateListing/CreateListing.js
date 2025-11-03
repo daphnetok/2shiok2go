@@ -14,6 +14,7 @@ import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
 import { getDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
@@ -44,6 +45,7 @@ export default {
     const selectedListing = ref("all");
     const selectedListings = ref([]);
     const selectAll = ref(false);
+    const router = useRouter();
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -137,7 +139,7 @@ export default {
       form.tags = [];
       form.makeActive = false;
       selectedFile.value = null;
-      form.discountTime = null;
+      form.description = "";
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
         fileInput.value = "";
@@ -154,8 +156,15 @@ export default {
     });
 
     const goToHome = () => {
-      closeAlert();
+      this.closeAlert();
+      this.$router.push('/hawker-dashboard');
     };
+    // handleBackdropClick = () => {
+    //   // Only close on backdrop click for success/error, not confirmation
+    //   if (this.alert.type !== 'confirmation' && this.alert.type !== 'redirect') {
+    //     this.closeAlert();
+    //   }
+    // }
 
     const createNewListing = () => {
       closeAlert();
