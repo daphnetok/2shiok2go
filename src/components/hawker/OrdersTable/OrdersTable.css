@@ -1,67 +1,9 @@
-/* Container */
-.orders-container {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
-
-/* Navigation Tabs (Matching HawkerDashboard) */
-.tabs-nav {
-  background: white;
-  border-radius: 16px;
-  padding: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.tabs-list {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  gap: 8px;
-}
-
-.tab-item {
-  flex: 1;
-}
-
-.tab-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #666;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.tab-item.active .tab-link {
-  background: #0c850c;
-  color: white;
-}
-
-.tab-link:hover {
-  background: #f0f0f0;
-  color: #0c850c;
-}
-
-.tab-item.active .tab-link:hover {
-  background: #0c850c;
-  color: white;
-}
-
 /* Header */
 .orders-header {
-  background: linear-gradient(135deg, #0c850c 0%, #0a6b0a 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-radius: 20px;
   padding: 30px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   box-shadow: 0 4px 16px rgba(12, 133, 12, 0.2);
 }
 
@@ -91,7 +33,7 @@
 .stat-card {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
-  padding: 12px 20px;
+  padding: 10px;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -107,7 +49,7 @@
 }
 
 .stat-value {
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: white;
 }
@@ -147,7 +89,7 @@
 }
 
 .tab-btn.active {
-  background: #0c850c;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
 }
 
@@ -176,8 +118,8 @@
   align-items: center;
   background: white;
   padding: 16px 20px;
-  border-radius: 0px 0px 12px 12px;
-  margin-bottom: 20px;
+  /* border-radius: 0px 0px 12px 12px; */
+  /* margin-bottom: 20px; */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   flex-wrap: wrap;
   gap: 16px;
@@ -277,9 +219,12 @@
     box-shadow: 0 4px 12px #3b82f6;
 }
 
-/* Filter Dropdown (matching FilterBar style) */
+/* Filter Dropdown */
 .filter-dropdown {
   position: relative;
+  margin: auto;
+  display: flex;
+  margin:0px;
 }
 
 .filter-btn {
@@ -393,6 +338,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+  background-color: #f8fdf9;
+  padding: 20px;
+  border-radius: 0px 0px 16px 16px;
 }
 
 .order-card {
@@ -417,7 +365,7 @@
   border-left-color: #22c55e;
 }
 
-.order-card.completed {
+.order-card.collected {
   border-left-color: #94a3b8;
   opacity: 0.7;
 }
@@ -561,7 +509,7 @@
   color: #16a34a;
 }
 
-.status-badge.completed {
+.status-badge.collected {
   background: rgba(148, 163, 184, 0.1);
   color: #64748b;
 }
@@ -574,20 +522,17 @@
 
 .status-badge.pending .status-dot {
   background: #fbbf24;
-  animation: pulse 2s infinite;
 }
 
 .status-badge.preparing .status-dot {
   background: #3b82f6;
-  animation: pulse 2s infinite;
 }
 
 .status-badge.ready .status-dot {
   background: #22c55e;
-  animation: pulse 2s infinite;
 }
 
-.status-badge.completed .status-dot {
+.status-badge.collected .status-dot {
   background: #94a3b8;
 }
 
@@ -769,16 +714,22 @@
 }
 
 /* History Table */
+.history-table-bg{
+    background-color: #f8fdf9;
+    padding: 10px;
+    border-radius: 0px 0px 16px 16px;
+}
 .history-table {
   background: white;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 20px;
 }
 
 .history-row {
   display: grid;
-  grid-template-columns: 50px 110px 90px 100px 1fr 110px;
+  grid-template-columns: 50px 100px 150px 150px 1fr 100px;
   gap: 16px;
   padding: 16px 20px;
   /* align-items: center; */
@@ -870,7 +821,7 @@
   text-align: center;
   padding: 60px 20px;
   background: white;
-  border-radius: 16px;
+  border-radius: 0px 0px 16px 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -897,7 +848,7 @@
   }
 
   .history-row {
-    grid-template-columns: 50px 110px 90px 100px 1fr 110px;
+    grid-template-columns:  30px 1fr 2fr 2fr 3fr 1fr;
     gap: 12px;
     padding: 14px 16px;
   }
@@ -951,12 +902,11 @@
   }
 
   /* Stack history table on mobile */
-  .history-table {
+  /* .history-table {
     overflow-x: auto;
-  }
+  } */
 
   .history-row {
-    grid-template-columns: 80px 100px 80px 150px 80px 100px 60px;
     gap: 8px;
     padding: 12px;
     font-size: 0.85rem;

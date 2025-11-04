@@ -19,7 +19,7 @@
   
   <!-- Desktop Navigation Links (hidden on mobile) -->
   <div class="navbar-nav-desktop d-none d-md-flex ms-auto" :class="{ 'has-logout': currentUser }">
-  <router-link class="nav-link-desktop" to="/">Home</router-link>
+  <router-link v-if="isHomePage" class="nav-link-desktop" to="/">Home</router-link>
   
           <!-- Show Listing link to all users (customers can browse) -->
           <router-link class="nav-link-desktop" to="/buyer-listings">Listing</router-link>
@@ -63,7 +63,7 @@
   </div>
   <div class="offcanvas-body">
   <ul class="nav flex-column">
-  <li class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
+  <li v-if="isHomePage" class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/buyer-listings">Listing</router-link></li>
   
   <!-- Buyers see these links -->
@@ -98,8 +98,8 @@
   </template>
   
   <script>
-  import { ref, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { ref, onMounted, computed } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
   import { onAuthStateChanged, auth } from '/firebase/auth';
   import { logout } from '/firebase/auth';
   import { db } from '/firebase/config';
@@ -109,9 +109,13 @@
    name: "Navbar",
    setup() {
      const router = useRouter();
+     const route = useRoute();
      const currentUser = ref(null);
      const userRole = ref('');
      const isLoading = ref(true);
+     
+     // Check if current page is home page
+     const isHomePage = computed(() => route.path === '/');
   
      // Fetch user role from Firestore
      const fetchUserRole = async (uid) => {
@@ -161,7 +165,8 @@
        currentUser,
        userRole,
        isLoading,
-       handleLogout
+       handleLogout,
+       isHomePage
      };
    }
   };
