@@ -48,26 +48,27 @@
                     @placeSelected="onAddressSelected"
                 />
             </div>
-            <div class="form-group">
-                <label class="form-label">Opening Time</label>
-                <input
+            <div class="form-group time-group">
+                <div class="time-field">
+                    <label class="form-label">Opening Time</label>
+                    <input
                     type="time"
                     v-model="form.openingTime"
                     name="openingTime"
-                    placeholder="Enter your opening time"
                     required
-                />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Closing Time</label>
-                <input
+                    />
+                </div>
+                <div class="time-field">
+                    <label class="form-label">Closing Time</label>
+                    <input
                     type="time"
                     v-model="form.closingTime"
                     name="closingTime"
-                    placeholder="Enter your closing time"
                     required
-                />
-            </div>
+                    />
+                </div>
+                </div>
+
             <div class="button-group">
                 <button class="btn btn-success" type="submit" :disabled="loading">
                     Confirm
