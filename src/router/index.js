@@ -38,7 +38,7 @@ const routes = [
   },
   { path: '/cart', component: ShoppingCart },
   { 
-    path: '/order-receipt/:orderId', 
+    path: '/order-receipt/:orderId?', 
     name: 'OrderReceipt',
     component: OrderReceipt,
     props: true

@@ -713,6 +713,7 @@ export default {
         
         // Create all orders
         const orderPromises = [];
+        const createdOrderIds = []; // Track created order document IDs
         
         for (const hawkerId in itemsByHawker) {
           const hawkerGroup = itemsByHawker[hawkerId];
@@ -770,20 +771,21 @@ export default {
           
           // Add to order creation promises
           const ordersRef = collection(db, 'orders');
-          orderPromises.push(addDoc(ordersRef, orderData));
+          const orderDocRef = await addDoc(ordersRef, orderData);
+          createdOrderIds.push(orderDocRef.id); // Store the document ID
           
           // Update stock for each item
           hawkerItems.forEach(item => {
             orderPromises.push(updateStockAfterOrder(item.itemId, item.qty));
           });
           
-          console.log('Preparing order:', orderData.orderID);
+          console.log('Order created with ID:', orderDocRef.id, 'OrderID:', orderData.orderID);
           
           // Increment for next hawker's order
           currentOrderID++;
         }
         
-        // Wait for all orders and stock updates to complete
+        // Wait for all stock updates to complete
         await Promise.all(orderPromises);
         console.log('All orders created and stock updated successfully');
         
@@ -792,8 +794,13 @@ export default {
         await deleteDoc(cartRef);
         cartItems.value = [];
         
-        // Redirect to order receipt page ONCE after all orders are created
-        router.push('/order-receipt');
+        // Redirect to order receipt page with the first order's document ID
+        if (createdOrderIds.length > 0) {
+          router.push(`/order-receipt/${createdOrderIds[0]}`);
+        } else {
+          // Fallback to just order-receipt if no orders created (shouldn't happen)
+          router.push('/order-receipt');
+        }
         
       } catch (error) {
         console.error('Error creating order:', error);
