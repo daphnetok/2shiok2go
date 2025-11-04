@@ -41,7 +41,7 @@ export default {
     );
 
     const completedCount = computed(() =>
-      todayOrders.value.filter(o => o.status === 'completed').length
+      todayOrders.value.filter(o => o.status === 'collected').length
     );
 
     const selectedPendingCount = computed(() =>
@@ -56,23 +56,51 @@ export default {
       ).length
     );
 
-    const filteredTodayOrders = computed(() => {
-      let orders = todayOrders.value;
+    // Sort today orders by status order
+    // const filteredTodayOrders = computed(() => {
+    //   let orders = todayOrders.value;
 
+    //   if (activeStatusFilters.value.length > 0) {
+    //     orders = orders.filter(o => activeStatusFilters.value.includes(o.status));
+    //   }
+    //   return orders.sort((a, b) => {
+    //     const statusOrder = { pending: 0, preparing: 1, ready: 2, collected: 3 };
+    //     const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    //     if (statusDiff !== 0) return statusDiff;
+    //     return b.timestamp?.toMillis() - a.timestamp?.toMillis();
+    //   });
+    //   return orders
+    // });
+
+    // Sort today orders by timestamp
+    const filteredTodayOrders = computed(() => {
+      let orders = [...todayOrders.value];
+
+      // Apply status filter
       if (activeStatusFilters.value.length > 0) {
         orders = orders.filter(o => activeStatusFilters.value.includes(o.status));
       }
 
-      return orders.sort((a, b) => {
-        const statusOrder = { pending: 0, preparing: 1, ready: 2, completed: 3 };
-        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-        if (statusDiff !== 0) return statusDiff;
-        return b.timestamp?.toMillis() - a.timestamp?.toMillis();
+      // Apply sorting by timestamp
+      orders.sort((a, b) => {
+        const timeA = a.timestamp?.toMillis() || 0;
+        const timeB = b.timestamp?.toMillis() || 0;
+        return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB;
       });
+
+      return orders;
     });
+
 
     const sortedHistory = computed(() => {
       return [...historyOrders.value].sort((a, b) => {
+        const timeA = a.timestamp?.toMillis() || 0;
+        const timeB = b.timestamp?.toMillis() || 0;
+        return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+    });
+    const sortedTodayOrders = computed(() => {
+      return [...todayOrders.value].sort((a, b) => {
         const timeA = a.timestamp?.toMillis() || 0;
         const timeB = b.timestamp?.toMillis() || 0;
         return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB;
@@ -118,7 +146,7 @@ export default {
       const q = query(
         ordersRef,
         where('hawkerId', '==', uid),
-        where('timestamp', '<', todayTimestamp)
+        // where('timestamp', '<', todayTimestamp)
       );
 
       unsubscribeHistory = onSnapshot(
@@ -129,7 +157,7 @@ export default {
               id: doc.id,
               ...doc.data()
             }))
-            .filter(order => order.status === 'completed');
+            .filter(order => order.status === 'collected');
           loadingHistory.value = false;
         },
         (error) => {
@@ -164,7 +192,7 @@ export default {
       try {
         const orderRef = doc(db, 'orders', order.id);
         await updateDoc(orderRef, {
-          status: 'completed',
+          status: 'collected',
           completedAt: Timestamp.now()
         });
       } catch (error) {
@@ -260,7 +288,7 @@ export default {
         pending: 'New Order',
         preparing: 'Preparing',
         ready: 'Ready',
-        completed: 'Completed'
+        collected: 'Collected'
       };
       return statusMap[status] || status;
     };
@@ -271,9 +299,9 @@ export default {
       else return items;
     };
 
-    const viewOrderDetails = (order) => {
-      console.log('View order:', order);
-    };
+    // const viewOrderDetails = (order) => {
+    //   console.log('View order:', order);
+    // };
 
     const deleteSelectedOrders = async () => {
       if (selectedOrders.value.length === 0) return;
@@ -331,6 +359,7 @@ export default {
       todayOrders,
       filteredTodayOrders,
       sortedHistory,
+      sortedTodayOrders,
       loading,
       loadingHistory,
       sortOrder,
@@ -351,7 +380,7 @@ export default {
       formatTime,
       getStatusText,
       getItemsSummary,
-      viewOrderDetails,
+      // viewOrderDetails,
       deleteSelectedOrders,
       toggleSelectAllHistory,
       selectedPendingCount,
