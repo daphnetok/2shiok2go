@@ -13,11 +13,19 @@
     <!-- Show content only when hawker data is available -->
     <div v-else-if="hawker" class="container reset-style" style="position: relative;">
       <div class="row stall-info">
-        <div class="col-md-5">
+        <div class="col-md-6 col-12">
           <img :src="hawker.imageUrl" :alt="hawker.hawkerName" class="stallImg"/>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 col-12">
           <div>
+            <p class="stall-status" :class="{ 'closed': !isStallOpen() }">
+              <i class="fa-solid fa-clock"></i> 
+              <span v-if="isStallOpen()">Open Now</span>
+              <span v-else>Closed</span>
+              <span class="opening-hours">
+                ({{ hawker.openingTime }} - {{ hawker.closingTime }})
+              </span>
+            </p>
             <div class="stall-header">
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
@@ -27,6 +35,7 @@
               <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
             </button>
           </p>
+          
           
           <!-- Toggleable Embedded Google Maps -->
           <div v-if="showMap" class="map-container">
@@ -46,6 +55,7 @@
           </div>
           
           <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+          <!-- Stall Status -->
           <p><i class="fa-solid fa-star starIcon"></i> 
             <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
               {{ hawker.reviews.stallRating.toFixed(2) }} stars
@@ -71,22 +81,27 @@
       </div>
 
       <div class="row mt-4">
-        <h4>Available Listings</h4>
+        <div class="col-12">
+          <h4>Available Listings</h4>
+        </div>
         
-        <div v-if="loading">Loading available listings...</div>
+        <div v-if="loading" class="col-12">Loading available listings...</div>
         
-        <div v-else-if="foodItems.length === 0">No food listings available for this stall.</div>
+        <div v-else-if="foodItems.length === 0" class="col-12">No food listings available for this stall.</div>
 
-        <div v-else class="row">
-          <div v-for="item in foodItems" :key="item.id" class="col-md-4">
-            <div class="listing-card" @click="openItemModal(item)">
-              <div class="img-container">
-                <img class="foodImg" :src="item.imageUrl" :alt="item.itemName"/>
-                <div class="counter-btn"
-                    :class="{ 'square': item.count > 0 }"
+          <div v-else class="row g-3">
+            <div v-for="item in foodItems" :key="item.id" class="col-12 col-sm-6 col-lg-4">
+              <div class="listing-card" @click="isStallOpen() && item.itemQty > 0 ? openItemModal(item) : null" :class="{ 'disabled': !isStallOpen() || item.itemQty === 0 }">
+                <div class="img-container">
+                  <img class="foodImg" :src="item.imageUrl" :alt="item.itemName"/>
+                  <div v-if="item.itemQty === 0" class="sold-out-overlay">
+                    <span class="sold-out-text">SOLD OUT</span>
+                  </div>
+                  <div v-else class="counter-btn"
+                    :class="{ 'square': item.count > 0, 'disabled': !isStallOpen() }"
                     @mouseenter="item.hover = true"
                     @mouseleave="item.hover = false"
-                    @click.stop="increment(item)">
+                    @click.stop="isStallOpen() ? increment(item) : null">
                   <template v-if="item.count === 0">+</template>
                   <template v-else>
                     <div v-if="item.hover" class="hover-controls">
@@ -129,17 +144,18 @@
     <!-- Item Details Modal -->
     <transition name="modal-fade">
       <div v-if="showModal" class="modal-overlay" @click="closeModal">
-        <div class="modal-container" @click.stop>
+        <div class="modal-container container-fluid" @click.stop>
           <button class="modal-close" @click="closeModal">
             <i class="fa-solid fa-xmark"></i>
           </button>  
-            <div class="modal-info-section">
-              <div class="modal-image-section">
-                <img :src="selectedItem.imageUrl" :alt="selectedItem.itemName" class="modal-image"/>
-              </div>
+          <div class="row modal-info-section">
+            <div class="col-12 modal-image-section">
+              <img :src="selectedItem.imageUrl" :alt="selectedItem.itemName" class="modal-image"/>
+            </div>
 
+            <div class="col-12">
               <div class="modal-heading">
-              <h2 class="modal-title">{{ selectedItem.itemName }}</h2>
+                <h2 class="modal-title">{{ selectedItem.itemName }}</h2>
               
               <div class="modal-price-section">
                 <span v-if="isDiscountApplied(selectedItem)" class="modal-original-price">
@@ -196,18 +212,22 @@
                 </div>
               </div>
               
-              <div class="modal-actions">
-                <button class="btn-cancel" @click="closeModal">Cancel</button>
-                <button 
-                  class="btn-add-to-cart" 
-                  @click="addToCartFromModal"
-                  :disabled="modalQuantity === 0">
-                  Confirm
-                </button>
+              <div class="modal-actions row g-2">
+                <div class="col-6">
+                  <button class="btn-cancel w-100" @click="closeModal">Cancel</button>
+                </div>
+                <div class="col-6">
+                  <button 
+                    class="btn-add-to-cart w-100" 
+                    @click="addToCartFromModal"
+                    :disabled="modalQuantity === 0 || !isStallOpen()">
+                    Confirm
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-
+        </div>
       </div>
     </transition>
 

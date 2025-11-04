@@ -27,6 +27,22 @@ export default {
         else return false;
       }
     },
+    isStallOpen() {
+      if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
+        return true; // Default to open if no time specified
+      }
+      
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      const [openHour, openMin] = this.hawker.openingTime.split(':').map(Number);
+      const [closeHour, closeMin] = this.hawker.closingTime.split(':').map(Number);
+      
+      const openingTimeInMinutes = openHour * 60 + openMin;
+      const closingTimeInMinutes = closeHour * 60 + closeMin;
+      
+      return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
+    },
   },
   setup() {
     const route = useRoute();
