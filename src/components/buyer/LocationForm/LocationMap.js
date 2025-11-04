@@ -21,6 +21,7 @@ export default {
     
     const currentAddress = ref('');
     const currentCoords = ref({ lat: null, lng: null });
+    const initialCoords = ref({ lat: null, lng: null });
     const isLoadingAddress = ref(false);
     const saveError = ref('');
     const isModalCollapsed = ref(false);
@@ -55,6 +56,11 @@ export default {
         }
 
         currentCoords.value = {
+          lat: userLoc.latitude,
+          lng: userLoc.longitude
+        };
+
+        initialCoords.value = {
           lat: userLoc.latitude,
           lng: userLoc.longitude
         };
@@ -121,6 +127,53 @@ export default {
       currentAddress.value = addressData.formattedAddress;
     };
 
+    // Smooth pan to initial location
+    const smoothPanTo = (targetLat, targetLng) => {
+      if (!map) return;
+      
+      const currentCenter = map.getCenter();
+      const startLat = currentCenter.lat();
+      const startLng = currentCenter.lng();
+      
+      const frames = 25;
+      const duration = 800;
+      const frameDuration = duration / frames;
+      
+      const latDiff = targetLat - startLat;
+      const lngDiff = targetLng - startLng;
+      
+      let currentFrame = 0;
+      
+      const animate = () => {
+        currentFrame++;
+        const progress = currentFrame / frames;
+        
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const newLat = startLat + (latDiff * easeOut);
+        const newLng = startLng + (lngDiff * easeOut);
+        
+        map.panTo({ lat: newLat, lng: newLng });
+        
+        if (currentFrame < frames) {
+          setTimeout(animate, frameDuration);
+        } else {
+          map.panTo({ lat: targetLat, lng: targetLng });
+          map.setZoom(18);
+        }
+      };
+      
+      animate();
+    };
+
+    const onResetLocation = () => {
+      if (!map || !initialCoords.value.lat || !initialCoords.value.lng) return;
+      
+      smoothPanTo(initialCoords.value.lat, initialCoords.value.lng);
+      currentCoords.value = { ...initialCoords.value };
+      updateAddress(initialCoords.value.lat, initialCoords.value.lng);
+    };
+
     const onSave = async (formData) => {
       saveError.value = '';
 
@@ -179,7 +232,7 @@ export default {
         isModalCollapsed.value = collapsed;
     };
 
-    const onMapClick = () => {
+    const collapseModal = () => {
         if (formModalRef.value && formModalRef.value.collapse) {
             formModalRef.value.collapse();
         }
@@ -203,8 +256,9 @@ export default {
       onSave,
       onExit,
       onAddressSelected,
+      onResetLocation,
       onModalStateChange,
-      onMapClick
+      collapseModal
     };
   }
 };

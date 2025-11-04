@@ -3,27 +3,29 @@
     ref="sheet"
     class="location-sheet"
     :class="{ collapsed: isCollapsed }"
-    @mousedown="onHandleMouseDown"
-    @touchstart="onDragStart"
-    @touchmove.prevent="onDragMove"
-    @touchend="onDragEnd"
   >
-    <!-- Handle -->
+    <!-- Handle (visual only) -->
     <div class="sheet-handle-area">
       <div class="sheet-handle"></div>
     </div>
 
     <!-- Collapsed State (25vh) -->
-    <div v-if="isCollapsed" class="collapsed-content" @click="expand">
+    <div v-show="isCollapsed" class="collapsed-content" @click="expand">
       <div class="address-preview">
         <p class="address-label">Selected Location</p>
         <p class="address-text">{{ address || 'Loading...' }}</p>
       </div>
-      <button class="confirm-btn" @click.stop="onConfirm">Confirm Location</button>
+      <button 
+        class="confirm-btn" 
+        :disabled="!locationName.trim() || !address"
+        @click.stop="onConfirm"
+      >
+        Confirm Location
+      </button>
     </div>
 
     <!-- Expanded State (60vh) -->
-    <div v-else class="expanded-content" @click.stop>
+    <div v-show="!isCollapsed" class="expanded-content" @click.stop>
       <h3 class="form-title">Add New Location</h3>
 
       <!-- Name Field -->
@@ -42,7 +44,8 @@
         <AddressAutocomplete
           label="Address"
           placeholder="Search for an address..."
-          v-model="selectedAddress"
+          :modelValue="selectedAddress"
+          @update:modelValue="onAddressUpdate"
           @placeSelected="onPlaceSelected"
         />
       </div>

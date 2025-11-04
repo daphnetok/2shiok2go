@@ -12,8 +12,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  will-change: transform;
-  touch-action: none;
 }
 
 .location-sheet.collapsed {
@@ -22,15 +20,10 @@
 
 .sheet-handle-area {
   padding: 10px;
-  cursor: grab;
   display: flex;
   justify-content: center;
   user-select: none;
   flex-shrink: 0;
-}
-
-.sheet-handle-area:active {
-  cursor: grabbing;
 }
 
 .sheet-handle {
