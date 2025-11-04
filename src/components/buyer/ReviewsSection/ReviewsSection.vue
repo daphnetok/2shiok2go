@@ -1,6 +1,6 @@
 <template>
-  <div v-if="hawker" class="row mt-4">
-    <h4>Reviews</h4>
+  <div v-if="hawker" class="row mt-4" id="reviews">
+  <h4>Reviews</h4>
     
     <div class="reviews-card">
     <div class="reviews-section-content">

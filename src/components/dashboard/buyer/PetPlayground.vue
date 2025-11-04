@@ -168,8 +168,8 @@
             <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; color: #059669;">
               😊 Happiness
             </span>
-            <div class="progress-container">
-              <div class="progress" style="height: 32px; border-radius: 16px; background: rgba(16, 185, 129, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
+            <div class="progress-container" style="width: 100%;">
+              <div class="progress" style="width: 100%; height: 32px; border-radius: 16px; background: rgba(16, 185, 129, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
                 <div class="progress-bar happiness-bar" 
                      :style="{ width: pet.happiness + '%' }">
                   <span class="progress-text">{{ pet.happiness }}%</span>
@@ -183,8 +183,8 @@
             <span class="stat-label d-block mb-2 text-uppercase" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; color: #d97706;">
               ⚡ Energy
             </span>
-            <div class="progress-container">
-              <div class="progress" style="height: 32px; border-radius: 16px; background: rgba(245, 158, 11, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
+            <div class="progress-container" style="width: 100%;">
+              <div class="progress" style="width: 100%; height: 32px; border-radius: 16px; background: rgba(245, 158, 11, 0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; position: relative;">
                 <div class="progress-bar energy-bar" 
                      :style="{ width: pet.energy + '%' }">
                   <span class="progress-text">{{ pet.energy }}%</span>
@@ -231,8 +231,17 @@ export default {
 }
 
 /* Enhanced Progress Bars */
+.stat-item {
+  width: 100%;
+}
+
 .progress-container {
   position: relative;
+  width: 100%;
+}
+
+.progress {
+  width: 100% !important;
 }
 
 .progress-bar {
@@ -245,6 +254,7 @@ export default {
   font-size: 0.85rem;
   transition: width 0.6s ease;
   overflow: hidden;
+  height: 100%;
 }
 
 .progress-text {

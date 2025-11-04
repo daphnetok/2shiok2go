@@ -173,9 +173,9 @@
               </span>
             </div>
             <div class="payment-method-section">
-              <span><b>Payment Method:</b></span>
-              <select id="payment-method">
-                <option value="card">Credit/Debit Card</option>
+              <label for="payment-method" class="form-label"><b>Payment Method:</b></label>
+              <select id="payment-method" class="form-select" v-model="paymentMethod" aria-label="Select payment method">
+                <option value="card">Credit / Debit Card</option>
                 <option value="paynow">PayNow</option>
                 <option value="cash">Cash on Delivery</option>
               </select>

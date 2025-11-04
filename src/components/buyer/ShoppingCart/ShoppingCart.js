@@ -14,11 +14,12 @@ export default {
     const router = useRouter();
     const auth = getAuth();
     
-    const cartItems = ref([]);
-    const loading = ref(true);
-    const updating = ref(false);
-    const errorMsg = ref(null);
-    const userId = ref(null);
+  const cartItems = ref([]);
+  const loading = ref(true);
+  const updating = ref(false);
+  const errorMsg = ref(null);
+  const paymentMethod = ref('card');
+  const userId = ref(null);
     const authUnsubscribe = ref(null);
     const editMode = ref(false);
     const selectedItems = ref([]);
@@ -200,7 +201,20 @@ export default {
             }
           }));
           
-          cartItems.value = updatedItems;
+          // Filter out any items that have zero stock or qty after fetching
+          const filtered = updatedItems.filter(it => {
+            const itemQtyNum = (typeof it.itemQty === 'number') ? it.itemQty : (it.itemQty ? parseInt(it.itemQty) : null);
+            if (itemQtyNum !== null && itemQtyNum <= 0) return false;
+            if ((parseInt(it.qty) || 0) <= 0) return false;
+            return true;
+          });
+
+          if (filtered.length !== updatedItems.length) {
+            // Some items removed due to zero stock/qty — update backend and notify via updateCartInFirebase
+            await updateCartInFirebase(filtered);
+          } else {
+            cartItems.value = updatedItems;
+          }
           console.log('Cart items loaded with current stock levels and stall status:', cartItems.value);
           
           // If any quantities were adjusted, update the cart
@@ -263,25 +277,47 @@ export default {
     // Update cart in Firebase
     const updateCartInFirebase = async (updatedItems) => {
       if (!userId.value) return;
-      
+
       updating.value = true;
-      
+
       try {
         const cartRef = doc(db, 'cart', userId.value);
-        
-        if (updatedItems.length === 0) {
+
+        // Remove items that are unavailable (zero stock) or have qty <= 0
+        const filteredItems = updatedItems.filter(it => {
+          const itemQtyNum = (typeof it.itemQty === 'number') ? it.itemQty : (it.itemQty ? parseInt(it.itemQty) : null);
+          // If we know the stock and it's 0 or less, remove the item
+          if (itemQtyNum !== null && itemQtyNum <= 0) return false;
+          // If qty is zero or less, remove the item
+          const qtyNum = parseInt(it.qty) || 0;
+          if (qtyNum <= 0) return false;
+          return true;
+        });
+
+        const removedItems = updatedItems.filter(it => !filteredItems.some(fi => fi.itemId === it.itemId));
+        if (removedItems.length > 0) {
+          // Notify user about removed items (best-effort)
+          try {
+            const names = removedItems.map(i => i.itemName || i.itemId).join(', ');
+            alert(`The following unavailable items were removed from your cart: ${names}`);
+          } catch (e) {
+            console.log('Removed items from cart:', removedItems);
+          }
+        }
+
+        if (filteredItems.length === 0) {
           // If no items left, delete the cart document
           await deleteDoc(cartRef);
           console.log('Cart document deleted (no items remaining)');
+          cartItems.value = [];
         } else {
           await updateDoc(cartRef, {
-            items: updatedItems,
+            items: filteredItems,
             updatedAt: new Date()
           });
           console.log('Cart updated successfully');
+          cartItems.value = filteredItems;
         }
-        
-        cartItems.value = updatedItems;
       } catch (error) {
         console.error('Error updating cart:', error);
         errorMsg.value = 'Failed to update cart. Please try again.';

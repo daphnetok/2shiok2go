@@ -147,6 +147,14 @@
                         }">
                           ({{ hawkerReviewCount }} reviews)
                         </span>
+                        <!-- See reviews link navigates to the buyer stall page and anchors to reviews -->
+                        <router-link
+                          :to="{ path: `/buyer-view-stall/${hawkerOwnerId || currentHawkerId}`, hash: '#reviews' }"
+                          class="see-reviews-link"
+                          style="margin-left:0.5rem; font-size:0.813rem; color: #059669; font-weight:600; text-decoration:none;"
+                        >
+                          See reviews
+                        </router-link>
                       </div>
                     </div>
                   </div>
@@ -494,6 +502,7 @@ export default {
       globalFilter: 'day',
       currentHawkerId: null,
       hawkerListingId: null, // Store the actual hawker listing document ID
+      hawkerOwnerId: null, // userId owner of the hawker listing (used for routing to buyer-view-stall)
       allOrders: [],
       loading: true,
       
@@ -847,6 +856,8 @@ export default {
         
         // Store the hawker listing ID for later use
         this.hawkerListingId = hawkerListingId
+  // Store the hawker owner's userId (used when navigating to buyer-view-stall/:userId)
+  this.hawkerOwnerId = hawkerData.userId || null
         
         console.log('📦 Hawker listing found:', hawkerListingId)
         console.log('📦 Hawker data:', hawkerData)
