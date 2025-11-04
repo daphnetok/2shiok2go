@@ -110,8 +110,8 @@
         <div v-if="uploadedPhotos.length > 0 || uploadedVideos.length > 0" class="media-preview">
           <!-- Photos -->
           <div v-for="(photo, index) in uploadedPhotos" :key="'photo-' + index" class="media-item">
-            <img :src="photo.url" :alt="`Photo ${index + 1}`" class="media-thumbnail" />
-            <button @click="removePhoto(index)" class="remove-media-btn">
+            <img :src="photo.url" :alt="`Photo ${index + 1}`" class="media-thumbnail" @click="openImageModal(photo.url)" />
+            <button @click.stop="removePhoto(index)" class="remove-media-btn">
               <i class="fa-solid fa-times"></i>
             </button>
           </div>
@@ -125,13 +125,25 @@
               @click.stop="playVideoPreview($event)"
               @play="expandVideoFullscreen($event)"
               @pause="exitVideoFullscreen($event)"
+              @timeupdate="updateVideoProgress($event, index)"
+              :data-video-index="index"
             ></video>
             <div class="video-play-overlay">
               <i class="fa-solid fa-play"></i>
             </div>
-            <button @click.stop="removeVideo(index)" class="remove-media-btn">
+            <button @click.stop="removeVideo(index)" class="remove-media-btn" v-if="!isVideoFullscreen(index)">
               <i class="fa-solid fa-times"></i>
             </button>
+            <!-- Fullscreen exit button -->
+            <button @click.stop="exitVideoFullscreen($event)" class="exit-fullscreen-btn" v-if="isVideoFullscreen(index)">
+              <i class="fa-solid fa-times"></i>
+            </button>
+            <!-- Progress bar for fullscreen video -->
+            <div class="video-progress-container" v-if="isVideoFullscreen(index)">
+              <div class="video-progress-track" @click.stop="seekVideo($event, index)">
+                <div class="video-progress-line" :style="{ width: getVideoProgress(index) + '%' }"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -151,6 +163,16 @@
       <div class="submit-section">
         <button type="button" @click="submitReview" class="submit-btn" :disabled="isSubmitting">
           {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
+      <div class="modal-content" @click.stop>
+        <img :src="selectedImage" alt="Review image" />
+        <button class="close-modal" @click="closeImageModal">
+          <i class="fa-solid fa-times"></i>
         </button>
       </div>
     </div>
@@ -187,6 +209,11 @@ export default {
     const videoInput = ref(null);
     const currentOrderData = ref(null);
     const hawkerDocRef = ref(null);
+    const selectedImage = ref(null);
+    const videoProgress = ref({});
+    const videoFullscreen = ref({});
+    const videoDuration = ref({});
+    const activeVideoRef = ref(null);
 
     // Computed overall rating (average of the three ratings)
     const overallRating = computed(() => {
@@ -232,6 +259,10 @@ export default {
           reader.readAsDataURL(file);
         }
       });
+      // Reset input value to allow re-uploading the same file
+      if (event.target) {
+        event.target.value = '';
+      }
     };
 
     const handleVideoUpload = (event) => {
@@ -249,14 +280,26 @@ export default {
           reader.readAsDataURL(file);
         }
       });
+      // Reset input value to allow re-uploading the same file
+      if (event.target) {
+        event.target.value = '';
+      }
     };
 
     const removePhoto = (index) => {
       uploadedPhotos.value.splice(index, 1);
+      // Reset input value to allow re-uploading
+      if (photoInput.value) {
+        photoInput.value.value = '';
+      }
     };
 
     const removeVideo = (index) => {
       uploadedVideos.value.splice(index, 1);
+      // Reset input value to allow re-uploading
+      if (videoInput.value) {
+        videoInput.value.value = '';
+      }
     };
 
     const videoRefs = ref([]);
@@ -267,14 +310,35 @@ export default {
       }
     };
 
+    const openImageModal = (imageUrl) => {
+      selectedImage.value = imageUrl;
+    };
+
+    const closeImageModal = () => {
+      selectedImage.value = null;
+    };
+
     const playVideoPreview = async (event) => {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       try {
         if (video.paused) {
           // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
+          videoFullscreen.value[videoIndex] = true;
+          activeVideoRef.value = video;
+          
+          // Set video duration
+          if (video.duration) {
+            videoDuration.value[videoIndex] = video.duration;
+          } else {
+            video.addEventListener('loadedmetadata', () => {
+              videoDuration.value[videoIndex] = video.duration;
+            }, { once: true });
+          }
+          
           await video.play();
           // Request fullscreen API if available
           try {
@@ -299,8 +363,6 @@ export default {
       }
     };
 
-    const activeVideoRef = ref(null);
-
     const expandVideoFullscreen = (event) => {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item');
@@ -322,9 +384,20 @@ export default {
     };
 
     const exitVideoFullscreen = (event) => {
-      const video = event.target;
+      event.stopPropagation();
+      const video = event.target.closest('.video-media-item')?.querySelector('video') || 
+                   event.target.querySelector('video') || 
+                   activeVideoRef.value;
+      
+      if (!video) return;
+      
       const videoContainer = video.closest('.video-media-item');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
+      
+      video.pause();
       videoContainer.classList.remove('playing');
+      videoContainer.classList.remove('fullscreen');
+      videoFullscreen.value[videoIndex] = false;
       
       // Remove escape key listener
       if (video._escapeHandler) {
@@ -344,8 +417,33 @@ export default {
       } else if (document.msFullscreenElement) {
         document.msExitFullscreen();
       }
+    };
+
+    const isVideoFullscreen = (index) => {
+      return videoFullscreen.value[index] === true;
+    };
+
+    const updateVideoProgress = (event, index) => {
+      const video = event.target;
+      if (video.duration) {
+        const progress = (video.currentTime / video.duration) * 100;
+        videoProgress.value[index] = progress;
+      }
+    };
+
+    const getVideoProgress = (index) => {
+      return videoProgress.value[index] || 0;
+    };
+
+    const seekVideo = (event, index) => {
+      const video = videoRefs.value[index] || activeVideoRef.value;
+      if (!video || !video.duration) return;
       
-      videoContainer.classList.remove('fullscreen');
+      const progressTrack = event.currentTarget;
+      const rect = progressTrack.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const percentage = clickX / rect.width;
+      video.currentTime = percentage * video.duration;
     };
 
     // Get star fill style for partial stars
@@ -611,9 +709,16 @@ export default {
       removePhoto,
       removeVideo,
       setVideoRef,
+      selectedImage,
+      openImageModal,
+      closeImageModal,
       playVideoPreview,
       expandVideoFullscreen,
       exitVideoFullscreen,
+      isVideoFullscreen,
+      updateVideoProgress,
+      getVideoProgress,
+      seekVideo,
       submitReview,
       getStarFillStyle
     };

@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from 'firebase/firestore';
@@ -11,6 +11,13 @@ export default {
   components: {
     ReviewsSection
   },
+  props: {
+    searchQuery: {
+      type: String,
+      default: ''
+    }
+  },
+  emits: ['search'],
   methods: {
     isDiscountApplied(item) {
       if (!item || !item.discountTime) return false; // prevent crash
@@ -25,7 +32,7 @@ export default {
 ,
 
   },
-  setup() {
+  setup(props, { emit }) {
     const route = useRoute();
     const isLiked = ref(false);
     const hawker = ref(null);
@@ -34,6 +41,8 @@ export default {
     const errorMsg = ref(null);
     const showToast = ref(false);
     const selectedItems = ref([]);
+    const localSearchQuery = ref('');
+    let debounceTimer = null;
 
     const auth = getAuth();
     const userId = ref(null);
@@ -420,8 +429,47 @@ export default {
       }
     };
 
+    // Handle search input
+    const handleSearch = () => {
+      // Clear existing timer
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      // Set new timer for debounced search
+      debounceTimer = setTimeout(() => {
+        emit('search', localSearchQuery.value);
+      }, 300);
+    };
+
+    // Clear search
+    const clearSearch = () => {
+      localSearchQuery.value = '';
+      emit('search', '');
+    };
+
+    // Sync local search query with prop
+    const syncSearchQuery = () => {
+      localSearchQuery.value = props.searchQuery || '';
+    };
+
+    // Filter food items based on search query (partial matching)
+    const filteredFoodItems = computed(() => {
+      const queryToUse = props.searchQuery || localSearchQuery.value;
+      if (!queryToUse || queryToUse.trim() === '') {
+        return foodItems.value;
+      }
+      
+      const query = queryToUse.toLowerCase().trim();
+      return foodItems.value.filter(item => {
+        const itemName = (item.itemName || '').toLowerCase();
+        return itemName.includes(query);
+      });
+    });
+
     // onMounted lifecycle hook to fetch hawker data and food items
     onMounted(async () => {
+      syncSearchQuery();
       await getHawkerData();
       if (hawker.value) {
         await fetchItemListings();
@@ -432,6 +480,9 @@ export default {
       isLiked,
       hawker,
       foodItems,
+      filteredFoodItems,
+      localSearchQuery,
+      searchQuery: computed(() => props.searchQuery),
       loading,
       errorMsg,
       showToast,
@@ -443,6 +494,8 @@ export default {
       increment,
       decrement,
       selectedItems,
+      handleSearch,
+      clearSearch,
       // Modal
       showModal,
       selectedItem,

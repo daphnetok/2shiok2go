@@ -1,5 +1,31 @@
 <template>
   <div class="hawker-analytics" :class="{ 'dark-theme': isDarkTheme }" style="min-height: 100vh; transition: all 0.3s ease;">
+    <!-- Navigation Tabs -->
+    <div class="container-fluid px-3 px-md-4">
+      <nav class="tabs-nav">
+        <ul class="tabs-list">
+          <li class="tab-item" style="padding:0">
+            <router-link to="/hawker-dashboard" class="tab-link">
+              <i class="fas fa-home"></i>
+              <span>My Listings</span>
+            </router-link>
+          </li>
+          <li class="tab-item" style="padding:0">
+            <router-link to="/orders-table" class="tab-link">
+              <i class="fas fa-list"></i>
+              <span>Orders Management</span>
+            </router-link>
+          </li>
+          <li class="tab-item active" style="padding:0">
+            <a href="#" class="tab-link">
+              <i class="fas fa-chart-simple"></i>
+              <span>Analytics</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
     <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
       <div class="row mb-2 mb-md-3 align-items-stretch g-2 g-md-3">
         <!-- Hawker Profile Card -->
@@ -7,17 +33,15 @@
           <div class="hawker-profile-card" 
                :class="{ 'dark-profile-card': isDarkTheme }"
                style="border-radius: 16px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15); overflow: hidden; position: relative;">
-            <!-- Background Pattern -->
+            <!-- Background Pattern (transparent overlay so CSS gradient shows through) -->
             <div class="profile-pattern" :style="{ 
               position: 'absolute', 
               top: 0, 
               left: 0, 
               right: 0, 
               bottom: 0, 
-              background: isDarkTheme 
-                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)' 
-                : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%)',
-              opacity: 1
+              background: 'transparent',
+              opacity: 0
             }"></div>
             
             <!-- Content -->
@@ -514,11 +538,18 @@ export default {
     // Filter orders based on time period
     filteredOrders() {
       const now = new Date()
+      now.setHours(0, 0, 0, 0) // Reset to start of day for accurate comparison
+      
       const filtered = this.allOrders.filter(order => {
         const orderDate = this.getOrderDate(order)
         
         if (this.globalFilter === 'day') {
-          return orderDate.toDateString() === now.toDateString()
+          // Compare dates without time component
+          const orderDateOnly = new Date(orderDate)
+          orderDateOnly.setHours(0, 0, 0, 0)
+          const nowDateOnly = new Date()
+          nowDateOnly.setHours(0, 0, 0, 0)
+          return orderDateOnly.getTime() === nowDateOnly.getTime()
         } else if (this.globalFilter === 'week') {
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
           return orderDate >= weekAgo && orderDate <= now
@@ -529,6 +560,7 @@ export default {
         return true
       })
       
+      console.log(`📊 Filter: ${this.globalFilter}, Total Orders: ${this.allOrders.length}, Filtered: ${filtered.length}`)
       return filtered
     },
 
@@ -561,6 +593,8 @@ export default {
       }, 0)
       
       const totalOrders = orders.length
+      
+      console.log(`💰 Total Sales (${this.globalFilter}): $${totalSales.toFixed(2)}, Orders: ${totalOrders}`)
       
       // Calculate peak hour
       const hourCounts = {}

@@ -65,7 +65,7 @@
                 </div>
                 <div class="slider-container">
                   <label class="slider-label">Price Range</label>
-                  <Slider />
+                  <Slider v-model="priceMax" :maxValue="50" @update:modelValue="emitFilters" />
                 </div>
               </div>
             </transition>
@@ -179,13 +179,14 @@ export default {
       isStatusExpanded: false,
       isDietaryExpanded: false,
       priceOrder: null,
+      priceMax: 50,
       status: [],
       dietary: []
     };
   },
   computed: {
     hasActiveFilters() {
-      return this.priceOrder !== null || this.status.length > 0 || this.dietary.length > 0;
+      return this.priceOrder !== null || this.priceMax !== 50 || this.status.length > 0 || this.dietary.length > 0;
     }
   },
   methods: {
@@ -204,13 +205,21 @@ export default {
     },
     clearAllFilters() {
       this.priceOrder = null;
+      this.priceMax = 50;
       this.status = [];
       this.dietary = [];
       this.emitFilters();
     },
     emitFilters() {
+      console.log('🎛️ FilterBar emitting filters:', {
+        priceOrder: this.priceOrder,
+        priceMax: this.priceMax,
+        status: this.status,
+        dietary: this.dietary
+      });
       this.$emit('filter-change', {
         priceOrder: this.priceOrder,
+        priceMax: this.priceMax,
         status: this.status,
         dietary: this.dietary
       });

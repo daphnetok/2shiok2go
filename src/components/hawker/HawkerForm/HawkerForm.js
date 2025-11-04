@@ -13,6 +13,7 @@ export default {
     const form = reactive({
       stallName: '',
       closingTime: '',
+      openingTime: '',
       address: {
         formattedAddress: '',
         latitude: null,
@@ -73,6 +74,7 @@ export default {
         const hawkerData = {
           hawkerName: form.stallName,
           closingTime: form.closingTime,
+          openingTime: form.openingTime,
           address: {
             formattedAddress: form.address.formattedAddress,
             latitude: form.address.latitude,
@@ -97,6 +99,7 @@ export default {
         // reset form
         form.stallName = '';
         form.closingTime = '';
+        form.openingTime = '';
         form.address = {
           formattedAddress: '',
           latitude: null,

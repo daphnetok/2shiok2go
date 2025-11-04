@@ -2,7 +2,7 @@
  <div class="container">
     <div class="row">
       <!-- Desktop: Filter on left, full width of its column -->
-      <SearchBar/>
+      <SearchBar @search="handleSearch"/>
     </div>
 
     <div class="row">
@@ -21,8 +21,10 @@
         
         <ListingGrid
           :price-order="filters.priceOrder"
+          :price-max="filters.priceMax"
           :dietary="filters.dietary"
           :status="filters.status"
+          :search-query="searchQuery"
         />
       </div>
 
@@ -47,16 +49,23 @@ export default {
   },
   data() {
     return {
+      searchQuery: '',
       filters: {
         priceOrder: null,
+        priceMax: 50,
         dietary: [],
         status: []
       }
     };
   },
   methods: {
+    handleSearch(query) {
+      this.searchQuery = query;
+    },
     onFilterChange(payload) {
+      console.log('📥 BuyerListing received filter change:', payload);
       this.filters = { ...this.filters, ...payload };
+      console.log('📦 BuyerListing updated filters:', this.filters);
     }
   }
 };

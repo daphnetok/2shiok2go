@@ -13,7 +13,7 @@
   </button>
   
   <!-- Brand (always visible) -->
-  <router-link class="navbar-brand fw-bold text-success" to="/">
+  <router-link class="navbar-brand fw-bold text-success" to="/" style="margin-left: 1.5rem;">
   2Shiok2Go
   </router-link>
   
@@ -27,12 +27,13 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <router-link class="nav-link-desktop" to="/buyer-dashboard">Profile</router-link>
-            <router-link class="nav-link-desktop" to="/cart">Cart</router-link>
+            <router-link class="nav-link-desktop" to="/cart">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </router-link>
   </template>
   
   <!-- Hawkers see these links -->
   <template v-if="currentUser && userRole === 'hawker'">
-  <router-link class="nav-link-desktop" to="/create-listing">Create Listing</router-link>
   <router-link class="nav-link-desktop" to="/hawker-dashboard">Hawker Dashboard</router-link>
   </template>
   
@@ -40,12 +41,10 @@
           <router-link v-if="!currentUser" class="nav-link-desktop login-link-desktop" to="/login">
             <i class="fa-solid fa-right-to-bracket me-2"></i>Login
           </router-link>
-  </div>
   
-        <!-- Desktop Logout Button (center right) -->
-  <div v-if="currentUser" class="navbar-logout-desktop d-none d-md-flex">
-          <a href="#" @click.prevent="handleLogout" class="logout-button-desktop" aria-label="Logout" title="Logout">
-            <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+  <!-- Desktop Logout Button (integrated into flex container) -->
+  <a v-if="currentUser" href="#" @click.prevent="handleLogout" class="logout-button-desktop" aria-label="Logout" title="Logout">
+    <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
   </a>
   </div>
   </div>
@@ -70,13 +69,16 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <li class="nav-item"><router-link class="nav-link" to="/buyer-dashboard">Profile</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/cart">Cart</router-link></li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/cart">
+                <i class="fa-solid fa-cart-shopping me-2"></i>Cart
+              </router-link>
+            </li>
           
   </template>
   
   <!-- Hawkers see these links -->
   <template v-if="currentUser && userRole === 'hawker'">
-  <li class="nav-item"><router-link class="nav-link" to="/create-listing">Create Listing</router-link></li>
   <li class="nav-item"><router-link class="nav-link" to="/hawker-dashboard">Hawker Dashboard</router-link></li>
   </template>
   
@@ -174,10 +176,11 @@
   .navbar-nav-desktop {
    gap: 1.5rem;
    align-items: center;
+   margin-right: 1.5rem;
   }
   
   .navbar-nav-desktop.has-logout {
-    margin-right: 7.5rem; /* Space for logout button with text (2rem right + logout text width + padding) */
+    /* No additional margin needed - logout is now integrated */
   }
   
   .nav-link-desktop {
@@ -218,25 +221,17 @@
     color: #ffffff;
   }
   
-  /* Desktop Logout Button */
-  .navbar-logout-desktop {
-   position: absolute;
-   right: 2rem;
-   top: 50%;
-   transform: translateY(-50%);
-   z-index: 10;
-  }
-  
+  /* Desktop Logout Button (integrated into navbar-nav-desktop) */
   .logout-button-desktop {
     color: #dc3545;
-   text-decoration: none;
+    text-decoration: none;
     font-weight: 500;
     padding: 0.5rem 0.75rem;
     border-radius: 4px;
-   transition: all 0.3s ease;
-   display: flex;
-   align-items: center;
-   justify-content: center;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     white-space: nowrap;
   }
   
@@ -317,8 +312,7 @@
   
   /* Responsive adjustments */
   @media (max-width: 767.98px) {
-   .navbar-nav-desktop,
-   .navbar-logout-desktop {
+   .navbar-nav-desktop {
      display: none !important;
    }
    

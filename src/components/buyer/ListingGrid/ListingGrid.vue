@@ -1,6 +1,6 @@
 <template>
   <div class="listings-container">
-    <h2>Near Me</h2>
+    <h2>{{ searchQuery ? 'Search Results' : 'Near Me' }}</h2>
     
     <!-- location permission notice -->
     <div v-if="locationError" class="alert alert-warning">
@@ -13,16 +13,37 @@
     
     <!-- Empty state -->
     <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state">
-      <p>No listings available</p>
+      <p>{{ searchQuery ? 'No results found for your search' : 'No listings available' }}</p>
     </div>
     
     <!-- Listings grid -->
     <div v-else class="listings-grid">
-      <ListingCard 
-        v-for="hawker in filteredHawkers" 
-        :key="hawker.id"
-        :hawker="hawker"
-      />
+      <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper">
+        <ListingCard 
+          :hawker="hawker"
+        />
+        <!-- Display matching items if search is active and items exist -->
+        <div v-if="searchQuery && hawker.matchingItems && hawker.matchingItems.length > 0" class="matching-items">
+          <div class="matching-items-header">
+            <span class="matching-items-label">Matching items:</span>
+          </div>
+          <div class="matching-items-grid">
+            <div 
+              v-for="(item, idx) in hawker.matchingItems" 
+              :key="idx" 
+              class="matching-item"
+            >
+              <img 
+                :src="item.imageUrl" 
+                :alt="item.itemName"
+                class="matching-item-image"
+                @error="handleImageError"
+              />
+              <span class="matching-item-name">{{ item.itemName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -30,7 +51,7 @@
 <script>
 import { computed, onMounted, ref, watch } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
-import { useLoadHawkers } from '/firebase/firestore';
+import { useLoadHawkers, useLoadListings } from '/firebase/firestore';
 import { useGeolocation } from '@/assets/composables/useGeolocation';
 
 export default {
@@ -41,6 +62,10 @@ export default {
       type: String,
       default: null // 'asc' | 'desc' | null
     },
+    priceMax: {
+      type: Number,
+      default: 50
+    },
     dietary: {
       type: Array,
       default: () => []
@@ -48,11 +73,16 @@ export default {
     status: {
       type: Array,
       default: () => []
+    },
+    searchQuery: {
+      type: String,
+      default: ''
     }
   },
   setup(props) {
     const { userLocation, locationError, getUserLocation } = useGeolocation();
     const hawkersRef = ref(null);
+    const itemListings = useLoadListings();
     const ROAD_FACTOR = 1.1 // for urban road detour estimate
 
     // fetch user location on mount
@@ -82,7 +112,70 @@ export default {
     });
 
     const loading = computed(() => {
-      hawkersRef.value?.value === null;
+      return hawkersRef.value?.value === null;
+    });
+
+    // Perform search function
+    const performSearch = (query) => {
+      if (!query || query.trim() === '') {
+        return null;
+      }
+
+      const searchTerm = query.toLowerCase().trim();
+      const matchingHawkerIds = new Set(); // Store hawker IDs matched by address
+      const matchingUserIds = new Set(); // Store userIds matched by items
+      const hawkerItemMap = new Map(); // Map of hawker userId to matching items
+
+      // Search in hawker addresses and stall names
+      const hawkerListings = allHawkers.value || [];
+      hawkerListings.forEach(hawker => {
+        const address = hawker.address?.formattedAddress || '';
+        const stallName = hawker.hawkerName || '';
+        // Match by address or stall name
+        if (address.toLowerCase().includes(searchTerm) || stallName.toLowerCase().includes(searchTerm)) {
+          matchingHawkerIds.add(hawker.id);
+        }
+      });
+
+      // Search in item names
+      const items = itemListings.value || [];
+      items.forEach(item => {
+        const itemName = item.itemName || '';
+        if (itemName.toLowerCase().includes(searchTerm)) {
+          const userId = item.userId;
+          if (userId) {
+            matchingUserIds.add(userId);
+            // Store matching item info
+            if (!hawkerItemMap.has(userId)) {
+              hawkerItemMap.set(userId, []);
+            }
+            hawkerItemMap.get(userId).push({
+              itemName: item.itemName,
+              imageUrl: item.imageUrl || ''
+            });
+          }
+        }
+      });
+
+      // Return matching hawkers with their matching items
+      // Match by either hawker.id (address match) or hawker.userId (item match)
+      return hawkerListings
+        .filter(hawker => matchingHawkerIds.has(hawker.id) || matchingUserIds.has(hawker.userId))
+        .map(hawker => {
+          const matchingItems = hawkerItemMap.get(hawker.userId) || [];
+          return {
+            ...hawker,
+            matchingItems: matchingItems.length > 0 ? matchingItems : undefined
+          };
+        });
+    };
+
+    // Search results
+    const searchResults = computed(() => {
+      if (!props.searchQuery || props.searchQuery.trim() === '') {
+        return null;
+      }
+      return performSearch(props.searchQuery);
     });
 
     // Helpers aligned to your schema
@@ -137,12 +230,49 @@ export default {
     const filteredHawkers = computed(() => {
       let list = (allHawkers.value || []).slice();
 
+      // Filter out hawkers with no active items
+      list = list.filter(h => hasActiveItems(h));
+
+      // Filter by price range - check if hawker has any items within price range
+      if (props.priceMax && props.priceMax < 50) {
+        list = list.filter(hawker => {
+          const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+          if (!hawkerName) return false;
+          
+          // Find items for this hawker that are within price range
+          const hawkerItems = itemListings.value.filter(item => {
+            const itemHawkerName = item.hawkerName || item.stallName;
+            const isMatchingHawker = itemHawkerName && 
+              itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+            
+            if (!isMatchingHawker || !item.makeActive) return false;
+            
+            // Check if item's discounted price is within range
+            const price = item.discountedPrice || item.itemPrice || 0;
+            return price <= props.priceMax;
+          });
+          
+          return hawkerItems.length > 0;
+        });
+      }
+
       // Filter by dietaryRestriction (string) if any selected
       if (props.dietary.length) {
+        console.log('🍽️ Dietary filter active:', props.dietary);
         list = list.filter(h => {
           const tag = getDietary(h);
-          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
+          const normalizedFilters = props.dietary.map(d => d.toString().toLowerCase().trim());
+          const matches = normalizedFilters.includes(tag);
+          
+          if (!matches) {
+            console.log(`❌ Hawker "${h.name || h.hawkerName}" dietary="${tag}" doesn't match filters:`, normalizedFilters);
+          } else {
+            console.log(`✅ Hawker "${h.name || h.hawkerName}" dietary="${tag}" MATCHES!`);
+          }
+          
+          return matches;
         });
+        console.log(`📊 After dietary filter: ${list.length} hawkers remaining`);
       }
 
       // Filter by status if any selected
@@ -150,29 +280,62 @@ export default {
         list = list.filter(h => props.status.includes(getStatus(h)));
       }
 
-      // //TODO: Add price sorting when price field is available in schema
-      // if (props.priceOrder) {
-      //   
-      // }
+      // Sort by price if priceOrder is set
+      if (props.priceOrder) {
+        list.sort((a, b) => {
+          // Get minimum price for each hawker
+          const getMinPrice = (hawker) => {
+            const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+            if (!hawkerName) return Infinity;
+            
+            const hawkerItems = itemListings.value.filter(item => {
+              const itemHawkerName = item.hawkerName || item.stallName;
+              const isMatchingHawker = itemHawkerName && 
+                itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+              return isMatchingHawker && item.makeActive;
+            });
+            
+            if (hawkerItems.length === 0) return Infinity;
+            
+            const prices = hawkerItems.map(item => item.discountedPrice || item.itemPrice || 0);
+            return Math.min(...prices);
+          };
+          
+          const priceA = getMinPrice(a);
+          const priceB = getMinPrice(b);
+          
+          return props.priceOrder === 'asc' ? priceA - priceB : priceB - priceA;
+        });
+      } else {
+        // Default sort by distance
+        list.sort((a, b) => {
+          const da = getDistance(a);
+          const db = getDistance(b);
 
-      // default sort by distance
-      const sortOrder = 'asc';
-      list.sort((a, b) => {
-        const da = getDistance(a);
-        const db = getDistance(b);
+          // handle 'N/A' distances
+          if (da === 'N/A' && db === 'N/A') return 0;
+          if (da === 'N/A') return 1;
+          if (db === 'N/A') return -1;
 
-        // handle 'N/A' distances
-        if (da === 'N/A' && db === 'N/A') return 0;
-        if (da === 'N/A') return 1;
-        if (db === 'N/A') return -1;
-
-        return sortOrder === 'asc' ? da - db : db - da;
-      })
+          return da - db;
+        });
+      }
 
       return list;
     });
 
-    return { filteredHawkers, loading, locationError };
+    // Handle image error fallback
+    const handleImageError = (event) => {
+      event.target.src = '/img/chicken_rice.jpg'; // Fallback image
+    };
+
+    return { 
+      filteredHawkers, 
+      loading, 
+      locationError,
+      searchQuery: computed(() => props.searchQuery),
+      handleImageError
+    };
   }
 };
 </script>
@@ -203,11 +366,74 @@ h2 {
   gap: 20px;
 }
 
+.hawker-result-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.matching-items {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.matching-items-header {
+  margin-bottom: 8px;
+}
+
+.matching-items-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.matching-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.matching-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.matching-item-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.matching-item-name {
+  font-size: 12px;
+  color: #555;
+  text-align: center;
+  word-break: break-word;
+  max-width: 100%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .listings-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
+  }
+  
+  .matching-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+  }
+  
+  .matching-item-image {
+    width: 70px;
+    height: 70px;
   }
 }
 

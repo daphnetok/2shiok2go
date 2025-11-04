@@ -75,6 +75,7 @@
               :src="photo"
               :alt="'Review image ' + (idx + 1)"
               class="review-media-item"
+              @click="openImageModal(photo)"
             />
             <div
               v-for="(video, idx) in getVideos(review)"
@@ -85,13 +86,24 @@
                 :ref="el => setVideoRef(el, idx)"
                 :src="video"
                 class="review-media-item review-video"
-                @click="playVideoInPictureInPicture($event)"
-                @play="hidePlayButton($event)"
-                @pause="showPlayButton($event)"
+                @click.stop="playVideoFullscreen($event)"
+                @play="expandVideoFullscreen($event)"
+                @pause="exitVideoFullscreen($event)"
+                @timeupdate="updateVideoProgress($event, idx)"
                 :data-video-index="idx"
               ></video>
-              <div class="video-icon-overlay">
+              <div class="video-icon-overlay" v-if="!isVideoFullscreen(idx)">
                 <i class="fa-solid fa-play"></i>
+              </div>
+              <!-- Fullscreen exit button -->
+              <button @click.stop="exitVideoFullscreen($event)" class="exit-fullscreen-btn" v-if="isVideoFullscreen(idx)">
+                <i class="fa-solid fa-times"></i>
+              </button>
+              <!-- Progress bar for fullscreen video -->
+              <div class="video-progress-container" v-if="isVideoFullscreen(idx)">
+                <div class="video-progress-track" @click.stop="seekVideo($event, idx)">
+                  <div class="video-progress-line" :style="{ width: getVideoProgress(idx) + '%' }"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -115,6 +127,16 @@
     </div>
     </div>
   </div>
+
+  <!-- Image Modal -->
+  <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
+    <div class="modal-content" @click.stop>
+      <img :src="selectedImage" alt="Review image" />
+      <button class="close-modal" @click="closeImageModal">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -131,6 +153,11 @@ export default {
   setup(props) {
     const reviews = ref(null);
     const allReviews = ref([]);
+    const selectedImage = ref(null);
+    const videoProgress = ref({});
+    const videoFullscreen = ref({});
+    const videoDuration = ref({});
+    const activeVideoRef = ref(null);
 
     // Computed properties
     const displayRating = computed(() => {
@@ -242,35 +269,119 @@ export default {
       }
     };
 
-    const playVideoInPictureInPicture = async (event) => {
+    const openImageModal = (imageUrl) => {
+      selectedImage.value = imageUrl;
+    };
+
+    const closeImageModal = () => {
+      selectedImage.value = null;
+    };
+
+    const playVideoFullscreen = async (event) => {
       const video = event.target;
+      const videoContainer = video.closest('.review-video-container');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       try {
-        // Play the video
-        await video.play();
-        
-        // Check if picture-in-picture is supported
-        if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
-          // Enter picture-in-picture mode
-          await video.requestPictureInPicture();
+        if (video.paused) {
+          // Expand to fullscreen before playing
+          videoContainer.classList.add('fullscreen');
+          videoFullscreen.value[videoIndex] = true;
+          activeVideoRef.value = video;
+          
+          // Set video duration
+          if (video.duration) {
+            videoDuration.value[videoIndex] = video.duration;
+          } else {
+            video.addEventListener('loadedmetadata', () => {
+              videoDuration.value[videoIndex] = video.duration;
+            }, { once: true });
+          }
+          
+          await video.play();
+          
+          // Request fullscreen API if available
+          try {
+            if (videoContainer.requestFullscreen) {
+              await videoContainer.requestFullscreen();
+            } else if (videoContainer.webkitRequestFullscreen) {
+              await videoContainer.webkitRequestFullscreen();
+            } else if (videoContainer.mozRequestFullScreen) {
+              await videoContainer.mozRequestFullScreen();
+            } else if (videoContainer.msRequestFullscreen) {
+              await videoContainer.msRequestFullscreen();
+            }
+          } catch (fsError) {
+            console.log('Fullscreen API not available, using custom fullscreen');
+          }
+        } else {
+          video.pause();
         }
       } catch (error) {
-        console.error('Error playing video in picture-in-picture:', error);
-        // Fallback: just try to play the video
-        try {
-          await video.play();
-        } catch (playError) {
-          console.error('Error playing video:', playError);
-        }
+        console.error('Error playing video:', error);
       }
     };
 
-    const hidePlayButton = (event) => {
-      event.target.classList.add('playing');
+    const expandVideoFullscreen = (event) => {
+      const video = event.target;
+      const videoContainer = video.closest('.review-video-container');
+      videoContainer.classList.add('playing');
     };
 
-    const showPlayButton = (event) => {
-      event.target.classList.remove('playing');
+    const exitVideoFullscreen = (event) => {
+      event.stopPropagation();
+      const video = event.target.closest('.review-video-container')?.querySelector('video') || 
+                   event.target.querySelector('video') || 
+                   activeVideoRef.value;
+      
+      if (!video) return;
+      
+      const videoContainer = video.closest('.review-video-container');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
+      
+      video.pause();
+      videoContainer.classList.remove('playing');
+      videoContainer.classList.remove('fullscreen');
+      videoFullscreen.value[videoIndex] = false;
+      activeVideoRef.value = null;
+      
+      // Exit browser fullscreen if active
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else if (document.webkitFullscreenElement) {
+        document.webkitExitFullscreen();
+      } else if (document.mozFullScreenElement) {
+        document.mozCancelFullScreen();
+      } else if (document.msFullscreenElement) {
+        document.msExitFullscreen();
+      }
+    };
+
+    const isVideoFullscreen = (index) => {
+      return videoFullscreen.value[index] === true;
+    };
+
+    const updateVideoProgress = (event, index) => {
+      const video = event.target;
+      if (video.duration) {
+        const progress = (video.currentTime / video.duration) * 100;
+        videoProgress.value[index] = progress;
+      }
+    };
+
+    const getVideoProgress = (index) => {
+      return videoProgress.value[index] || 0;
+    };
+
+    const seekVideo = (event, index) => {
+      const video = videoRefs.value[index] || activeVideoRef.value;
+      if (!video || !video.duration) return;
+      
+      const progressTrack = event.currentTarget;
+      const rect = progressTrack.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const percentage = clickX / rect.width;
+      video.currentTime = percentage * video.duration;
     };
 
     // Watch for hawker changes
@@ -297,9 +408,16 @@ export default {
       getVideos,
       getItemNames,
       setVideoRef,
-      playVideoInPictureInPicture,
-      hidePlayButton,
-      showPlayButton
+      selectedImage,
+      openImageModal,
+      closeImageModal,
+      playVideoFullscreen,
+      expandVideoFullscreen,
+      exitVideoFullscreen,
+      isVideoFullscreen,
+      updateVideoProgress,
+      getVideoProgress,
+      seekVideo
     };
   }
 };
