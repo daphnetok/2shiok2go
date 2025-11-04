@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch, onBeforeUnmount } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
 import LocationModal from '../BottomSheet/BottomSheet.vue';
 import { useLoadHawkers } from '/firebase/firestore';
@@ -16,7 +16,7 @@ export default {
   props: {
     priceOrder: {
       type: String,
-      default: null // 'asc' | 'desc' | null
+      default: null
     },
     dietary: {
       type: Array,
@@ -31,14 +31,14 @@ export default {
     const { userLocation, locationError, getUserLocation } = useGeolocation();
     const hawkersRef = ref(null);
     const ROAD_FACTOR = 1.1; 
-    const formattedAddress = ref(''); // Selected location address (changes)
-    const currentGPSAddress = ref(''); // GPS location address (fixed unless GPS refreshes)
+    const formattedAddress = ref('');
+    const currentGPSAddress = ref('');
     const isLoadingAddress = ref(false);
     const isModalOpen = ref(false);
     const route = useRoute();
     const router = useRouter();
+    const isMounted = ref(true);
 
-    // FIX #2 & #3: Check for newLocationId FIRST, then get GPS if not found
     onMounted(async () => {
       // Check for newLocationId first
       if (route.query.newLocationId) {
@@ -59,9 +59,8 @@ export default {
                 };
                 formattedAddress.value = newLoc.formattedAddress;
                 
-                // FIX #3: Clear the query param
                 router.replace({ query: {} });
-                return; // EXIT EARLY - don't call getUserLocation
+                return;
               }
             }
           }
@@ -74,11 +73,9 @@ export default {
       await getUserLocation();
     })
 
-    // FIX #8 & #16: Handle null location and skip reverseGeocode if address already set
     watch(
       userLocation,
       async (newLocation) => {
-        // FIX #8: Check for null location
         if (!newLocation) {
           hawkersRef.value = null;
           return;
@@ -87,19 +84,18 @@ export default {
         hawkersRef.value = useLoadHawkers(newLocation);
         console.log(newLocation);
 
-        if (newLocation.latitude && newLocation.longitude) {
-          // FIX #16: Only fetch address if we don't already have it
-          if (!formattedAddress.value || formattedAddress.value === 'Loading...') {
+        if (newLocation?.latitude && newLocation?.longitude) {
+          // HIGH #1 FIX: Explicit check for empty/Loading state
+          if (!formattedAddress.value || 
+              formattedAddress.value.trim() === '' || 
+              formattedAddress.value === 'Loading...') {
             isLoadingAddress.value = true;
             const address = await reverseGeocode(
               newLocation.latitude,
               newLocation.longitude
             );
             formattedAddress.value = address;
-            
-            // NEW: Also set GPS address (this is the user's physical location)
             currentGPSAddress.value = address;
-            
             isLoadingAddress.value = false;
           }
         }
@@ -108,8 +104,6 @@ export default {
 
     const allHawkers = computed(() => {
       const hawkers = hawkersRef.value?.value || [];
-
-      // apply road factor to all distances
       return hawkers.map(hawker => ({
         ...hawker,
         distance: hawker.distance && hawker.distance != 'N/A'
@@ -122,7 +116,6 @@ export default {
       return hawkersRef.value?.value === null
     });
 
-    // ✨ NEW: Helper functions
     const getDietary = (h) => {
       return (h.dietaryRestriction ?? '').toString().toLowerCase().trim();
     };
@@ -169,11 +162,9 @@ export default {
       }
     };
 
-    // filteredHawkers computed
     const filteredHawkers = computed(() => {
       let list = (allHawkers.value || []).slice();
 
-      // Filter by dietaryRestriction
       if (props.dietary.length) {
         list = list.filter(h => {
           const tag = getDietary(h);
@@ -181,17 +172,10 @@ export default {
         });
       }
 
-      // Filter by status
       if (props.status && props.status.length) {
         list = list.filter(h => props.status.includes(getStatus(h)));
       }
 
-      // //TODO: Add price sorting when price field is available in schema
-      // if (props.priceOrder) {
-      //   
-      // }
-
-      // default sort by distance
       const sortOrder = 'asc';
       list.sort((a, b) => {
         const da = getDistance(a);
@@ -213,27 +197,39 @@ export default {
 
     const handleLocationSelected = async (locationData) => {
       if (locationData.type === 'current') {
-        // fetch fresh gps coords
-        await getUserLocation();
-        // Reset formattedAddress to GPS address
-        formattedAddress.value = currentGPSAddress.value;
+        // Set to Loading... FIRST so watch runs reverseGeocode
+        formattedAddress.value = 'Loading...';
+        isLoadingAddress.value = true;
+        
+        try {
+          await getUserLocation();
+          // Watch will update both formattedAddress and currentGPSAddress
+        } catch (err) {
+          formattedAddress.value = currentGPSAddress.value || 'Location unavailable';
+          console.error('Failed to get GPS:', err);
+        } finally {
+          isLoadingAddress.value = false;
+        }
       } else if (locationData.type === 'saved') {
-        // Update userLocation with saved location coordinates
         userLocation.value = {
           latitude: locationData.data.latitude,
           longitude: locationData.data.longitude
         };
-        // Update ONLY formattedAddress (not currentGPSAddress)
         formattedAddress.value = locationData.data.formattedAddress;
       }
     };
+
+    // HIGH #2 FIX: Cleanup on unmount
+    onBeforeUnmount(() => {
+      isMounted.value = false;
+    });
 
     return {
       filteredHawkers,
       loading,
       locationError,
-      formattedAddress, // For "Near Me" header
-      currentGPSAddress, // NEW: For "current location" radio option
+      formattedAddress,
+      currentGPSAddress,
       isLoadingAddress,
       isModalOpen,
       toggleModal,

@@ -215,13 +215,15 @@ export default {
           return;
         }
 
-        // FIX #4: Check for duplicate locations
+        const COORDINATE_THRESHOLD = 0.0001; // ~11 meters
         const existingLocations = userDoc.data().savedLocations || [];
-        const isDuplicate = existingLocations.some(loc => 
-          (loc.latitude === currentCoords.value.lat && 
-           loc.longitude === currentCoords.value.lng) ||
-          loc.customName.toLowerCase().trim() === formData.name.toLowerCase().trim()
-        );
+        const isDuplicate = existingLocations.some(loc => {
+            const latMatch = Math.abs(loc.latitude - currentCoords.value.lat) < COORDINATE_THRESHOLD;
+            const lngMatch = Math.abs(loc.longitude - currentCoords.value.lng) < COORDINATE_THRESHOLD;
+            const nameMatch = loc.customName.toLowerCase().trim() === formData.name.toLowerCase().trim();
+            
+            return (latMatch && lngMatch) || nameMatch;
+        });
 
         if (isDuplicate) {
           saveError.value = 'A location with this name or coordinates already exists';
