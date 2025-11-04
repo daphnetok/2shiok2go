@@ -73,14 +73,40 @@
       </div>
 
       <div class="row mt-4">
-        <h4>Available Listings</h4>
+        <div class="d-flex justify-content-between align-items-center w-100 mb-3">
+          <h4 class="mb-0">Available Listings</h4>
+          <div class="small-search-container">
+            <div class="small-search-box">
+              <i class="fa-solid fa-search small-search-icon"></i>
+              <input 
+                type="text" 
+                placeholder="search for food item" 
+                class="small-search-input" 
+                v-model="localSearchQuery"
+                @input="handleSearch"
+              />
+              <button 
+                v-if="localSearchQuery" 
+                @click="clearSearch" 
+                class="small-clear-search-btn"
+                type="button"
+                aria-label="Clear search"
+              >
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
         
         <div v-if="loading">Loading available listings...</div>
         
-        <div v-else-if="foodItems.length === 0">No food listings available for this stall.</div>
+        <div v-else-if="filteredFoodItems.length === 0">
+          <div v-if="searchQuery">No food items found matching "{{ searchQuery }}"</div>
+          <div v-else>No food listings available for this stall.</div>
+        </div>
 
         <div v-else class="row">
-          <div v-for="item in foodItems" :key="item.id" class="col-md-4">
+          <div v-for="item in filteredFoodItems" :key="item.id" class="col-md-4">
             <div class="listing-card" @click="openItemModal(item)">
               <div class="img-container">
                 <ImageWithLoader 
