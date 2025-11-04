@@ -22,6 +22,12 @@
               <span>Analytics</span>
             </a>
           </li>
+          <li class="tab-item" style="padding:0">
+            <router-link to="/edit-form" class="tab-link">
+              <i class="fas fa-file-edit"></i>
+              <span>Edit My Form</span>
+            </router-link>
+          </li>
         </ul>
       </nav>
     </div>
