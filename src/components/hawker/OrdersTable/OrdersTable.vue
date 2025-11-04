@@ -216,11 +216,12 @@
               :key="index"
               class="order-item"
             >
-              <img 
+              <ImageWithLoader
                 v-if="item.imageUrl" 
                 :src="item.imageUrl" 
                 :alt="item.itemName"
-                class="item-image"
+                image-class="item-image"
+                error-icon="fas fa-utensils"
               />
               <div class="item-details">
                 <span class="item-name">{{ item.itemName }}</span>

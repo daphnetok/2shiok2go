@@ -108,12 +108,12 @@
                   <h6 class="mb-2" style="font-size: 0.9rem; font-weight: 600; color: #059669;">Order Items:</h6>
                   <div class="items-grid">
                     <div v-for="(item, idx) in order.items" :key="idx" class="item-card">
-                      <img 
+                      <ImageWithLoader
                         v-if="item.imageUrl || item.image" 
                         :src="item.imageUrl || item.image" 
                         :alt="item.itemName || item.name"
-                        class="item-image"
-                        @error="handleImageError"
+                        image-class="item-image"
+                        error-icon="fas fa-utensils"
                       />
                       <div v-else class="item-image-placeholder">
                         <i class="fas fa-utensils"></i>
@@ -201,10 +201,11 @@ import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
 
 export default {
   name: 'BuyerRecentOrders',
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, ImageWithLoader },
   setup() {
     const router = useRouter()
     const isDarkMode = ref(false)

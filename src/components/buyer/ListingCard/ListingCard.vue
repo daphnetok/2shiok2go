@@ -11,7 +11,11 @@
     <div class="card mb-3">
       <!-- Image Container with Overlay -->
       <div class="image-container">
-        <img :src="hawker.imageUrl" class="card-img-top" :alt="hawker.hawkerName">
+        <ImageWithLoader 
+          :src="hawker.imageUrl" 
+          :alt="hawker.hawkerName"
+          image-class="card-img-top"
+        />
         <div class="image-overlay">
           <span class="view-menu-badge">View Menu</span>
         </div>
@@ -60,8 +64,11 @@
 </template>
 
 <script>
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
+
 export default {
   name: 'ListingCard',
+  components: { ImageWithLoader },
   props: {
     hawker: {
       type: Object,

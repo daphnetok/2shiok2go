@@ -13,10 +13,11 @@ import {
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: 'OrdersManagement',
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, ImageWithLoader },
   setup() {
     const auth = getAuth();
     const activeTab = ref('today');

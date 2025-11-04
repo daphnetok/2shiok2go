@@ -6,12 +6,14 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: "StallListings",
   components: {
     ReviewsSection,
-    LoadingSpinner
+    LoadingSpinner,
+    ImageWithLoader
   },
   methods: {
     isDiscountApplied() {

@@ -5,10 +5,11 @@ import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, a
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: 'ShoppingCart',
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, ImageWithLoader },
   setup() {
     const router = useRouter();
     const auth = getAuth();

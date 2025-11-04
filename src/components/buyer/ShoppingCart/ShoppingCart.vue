@@ -86,7 +86,11 @@
                     <label :for="`checkbox-${item.itemId}`" class="checkbox-label"></label>
                   </div>
                   <div class="item-image">
-                    <img :src="item.imageUrl || require('../../assets/img/stall.jpg')" :alt="item.itemName"/>
+                    <ImageWithLoader 
+                      :src="item.imageUrl || require('../../assets/img/stall.jpg')" 
+                      :alt="item.itemName"
+                      error-icon="fas fa-utensils"
+                    />
                   </div>
                   <div class="item-details">
                     <h3 class="item-name">
