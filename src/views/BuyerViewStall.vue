@@ -2,27 +2,29 @@
   
   <div class="container">
         <div class="row">
-            <SearchBar/>
-        </div>
-        <div class="row">
-            <StallListing/>
+            <StallListing :search-query="searchQuery" @search="handleSearch"/>
         </div>
   </div>
 
 </template>
 
 <script>
-// Import the FilterBar component
-import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
-import SearchBar from '../components/shared/SearchBar.vue';
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
 
 export default { 
   name: "BuyerListings",
   components: {
-    FilterBar,
-    SearchBar,
     StallListing,
+  },
+  data() {
+    return {
+      searchQuery: ''
+    };
+  },
+  methods: {
+    handleSearch(query) {
+      this.searchQuery = query;
+    }
   }
 };
 </script>
