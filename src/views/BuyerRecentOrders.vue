@@ -24,17 +24,18 @@
         <!-- Header with Theme Toggle -->
         <div class="container-fluid" style="padding-left: 3rem; padding-right: 3rem; padding-top: 2rem; padding-bottom: 1rem;">
           <div class="row mb-4 align-items-center">
-            <div class="col-auto">
-              <h2 class="mb-0 fw-bold d-flex align-items-center" style="color: #059669;">
+            <div class="col-12 col-lg-8 mb-3 mb-lg-0 text-center text-lg-start">
+              <h2 class="mb-0 fw-bold d-flex align-items-center justify-content-center justify-content-lg-start" style="color: #059669;">
                 <i class="fas fa-shopping-bag" style="font-size: 2rem; margin-right: 0.75rem;"></i>
                 Recent Orders
               </h2>
               <p class="mb-0 mt-2 text-muted">Track your food rescue orders</p>
             </div>
-            <div class="col text-end">
-              <button class="btn btn-outline-secondary" style="border-radius: 8px;" @click="toggleTheme">
+            <div class="col-12 col-lg-4 text-center text-lg-end">
+              <button class="btn btn-outline-secondary no-print" style="border-radius: 8px;" @click="toggleTheme">
                 <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
-                {{ isDarkMode ? 'Light' : 'Dark' }} Mode
+                <span class="d-none d-sm-inline">{{ isDarkMode ? 'Light' : 'Dark' }} Mode</span>
+                <span class="d-sm-none">Theme</span>
               </button>
             </div>
           </div>
@@ -103,6 +104,32 @@
               </div>
               
               <div class="order-body">
+                <!-- Order Items with Images -->
+                <div class="order-items mb-3" v-if="order.items && order.items.length > 0">
+                  <h6 class="mb-2" style="font-size: 0.9rem; font-weight: 600; color: #059669;">Order Items:</h6>
+                  <div class="items-grid">
+                    <div v-for="(item, idx) in order.items" :key="idx" class="item-card">
+                      <img 
+                        v-if="item.imageUrl || item.image" 
+                        :src="item.imageUrl || item.image" 
+                        :alt="item.itemName || item.name"
+                        class="item-image"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="item-image-placeholder">
+                        <i class="fas fa-utensils"></i>
+                      </div>
+                      <div class="item-info">
+                        <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
+                        <div class="item-details">
+                          <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
+                          <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="order-details">
                   <div class="detail-row">
                     <span class="detail-label">
@@ -112,13 +139,7 @@
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">
-                      <i class="fas fa-utensils me-2"></i>Items:
-                    </span>
-                    <span class="detail-value">{{ getItemsList(order.items) }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="detail-label">
-                      <i class="fas fa-box me-2"></i>Quantity:
+                      <i class="fas fa-box me-2"></i>Total Items:
                     </span>
                     <span class="detail-value">{{ getTotalQuantity(order.items) }} item(s)</span>
                   </div>
@@ -126,18 +147,22 @@
                     <span class="detail-label">
                       <i class="fas fa-clock me-2"></i>Pickup Time:
                     </span>
-                    <span class="detail-value">{{ order.pickupTime || 'To be confirmed' }}</span>
+                    <span class="detail-value">{{ order.pickupTime || order.time || 'To be confirmed' }}</span>
                   </div>
                 </div>
                 
                 <div class="order-summary">
                   <div class="summary-row">
                     <span class="summary-label">Subtotal:</span>
-                    <span class="summary-value">${{ order.subtotal?.toFixed(2) || '0.00' }}</span>
+                    <span class="summary-value">${{ formatPrice(calculateSubtotal(order.items)) }}</span>
+                  </div>
+                  <div class="summary-row" v-if="order.discount && order.discount > 0">
+                    <span class="summary-label">Discount:</span>
+                    <span class="summary-value text-success">-${{ formatPrice(order.discount) }}</span>
                   </div>
                   <div class="summary-row total-row">
                     <span class="summary-label fw-bold">Total Amount:</span>
-                    <span class="summary-value total-amount">${{ order.totalAmount?.toFixed(2) || '0.00' }}</span>
+                    <span class="summary-value total-amount">${{ formatPrice(calculateTotal(order)) }}</span>
                   </div>
                 </div>
               </div>
@@ -152,7 +177,14 @@
                         @click="cancelOrder(order.id)">
                   <i class="fas fa-times me-2"></i>Cancel Order
                 </button>
-                <button class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">
+                <button class="btn btn-outline-success btn-sm" 
+                        style="border-radius: 8px;"
+                        @click="contactSupport(order.id)">
+                  <i class="fas fa-headset me-2"></i>Contact Us
+                </button>
+                <button class="btn btn-outline-primary btn-sm" 
+                        style="border-radius: 8px;"
+                        @click="viewOrderDetails(order.id)">
                   <i class="fas fa-info-circle me-2"></i>View Details
                 </button>
               </div>
@@ -166,12 +198,14 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 
 export default {
   name: 'BuyerRecentOrders',
   setup() {
+    const router = useRouter()
     const isDarkMode = ref(false)
     const loading = ref(true)
     const orders = ref([])
@@ -225,6 +259,17 @@ export default {
       try {
         loading.value = true
         const fetchedOrders = await getOrdersByUser(currentUserId.value, 'buyer')
+        console.log('Fetched orders:', fetchedOrders)
+        
+        // Log first order to see data structure
+        if (fetchedOrders.length > 0) {
+          console.log('Sample order:', fetchedOrders[0])
+          console.log('Sample order items:', fetchedOrders[0].items)
+          console.log('Calculated subtotal:', calculateSubtotal(fetchedOrders[0].items))
+          console.log('Discount:', fetchedOrders[0].discount)
+          console.log('Calculated total:', calculateTotal(fetchedOrders[0]))
+        }
+        
         orders.value = fetchedOrders
       } catch (error) {
         console.error('Error fetching orders:', error)
@@ -257,6 +302,48 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    }
+
+    // Format price
+    const formatPrice = (price) => {
+      if (price === null || price === undefined) return '0.00'
+      const numPrice = typeof price === 'number' ? price : parseFloat(price) || 0
+      return numPrice.toFixed(2)
+    }
+
+    // Calculate subtotal from items
+    const calculateSubtotal = (items) => {
+      if (!items || items.length === 0) return 0
+      return items.reduce((sum, item) => {
+        // Try itemTotal first (pre-calculated), then calculate from price * quantity
+        let itemTotal = 0
+        if (item.itemTotal !== undefined) {
+          itemTotal = parseFloat(item.itemTotal) || 0
+        } else if (item.itemPrice !== undefined) {
+          itemTotal = (parseFloat(item.itemPrice) || 0) * (parseInt(item.qty) || parseInt(item.quantity) || 1)
+        } else {
+          itemTotal = (parseFloat(item.price) || 0) * (parseInt(item.qty) || parseInt(item.quantity) || 1)
+        }
+        return sum + itemTotal
+      }, 0)
+    }
+
+    // Calculate total with discount
+    const calculateTotal = (order) => {
+      if (order.totalAmount !== undefined) return order.totalAmount
+      if (order.total !== undefined) return order.total
+      
+      const subtotal = order.subtotal || calculateSubtotal(order.items)
+      const discount = parseFloat(order.discount) || 0
+      return subtotal - discount
+    }
+
+    // Handle image error
+    const handleImageError = (event) => {
+      event.target.style.display = 'none'
+      if (event.target.nextElementSibling) {
+        event.target.nextElementSibling.style.display = 'flex'
+      }
     }
 
     // Get items list
@@ -301,6 +388,19 @@ export default {
       localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
     }
 
+    // View order details - navigate to receipt page
+    const viewOrderDetails = (orderId) => {
+      router.push({ name: 'OrderReceipt', params: { orderId } })
+    }
+
+    // Contact support - navigate to support form with order ID
+    const contactSupport = (orderId) => {
+      router.push({ 
+        name: 'ContactSupport', 
+        query: { orderId: orderId }
+      })
+    }
+
     // Initialize
     onMounted(() => {
       // Check saved theme
@@ -333,7 +433,13 @@ export default {
       filteredOrders,
       toggleTheme,
       cancelOrder,
+      viewOrderDetails,
+      contactSupport,
       formatDate,
+      formatPrice,
+      calculateSubtotal,
+      calculateTotal,
+      handleImageError,
       getItemsList,
       getTotalQuantity,
       getStatusClass,
@@ -350,10 +456,8 @@ export default {
 .buyer-dashboard-wrapper {
   display: flex;
   min-height: 100vh;
-}
-
-.buyer-dashboard-wrapper.dark-theme {
-  background: #0f172a;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 /* Sidebar - Matching FilterBar Style */
@@ -453,14 +557,17 @@ export default {
 .main-content {
   flex: 1;
   overflow-y: auto;
+  background: transparent;
 }
 
 .recent-orders-page {
   min-height: 100vh;
+  background: transparent;
+  padding-bottom: 2rem;
 }
 
 .recent-orders-page.dark-theme {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: transparent;
   color: #e2e8f0;
 }
 
@@ -665,9 +772,109 @@ export default {
 /* Order Body */
 .order-body {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Order Items Grid */
+.order-items {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark-mode-card .order-items {
+  border-bottom-color: #374151;
+}
+
+.items-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.item-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.dark-mode-card .item-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.item-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.item-image,
+.item-image-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.item-image-placeholder {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark-mode-card .item-name {
+  color: #f9fafb;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.item-quantity {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.dark-mode-card .item-quantity {
+  color: #9ca3af;
+}
+
+.item-price {
+  color: #059669;
+  font-weight: 700;
+}
+
+.dark-mode-card .item-price {
+  color: #10b981;
 }
 
 .order-details {
@@ -776,30 +983,69 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .buyer-dashboard-wrapper {
     flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
-    height: auto;
-    position: relative;
+    margin: 0;
+    border-radius: 0;
+    position: static;
+    max-height: none;
+    padding: 12px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .sidebar-nav {
     flex-direction: row;
+    justify-content: space-between;
     overflow-x: auto;
+    gap: 0;
+    padding: 0;
   }
 
   .nav-item {
-    border-left: none;
+    flex-direction: column;
+    padding: 12px 8px;
+    min-width: 0;
+    flex: 1;
+    text-align: center;
+    gap: 6px;
+    border-radius: 0;
+    margin: 0;
+    border: none;
     border-bottom: 3px solid transparent;
   }
 
+  .nav-item span {
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+
+  .nav-item i {
+    font-size: 1.25rem;
+    margin: 0;
+    width: auto;
+  }
+
   .nav-item.active {
-    border-left: none;
+    border-bottom: 3px solid #388e3c;
+    border-radius: 0;
+  }
+
+  .dark-sidebar .nav-item.active {
     border-bottom-color: #10b981;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+  
+  .container-fluid {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
   }
 
   .order-body {
@@ -809,6 +1055,7 @@ export default {
   .filter-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
 
   .filter-group {
@@ -818,6 +1065,120 @@ export default {
 
   .filter-select {
     width: 100%;
+  }
+  
+  .container-fluid {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .order-footer {
+    flex-direction: column;
+  }
+  
+  .order-footer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .sidebar {
+    padding: 10px 0;
+  }
+  
+  .nav-item {
+    padding: 10px 4px;
+    gap: 4px;
+  }
+  
+  .nav-item span {
+    font-size: 0.65rem;
+  }
+  
+  .nav-item i {
+    font-size: 1rem;
+  }
+  
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .order-card {
+    margin-bottom: 1rem;
+  }
+
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .item-card {
+    flex-direction: row;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print,
+  .sidebar,
+  .btn,
+  button,
+  .filter-card {
+    display: none !important;
+  }
+  
+  .buyer-dashboard-wrapper,
+  .buyer-dashboard-wrapper.dark-theme {
+    display: block !important;
+    background: white !important;
+  }
+  
+  .main-content {
+    width: 100% !important;
+  }
+  
+  .recent-orders-page,
+  .recent-orders-page.dark-theme {
+    background: white !important;
+    color: black !important;
+  }
+  
+  h2,
+  .dark-theme h2 {
+    color: #059669 !important;
+  }
+  
+  .order-card,
+  .order-card.dark-mode-card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    page-break-inside: avoid;
+  }
+  
+  .order-header,
+  .dark-theme .order-header {
+    background: #f0fdf4 !important;
+    border-bottom: 1px solid #bbf7d0 !important;
+  }
+  
+  .order-body,
+  .order-footer {
+    background: white !important;
+  }
+  
+  .text-muted,
+  .dark-theme .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 </style>

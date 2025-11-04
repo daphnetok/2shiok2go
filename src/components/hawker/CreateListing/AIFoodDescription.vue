@@ -8,31 +8,27 @@
         v-model="localDescription"
         @input="updateParent"
         rows="4"
-        placeholder="Write your own description or click on the button below for AI to generate a description of your dish..."
+        placeholder="Add a short description of your dish"
         :disabled="isGenerating"
       ></textarea>
       <div class="m-0">
         <button
         type="button"
-        class="btn btn-outline-primary btn-sm mb-2 mx-0"
+        class="generate-btn"
         id="generateDescBtn"
         @click="generateDescription"
         :disabled="!canGenerate || isGenerating"
         >
-          {{ isGenerating ? "Generating..." : "Generate AI Description ✨" }}
+          {{ isGenerating ? "Generating..." : "✨ Generate AI Description" }}
         </button>
-        <small class="text-muted d-block">
+        <!-- <small id="hints" class="text-muted d-block">
             <span v-if="!selectedFile">Upload an image first</span>
             <span v-else-if="!foodName">Enter food name to generate description</span>
-            <span v-else>✨ Click the button above to generate an AI description</span>
-        </small>
+            <span v-else>Click the button above to generate an AI description</span>
+        </small> -->
       </div>
       
     </div>
-
-    
-
-    
   </div>
 </template>
 
@@ -47,19 +43,21 @@ const props = defineProps({
   selectedFile: File,
   foodName: String,
   description: String,
+  imageUrl: String
 });
 const emit = defineEmits(["update:description"]);
 
 const localDescription = ref(props.description || "");
 const isGenerating = ref(false);
 
+const canGenerate =ref(false);
 watch(
-  () => props.description,
-  (newVal) => (localDescription.value = newVal)
-);
-
-const canGenerate = computed(
-  () => props.selectedFile && props.foodName?.trim().length > 0
+  () => [props.foodName, props.selectedFile, props.imageUrl],
+  ([newName, newFile, newImage]) => {
+    // enable if there’s a food name + (either an uploaded file or an image url)
+    canGenerate.value = !!newName && (!!newFile || !!newImage);
+  },
+  { immediate: true }
 );
 
 const updateParent = () => emit("update:description", localDescription.value);
@@ -99,7 +97,7 @@ const generateDescription = async () => {
         1. Describes the key ingredients visible in the photo
         2. Mentions the cooking style or preparation method
         3. Highlights what makes this dish appealing and delicious
-        4. Uses descriptive words that make customers want to order it
+        4. Appeals to Singaporeans
 
         Keep the total description under 200 characters. Make it sound delicious and inviting.`,
     },

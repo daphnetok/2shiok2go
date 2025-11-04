@@ -1,5 +1,5 @@
 import { reactive, ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue';
-import { createListing } from '/firebase/firestore';
+import { createListing, updateListing } from '/firebase/firestore';
 import { uploadImage } from '/firebase/storage';
 import { 
   alert, 
@@ -14,6 +14,7 @@ import AIFoodDescription from './AIFoodDescription.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
 import { getDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
@@ -42,6 +43,9 @@ export default {
     const isHawker = computed(() => userRole.value === 'hawker');
     const hawkerListings = ref([]);
     const selectedListing = ref("all");
+    const selectedListings = ref([]);
+    const selectAll = ref(false);
+    const router = useRouter();
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -113,6 +117,7 @@ export default {
       };
       
       await createListing(listingData);
+      await applyDiscountTime(); // Apply discount time to selected listings right after creating
       showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
       resetForm();
     } catch (error) {
@@ -134,7 +139,7 @@ export default {
       form.tags = [];
       form.makeActive = false;
       selectedFile.value = null;
-      form.discountTime = null;
+      form.description = "";
       previewSelectedFileSRC.value = "";
       if (fileInput.value) {
         fileInput.value = "";
@@ -151,8 +156,15 @@ export default {
     });
 
     const goToHome = () => {
-      closeAlert();
+      this.closeAlert();
+      this.$router.push('/hawker-dashboard');
     };
+    // handleBackdropClick = () => {
+    //   // Only close on backdrop click for success/error, not confirmation
+    //   if (this.alert.type !== 'confirmation' && this.alert.type !== 'redirect') {
+    //     this.closeAlert();
+    //   }
+    // }
 
     const createNewListing = () => {
       closeAlert();
@@ -207,9 +219,9 @@ export default {
           return;
         }
         const listingsToUpdate =
-          selectedListing.value === 'all'
-            ? userListings.value
-            : userListings.value.filter(l => l.id === selectedListing.value);
+          selectAll.value
+            ? userListings.value // if "All My Listings" is checked
+            : userListings.value.filter(l => selectedListings.value.includes(l.id));
 
         for (const listing of listingsToUpdate) {
           await updateListing(listing.id, { discountTime: form.discountTime });
@@ -221,13 +233,22 @@ export default {
         showAlert('error', 'Failed to apply discount time. Please try again.');
       }
     };
+
     const toggleSelectAll = () => {
+      // Get all checkbox IDs from userListings
+      const allIds = userListings.value.map((l) => l.id);
+
+      // If selectAll is true, mark all as checked
       if (selectAll.value) {
-        userListings.value = listings.value.map((l) => l.id)
+        selectedListings.value = [...allIds];  // “checkbox.checked = true”
       } else {
-        userListings.value = []
+        selectedListings.value = [];           // uncheck all
       }
-    }
+    };
+
+    const goBack = () => {
+      router.go(-1);
+    };
 
     return {
       form,
@@ -257,7 +278,10 @@ export default {
       selectedListing,
       applyDiscountTime,
       toggleSelectAll,
-      userListings
+      userListings,
+      selectedListings,
+      selectAll,
+      goBack
     };
   },
   components : {AIFoodDescription}

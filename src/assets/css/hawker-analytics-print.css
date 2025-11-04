@@ -1,0 +1,224 @@
+/* ============================================
+   HAWKER ANALYTICS - PRINT STYLES (LANDSCAPE)
+   ============================================ */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm 1.5cm;
+  }
+  
+  .no-print, .btn-theme, .btn-group, button, .btn { display: none !important; }
+  
+  .hawker-analytics {
+    background: white !important;
+    color: #1f2937 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    page-break-before: avoid !important;
+  }
+  
+  .container-fluid {
+    padding: 0.4rem 0.6rem !important;
+    max-width: 100% !important;
+    page-break-before: avoid !important;
+  }
+  
+  .hawker-analytics.dark-theme {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Profile Card */
+  .hawker-profile-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    border-radius: 12px !important;
+    padding: 0.85rem 1rem !important;
+    margin-bottom: 0.6rem !important;
+    page-break-inside: avoid;
+    page-break-before: avoid;
+  }
+  
+  /* Make profile card text a dark emerald that matches the theme but contrasts the white overlay */
+  .hawker-profile-card * { color: #064e3b !important; }
+  
+  .dark-theme .hawker-profile-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+    border: 2px solid #34d399 !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4) !important;
+  }
+  
+  .dark-theme .hawker-profile-card h2,
+  .dark-theme .hawker-profile-card h3,
+  .dark-theme .hawker-profile-card h4,
+  .dark-theme .hawker-profile-card h5 {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .dark-theme .info-chip {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .dark-theme .profile-icon {
+    background: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Make sure greeting/profile text is solid and readable in print
+     (override any background-clip or transparent text techniques) */
+  .hawker-profile-card .greeting-text,
+  .hawker-profile-card h2,
+  .hawker-profile-card h3,
+  .hawker-profile-card h4,
+  .hawker-profile-card h5,
+  .hawker-profile-card p,
+  .hawker-profile-card span {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+  -webkit-text-fill-color: #064e3b !important;
+  color: #064e3b !important;
+    font-weight: 600 !important;
+    /* subtle lift to separate from the background if needed */
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6) !important;
+  }
+
+  /* Special-case greeting to avoid clipped gradients printing as transparent */
+  .hawker-profile-card .greeting-text {
+    -webkit-text-fill-color: #064e3b !important;
+    color: #064e3b !important;
+    background: transparent !important;
+    -webkit-background-clip: border-box !important;
+    background-clip: border-box !important;
+    font-weight: 700 !important;
+  }
+
+  /* --------------------------------------
+     Print-only semi-opaque overlay
+     Ensures profile text remains readable regardless of gradients
+     and browser print quirks (bulletproof safety).
+     The pseudo-element sits above the background but under content.
+     -------------------------------------- */
+  .hawker-profile-card {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .hawker-profile-card::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    /* Use a lightening overlay so black text prints well against dark gradients */
+    background: rgba(255, 255, 255, 0.6) !important; /* tweak opacity if needed */
+    z-index: 0 !important;
+    border-radius: 12px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    pointer-events: none !important;
+  }
+
+  /* Ensure content sits above the overlay */
+  .hawker-profile-card > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Stat Cards */
+  .stat-card {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+    border-radius: 10px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    padding: 0.75rem 0.85rem !important;
+  }
+  
+  .stat-card * { color: white !important; }
+  .stat-card:hover { transform: none !important; }
+  .stat-card h3 { font-size: 1.3rem !important; line-height: 1.2 !important; margin-bottom: 0.2rem !important; }
+  .stat-card p { font-size: 0.65rem !important; line-height: 1.3 !important; margin-bottom: 0.15rem !important; }
+  
+  /* Force 2x2 grid for stat cards in print */
+  .row:has(.stat-card) .col-6,
+  .row:has(.stat-card) .col-sm-6,
+  .row:has(.stat-card) .col-md-3,
+  .row:has(.stat-card) .col-lg-3 {
+    width: 50% !important;
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Keep stat cards on page 1 with profile card */
+  .row:has(.stat-card) {
+    page-break-after: page;
+    page-break-inside: avoid;
+    page-break-before: avoid;
+    margin-bottom: 0.5rem !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .stat-card-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; }
+  .stat-card-info { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important; }
+  .stat-card-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; }
+  .stat-card-primary { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important; }
+  
+  /* Charts - 2x2 Grid */
+  .row:has(.col-lg-6) {
+    page-break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+    page-break-after: avoid;
+  }
+  
+  .row:has(.col-lg-6) .col-lg-6,
+  .row:has(.col-lg-6) .col-md-6,
+  .row:has(.col-lg-6) .col-12 {
+    width: 50% !important;
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+  
+  .card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    page-break-inside: avoid;
+    margin-bottom: 0.6rem !important;
+    border-radius: 12px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .dark-theme .card { background: #1e293b !important; border: 1px solid #334155 !important; }
+  
+  .card-header { padding: 0.6rem 0.85rem !important; }
+  .card-header h5, .card-header h6 { font-size: 0.95rem !important; color: #059669 !important; }
+  .dark-theme .card-header h5, .dark-theme .card-header h6 { color: #10b981 !important; }
+  
+  .card-body { padding: 0.75rem !important; min-height: auto !important; }
+  .card-body > div { height: 200px !important; max-height: 200px !important; }
+  
+  canvas {
+    max-width: 100% !important;
+    max-height: 190px !important;
+    height: 190px !important;
+    width: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+  
+  .dark-theme p, .dark-theme span, .dark-theme div { color: #f1f5f9 !important; }
+  .dark-theme i { color: #10b981 !important; }
+  .badge { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}

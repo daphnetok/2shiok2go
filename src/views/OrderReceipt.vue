@@ -13,7 +13,7 @@
     </div>
 
     <!-- Receipt Card -->
-    <div class="card shadow rounded-4 p-4 w-100" style="max-width: 600px; border-top: 5px solid #198754;">
+    <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1000px; border-top: 5px solid #198754;">
       <!-- Header -->
       <div class="text-center mb-3">
         <h2 class="h5 fw-bold mb-1 text-success">Order Receipt</h2>
@@ -181,12 +181,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { db } from '/firebase/config';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const router = useRouter();
+const route = useRoute();
 
 // Format price to 2 decimal places
 const formatPrice = (price) => {
@@ -205,6 +206,53 @@ const order = ref(null);
 const hawker = ref(null);
 const loading = ref(true);
 const errorMsg = ref(null);
+
+// Fetch specific order by ID
+const fetchOrderById = async (orderId, userId) => {
+  try {
+    loading.value = true;
+    errorMsg.value = null;
+
+    console.log('Fetching order by ID:', orderId);
+    
+    // Get the specific order document
+    const orderDoc = await getDoc(doc(db, 'orders', orderId));
+    
+    if (orderDoc.exists()) {
+      const orderData = orderDoc.data();
+      
+      // Verify the order belongs to the current user (for security)
+      if (orderData.buyerId !== userId && orderData.userId !== userId) {
+        errorMsg.value = 'You do not have permission to view this order';
+        loading.value = false;
+        return;
+      }
+      
+      console.log('Order fetched:', orderData);
+      
+      order.value = {
+        orderID: orderData.orderID || orderId.substring(0, 8).toUpperCase(),
+        day: orderData.day,
+        date: orderData.date,
+        time: orderData.time,
+        ...orderData
+      };
+      
+      // Fetch hawker details if hawkerId exists
+      if (orderData.hawkerId) {
+        await fetchHawkerDetails(orderData.hawkerId);
+      }
+    } else {
+      console.log('Order not found:', orderId);
+      errorMsg.value = 'Order not found';
+    }
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    errorMsg.value = `Failed to load order: ${error.message}`;
+  } finally {
+    loading.value = false;
+  }
+};
 
 const fetchLatestOrder = async (userId) => {
   try {
@@ -320,7 +368,15 @@ onMounted(() => {
   // Wait for auth state to be ready
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {
-      fetchLatestOrder(user.uid);
+      // Check if there's an orderId in the route params
+      const orderId = route.params.orderId;
+      if (orderId) {
+        console.log('Loading specific order:', orderId);
+        fetchOrderById(orderId, user.uid);
+      } else {
+        console.log('Loading latest order');
+        fetchLatestOrder(user.uid);
+      }
     } else {
       loading.value = false;
       errorMsg.value = 'Please log in to view your order receipt';

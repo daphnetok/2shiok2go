@@ -1,0 +1,60 @@
+/* ============================================
+   HAWKER ANALYTICS - RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+@media (max-width: 991px) {
+  .dashboard-title { font-size: 1.75rem !important; }
+  .subtitle { font-size: 0.875rem !important; }
+}
+
+@media (max-width: 767px) {
+  .dashboard-title { font-size: 1.5rem !important; }
+  .filter-btn { font-size: 0.875rem !important; }
+  .btn-group { width: 100%; }
+  .btn-group .btn { flex: 1; }
+}
+
+@media (max-width: 575px) {
+  .hawker-analytics {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    margin: 0 -0.75rem !important;
+  }
+  
+  .stat-card { min-height: 100px !important; }
+  .stat-card h3 { font-size: 1.25rem !important; line-height: 1.2 !important; }
+  .stat-card p { font-size: 0.65rem !important; }
+  .stat-icon { width: 36px !important; height: 36px !important; }
+  .stat-icon i { font-size: 1.1rem !important; }
+  .card-header h5 { font-size: 0.95rem !important; }
+  .chart-icon { width: 28px !important; height: 28px !important; }
+  .chart-icon i { font-size: 0.8rem !important; }
+  .hawker-profile-card { margin-bottom: 0.75rem !important; }
+  .hawker-profile-card > div { padding: 1rem !important; }
+  .info-chip { padding: 0.6rem 0.8rem !important; }
+  
+  .btn-group .btn { flex: 1; font-size: 0.75rem !important; padding: 0.5rem !important; }
+  .d-flex.flex-wrap { gap: 0.5rem !important; }
+  .d-flex.flex-wrap > .btn { flex: 1 1 calc(50% - 0.25rem); font-size: 0.75rem !important; }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .row.g-2 { --bs-gutter-x: 0.5rem; }
+  .row.g-md-3 { --bs-gutter-x: 0.75rem; }
+  .d-flex.flex-wrap { gap: 0.5rem !important; }
+  .btn-group { flex: 0 0 auto; }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .container-fluid { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  .hawker-profile-card { height: 100%; display: flex; flex-direction: column; }
+  .profile-pattern { flex-shrink: 0; }
+  .stat-card { min-height: 115px !important; }
+  .row.g-md-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
+  .d-flex.flex-wrap { justify-content: flex-end !important; }
+}
+
+@media (min-width: 992px) {
+  .container-fluid { max-width: 1400px; margin: 0 auto; }
+  .row.g-md-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
+}
