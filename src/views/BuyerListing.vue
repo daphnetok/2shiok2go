@@ -52,7 +52,7 @@ export default {
       searchQuery: '',
       filters: {
         priceOrder: null,
-        priceMax: 50,
+        priceMax: 20,
         dietary: [],
         status: []
       }

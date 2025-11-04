@@ -152,10 +152,7 @@
       </div>
 
       <!-- Orders List -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading orders...</p>
-      </div>
+      <LoadingSpinner v-if="loading" message="Loading orders..." />
 
       <div v-else-if="filteredTodayOrders.length === 0" class="empty-state">
         <div class="empty-icon">
@@ -219,11 +216,12 @@
               :key="index"
               class="order-item"
             >
-              <img 
+              <ImageWithLoader
                 v-if="item.imageUrl" 
                 :src="item.imageUrl" 
                 :alt="item.itemName"
-                class="item-image"
+                image-class="item-image"
+                error-icon="fas fa-utensils"
               />
               <div class="item-details">
                 <span class="item-name">{{ item.itemName }}</span>
@@ -341,10 +339,7 @@
         </div>
       </div>
 
-      <div v-if="loadingHistory" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading history...</p>
-      </div>
+      <LoadingSpinner v-if="loadingHistory" message="Loading history..." />
 
       <div v-else-if="sortedHistory.length === 0" class="emptyState">
         <div class="empty-icon">

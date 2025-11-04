@@ -115,9 +115,7 @@
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="alert alert-info">
-      <p>Loading user information...</p>
-    </div>
+    <LoadingSpinner v-if="isLoading" message="Loading user information..." container-class="alert alert-info" />
 
     <!-- Not Logged In Message -->
     <div v-else-if="!currentUser" class="alert alert-danger">

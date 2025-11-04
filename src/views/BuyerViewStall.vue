@@ -6,15 +6,20 @@
         </div>
   </div>
 
+  <!-- Floating Cart Button -->
+  <FloatingCartButton />
+
 </template>
 
 <script>
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
+import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
 
 export default { 
   name: "BuyerListings",
   components: {
     StallListing,
+    FloatingCartButton
   },
   data() {
     return {

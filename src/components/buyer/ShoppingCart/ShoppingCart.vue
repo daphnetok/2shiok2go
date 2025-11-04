@@ -10,9 +10,7 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="loading-state">
-        <p>Loading your cart...</p>
-      </div>
+      <LoadingSpinner v-if="loading" message="Loading your cart..." />
 
       <!-- Error state -->
       <div v-else-if="errorMsg" class="error-state">
@@ -88,7 +86,11 @@
                     <label :for="`checkbox-${item.itemId}`" class="checkbox-label"></label>
                   </div>
                   <div class="item-image">
-                    <img :src="item.imageUrl || require('../../assets/img/stall.jpg')" :alt="item.itemName"/>
+                    <ImageWithLoader 
+                      :src="item.imageUrl || require('../../assets/img/stall.jpg')" 
+                      :alt="item.itemName"
+                      error-icon="fas fa-utensils"
+                    />
                   </div>
                   <div class="item-details">
                     <h3 class="item-name">

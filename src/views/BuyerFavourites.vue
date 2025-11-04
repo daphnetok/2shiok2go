@@ -43,12 +43,11 @@
 
         <div class="container-fluid" style="padding-left: 3rem; padding-right: 3rem;">
           <!-- Loading State -->
-          <div v-if="loading" class="loading-state" :class="{ 'dark-mode-card': isDarkMode }">
-            <div class="spinner-border text-success" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 mb-0">Loading your favourite hawkers...</p>
-          </div>
+          <LoadingSpinner 
+            v-if="loading" 
+            message="Loading your favourite hawkers..."
+            :container-class="isDarkMode ? 'loading-state dark-mode-card' : 'loading-state'"
+          />
 
           <!-- Empty State -->
           <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state" :class="{ 'dark-mode-card': isDarkMode }">
@@ -79,10 +78,11 @@ import { ref, computed, onMounted, onActivated } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFavourites } from '/firebase/firestore'
 import ListingCard from '@/components/buyer/ListingCard/ListingCard.vue'
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 export default {
   name: 'BuyerFavourites',
-  components: { ListingCard },
+  components: { ListingCard, LoadingSpinner },
   props: {
     priceOrder: {
       type: String,

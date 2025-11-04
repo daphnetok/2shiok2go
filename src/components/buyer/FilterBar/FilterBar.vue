@@ -15,7 +15,7 @@
         <i class="fas fa-chevron-down ms-2"></i>
       </button>
 
-      <div class="navbar-collapse w-100" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse w-100" id="navbarSupportedContent">
         <div class="filter-container w-100">
           <div class="filter-header-main">
             <h2><i class="fas fa-sliders-h me-2"></i>Filters</h2>
@@ -65,7 +65,7 @@
                 </div>
                 <div class="slider-container">
                   <label class="slider-label">Price Range</label>
-                  <Slider v-model="priceMax" :maxValue="50" @update:modelValue="emitFilters" />
+                  <Slider v-model="priceMax" :minValue="1" :maxValue="20" @update:modelValue="emitFilters" />
                 </div>
               </div>
             </transition>
@@ -179,14 +179,14 @@ export default {
       isStatusExpanded: false,
       isDietaryExpanded: false,
       priceOrder: null,
-      priceMax: 50,
+      priceMax: 20,
       status: [],
       dietary: []
     };
   },
   computed: {
     hasActiveFilters() {
-      return this.priceOrder !== null || this.priceMax !== 50 || this.status.length > 0 || this.dietary.length > 0;
+      return this.priceOrder !== null || this.priceMax !== 20 || this.status.length > 0 || this.dietary.length > 0;
     }
   },
   methods: {
@@ -205,7 +205,7 @@ export default {
     },
     clearAllFilters() {
       this.priceOrder = null;
-      this.priceMax = 50;
+      this.priceMax = 20;
       this.status = [];
       this.dietary = [];
       this.emitFilters();

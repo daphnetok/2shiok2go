@@ -1,9 +1,7 @@
 <template>
   <div class="stall-listing">
     <!-- Show loading state while fetching hawker data -->
-    <div v-if="loading && !hawker" class="text-center p-5">
-      <p>Loading stall information...</p>
-    </div>
+    <LoadingSpinner v-if="loading && !hawker" message="Loading stall information..." container-class="text-center p-5" />
 
     <!-- Show error if any -->
     <div v-else-if="errorMsg" class="alert alert-danger">
@@ -14,7 +12,11 @@
     <div v-else-if="hawker" class="container reset-style" style="position: relative;">
       <div class="row stall-info">
         <div class="col-md-5">
-          <img :src="hawker.imageUrl" :alt="hawker.hawkerName" class="stallImg"/>
+          <ImageWithLoader 
+            :src="hawker.imageUrl" 
+            :alt="hawker.hawkerName" 
+            image-class="stallImg"
+          />
         </div>
         <div class="col-md-6">
           <div>
@@ -107,7 +109,12 @@
           <div v-for="item in filteredFoodItems" :key="item.id" class="col-md-4">
             <div class="listing-card" @click="openItemModal(item)">
               <div class="img-container">
-                <img class="foodImg" :src="item.imageUrl" :alt="item.itemName"/>
+                <ImageWithLoader 
+                  :src="item.imageUrl" 
+                  :alt="item.itemName"
+                  image-class="foodImg"
+                  error-icon="fas fa-utensils"
+                />
                 <div class="counter-btn"
                     :class="{ 'square': item.count > 0 }"
                     @mouseenter="item.hover = true"
@@ -161,7 +168,12 @@
           </button>  
             <div class="modal-info-section">
               <div class="modal-image-section">
-                <img :src="selectedItem.imageUrl" :alt="selectedItem.itemName" class="modal-image"/>
+                <ImageWithLoader 
+                  :src="selectedItem.imageUrl" 
+                  :alt="selectedItem.itemName" 
+                  image-class="modal-image"
+                  error-icon="fas fa-utensils"
+                />
               </div>
 
               <div class="modal-heading">

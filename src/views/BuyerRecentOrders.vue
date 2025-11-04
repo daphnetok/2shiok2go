@@ -43,7 +43,7 @@
 
         <div class="container-fluid" style="padding-left: 3rem; padding-right: 3rem;">
           <!-- Filter Section -->
-          <div class="row mb-4">
+          <div class="row mb-3">
             <div class="col-12">
               <div class="filter-card" :class="{ 'dark-mode-card': isDarkMode }">
                 <div class="filter-content">
@@ -51,8 +51,7 @@
                     <label class="filter-label">Status:</label>
                     <select v-model="filterStatus" class="filter-select" :class="{ 'dark-select': isDarkMode }">
                       <option value="all">All Orders</option>
-                      <option value="reserved">Reserved</option>
-                      <option value="accepted">Accepted</option>
+                      <option value="in-progress">In Progress</option>
                       <option value="completed">Completed</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
@@ -72,12 +71,11 @@
           </div>
 
           <!-- Loading State -->
-          <div v-if="loading" class="loading-state" :class="{ 'dark-mode-card': isDarkMode }">
-            <div class="spinner-border text-success" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 mb-0">Loading your orders...</p>
-          </div>
+          <LoadingSpinner 
+            v-if="loading" 
+            message="Loading your orders..."
+            :container-class="isDarkMode ? 'loading-state dark-mode-card' : 'loading-state'"
+          />
 
           <!-- Empty State -->
           <div v-else-if="filteredOrders.length === 0" class="empty-state" :class="{ 'dark-mode-card': isDarkMode }">
@@ -109,12 +107,12 @@
                   <h6 class="mb-2" style="font-size: 0.9rem; font-weight: 600; color: #059669;">Order Items:</h6>
                   <div class="items-grid">
                     <div v-for="(item, idx) in order.items" :key="idx" class="item-card">
-                      <img 
+                      <ImageWithLoader
                         v-if="item.imageUrl || item.image" 
                         :src="item.imageUrl || item.image" 
                         :alt="item.itemName || item.name"
-                        class="item-image"
-                        @error="handleImageError"
+                        image-class="item-image"
+                        error-icon="fas fa-utensils"
                       />
                       <div v-else class="item-image-placeholder">
                         <i class="fas fa-utensils"></i>
@@ -201,9 +199,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
 
 export default {
   name: 'BuyerRecentOrders',
+  components: { LoadingSpinner, ImageWithLoader },
   setup() {
     const router = useRouter()
     const isDarkMode = ref(false)
@@ -221,7 +222,14 @@ export default {
 
       // Filter by status
       if (filterStatus.value !== 'all') {
-        filtered = filtered.filter(order => order.status === filterStatus.value)
+        if (filterStatus.value === 'in-progress') {
+          // In-progress includes reserved and accepted orders
+          filtered = filtered.filter(order => 
+            order.status === 'reserved' || order.status === 'accepted'
+          )
+        } else {
+          filtered = filtered.filter(order => order.status === filterStatus.value)
+        }
       }
 
       // Sort
@@ -679,19 +687,21 @@ export default {
 
 /* Orders List */
 .orders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.25rem;
+  max-width: 100%;
 }
 
 /* Order Card */
 .order-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
+  height: fit-content;
 }
 
 .order-card:hover {
@@ -709,9 +719,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border-bottom: 1px solid #bbf7d0;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .dark-theme .order-header {
@@ -719,11 +731,18 @@ export default {
   border-bottom-color: #10b981;
 }
 
+.order-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .order-id {
   font-weight: 700;
   color: #059669;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   margin-bottom: 0.25rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .dark-theme .order-id {
@@ -731,8 +750,10 @@ export default {
 }
 
 .order-date {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #6b7280;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .dark-theme .order-date {
@@ -741,12 +762,14 @@ export default {
 
 /* Order Status */
 .order-status {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
+  padding: 0.375rem 0.875rem;
+  border-radius: 16px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .status-reserved {
@@ -771,15 +794,15 @@ export default {
 
 /* Order Body */
 .order-body {
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Order Items Grid */
 .order-items {
-  padding-bottom: 1rem;
+  padding-bottom: 0.875rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -787,20 +810,28 @@ export default {
   border-bottom-color: #374151;
 }
 
+.order-items h6 {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
 }
 
 .item-card {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.75rem;
   background: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   transition: all 0.2s ease;
+  align-items: center;
+  text-align: center;
 }
 
 .dark-mode-card .item-card {
@@ -831,21 +862,25 @@ export default {
 }
 
 .item-info {
-  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-width: 0;
+  gap: 0.25rem;
 }
 
 .item-name {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #111827;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .dark-mode-card .item-name {
@@ -857,6 +892,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
+  gap: 0.5rem;
+  width: 100%;
 }
 
 .item-quantity {
@@ -880,19 +917,24 @@ export default {
 .order-details {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .detail-row {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .detail-label {
   font-weight: 600;
   color: #6b7280;
-  min-width: 120px;
+  min-width: 110px;
+  flex-shrink: 0;
+  word-break: keep-all;
+  white-space: nowrap;
+  font-size: 0.85rem;
 }
 
 .dark-theme .detail-label {
@@ -902,6 +944,10 @@ export default {
 .detail-value {
   color: #374151;
   flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  font-size: 0.85rem;
 }
 
 .dark-theme .detail-value {
@@ -912,10 +958,10 @@ export default {
 .order-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.5rem;
+  gap: 0.5rem;
+  padding: 1rem;
   background: #f9fafb;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #e5e7eb;
 }
 
@@ -928,11 +974,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 0.85rem;
 }
 
 .summary-label {
   color: #6b7280;
-  font-size: 0.95rem;
 }
 
 .dark-theme .summary-label {
@@ -949,9 +995,9 @@ export default {
 }
 
 .total-row {
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   border-top: 2px solid #e5e7eb;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .dark-theme .total-row {
@@ -959,7 +1005,7 @@ export default {
 }
 
 .total-amount {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #059669;
 }
 
@@ -969,12 +1015,18 @@ export default {
 
 /* Order Footer */
 .order-footer {
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
   display: flex;
-  gap: 1rem;
+  gap: 0.625rem;
   justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.order-footer .btn {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.875rem;
 }
 
 .dark-theme .order-footer {
@@ -1022,6 +1074,9 @@ export default {
   .nav-item span {
     font-size: 0.7rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .nav-item i {
@@ -1048,7 +1103,7 @@ export default {
     padding-right: 2rem !important;
   }
 
-  .order-body {
+  .orders-list {
     grid-template-columns: 1fr;
   }
 
@@ -1082,6 +1137,29 @@ export default {
   
   .order-footer button {
     width: 100%;
+  }
+  
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .order-status {
+    align-self: flex-start;
+  }
+  
+  .detail-label {
+    min-width: 100px;
+    font-size: 0.85rem;
+  }
+  
+  .detail-value {
+    font-size: 0.9rem;
+  }
+  
+  .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
@@ -1118,6 +1196,38 @@ export default {
   
   .item-card {
     flex-direction: row;
+  }
+  
+  .order-id {
+    font-size: 0.95rem;
+  }
+  
+  .order-date {
+    font-size: 0.8rem;
+  }
+  
+  .order-status {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .detail-label {
+    min-width: 90px;
+    font-size: 0.8rem;
+  }
+  
+  .detail-value {
+    font-size: 0.85rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .detail-label {
+    min-width: auto;
   }
 }
 

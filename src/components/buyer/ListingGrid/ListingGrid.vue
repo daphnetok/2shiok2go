@@ -7,9 +7,7 @@
       {{ locationError }} - Showing all stalls without distance sorting
     </div>
     <!-- Loading state -->
-    <div v-if="loading" class="loading">
-      <p>Loading listings...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="Loading listings..." />
     
     <!-- Empty state -->
     <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state">
@@ -51,12 +49,13 @@
 <script>
 import { computed, onMounted, ref, watch } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import { useLoadHawkers, useLoadListings } from '/firebase/firestore';
 import { useGeolocation } from '@/assets/composables/useGeolocation';
 
 export default {
   name: 'ListingGrid',
-  components: { ListingCard },
+  components: { ListingCard, LoadingSpinner },
   props: {
     priceOrder: {
       type: String,
@@ -64,7 +63,7 @@ export default {
     },
     priceMax: {
       type: Number,
-      default: 50
+      default: 20
     },
     dietary: {
       type: Array,
@@ -114,6 +113,19 @@ export default {
     const loading = computed(() => {
       return hawkersRef.value?.value === null;
     });
+
+    // Helper: check if hawker has any active items listed
+    const hasActiveItems = (hawker) => {
+      const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+      if (!hawkerName) return false;
+      
+      return itemListings.value.some(item => {
+        const itemHawkerName = item.hawkerName || item.stallName;
+        const isMatchingHawker = itemHawkerName && 
+          itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+        return isMatchingHawker && item.makeActive === true;
+      });
+    };
 
     // Perform search function
     const performSearch = (query) => {
@@ -233,27 +245,23 @@ export default {
       // Filter out hawkers with no active items
       list = list.filter(h => hasActiveItems(h));
 
-      // Filter by price range - check if hawker has any items within price range
-      if (props.priceMax && props.priceMax < 50) {
+      // Filter by price range - check hawker's priceRange field
+      if (props.priceMax && props.priceMax < 20) {
+        console.log('💰 Price filter active: max price =', props.priceMax);
         list = list.filter(hawker => {
-          const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
-          if (!hawkerName) return false;
+          // Get priceRange from hawker document (stored as string in Firebase)
+          const hawkerPriceRange = parseFloat(hawker.priceRange) || 0;
+          const matches = hawkerPriceRange <= props.priceMax;
           
-          // Find items for this hawker that are within price range
-          const hawkerItems = itemListings.value.filter(item => {
-            const itemHawkerName = item.hawkerName || item.stallName;
-            const isMatchingHawker = itemHawkerName && 
-              itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
-            
-            if (!isMatchingHawker || !item.makeActive) return false;
-            
-            // Check if item's discounted price is within range
-            const price = item.discountedPrice || item.itemPrice || 0;
-            return price <= props.priceMax;
-          });
+          if (!matches) {
+            console.log(`❌ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} exceeds max ${props.priceMax}`);
+          } else {
+            console.log(`✅ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} within max ${props.priceMax}`);
+          }
           
-          return hawkerItems.length > 0;
+          return matches;
         });
+        console.log(`📊 After price filter: ${list.length} hawkers remaining`);
       }
 
       // Filter by dietaryRestriction (string) if any selected
@@ -320,6 +328,20 @@ export default {
           return da - db;
         });
       }
+
+      // Final sort: Open hawkers first, then closed (maintains previous sorting within each group)
+      list.sort((a, b) => {
+        const statusA = getStatus(a);
+        const statusB = getStatus(b);
+        
+        // Priority: open/opening-soon/closing-soon come before closed
+        const isOpenA = ['open', 'opening-soon', 'closing-soon'].includes(statusA);
+        const isOpenB = ['open', 'opening-soon', 'closing-soon'].includes(statusB);
+        
+        if (isOpenA && !isOpenB) return -1; // A is open, B is closed: A comes first
+        if (!isOpenA && isOpenB) return 1;  // B is open, A is closed: B comes first
+        return 0; // Both same status, maintain existing order
+      });
 
       return list;
     });
