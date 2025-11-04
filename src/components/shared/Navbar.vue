@@ -13,12 +13,12 @@
   </button>
   
   <!-- Brand (always visible) -->
-  <router-link class="navbar-brand fw-bold text-success" to="/">
+  <router-link class="navbar-brand fw-bold text-success" to="/" style="margin-left: 1.5rem;">
   2Shiok2Go
   </router-link>
   
   <!-- Desktop Navigation Links (hidden on mobile) -->
-  <div class="navbar-nav-desktop d-none d-md-flex ms-auto">
+  <div class="navbar-nav-desktop d-none d-md-flex ms-auto" :class="{ 'has-logout': currentUser }">
   <router-link class="nav-link-desktop" to="/">Home</router-link>
   
           <!-- Show Listing link to all users (customers can browse) -->
@@ -27,14 +27,14 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <router-link class="nav-link-desktop" to="/buyer-dashboard">Profile</router-link>
-            <router-link class="nav-link-desktop" to="/cart" aria-label="Shopping Cart" title="Shopping Cart">
+            <router-link class="nav-link-desktop" to="/cart">
               <i class="fa-solid fa-cart-shopping"></i>
             </router-link>
   </template>
   
   <!-- Hawkers see these links -->
   <template v-if="currentUser && userRole === 'hawker'">
-  <!-- <router-link class="nav-link-desktop" to="/create-listing">Create Listing</router-link> -->
+  <router-link class="nav-link-desktop" to="/create-listing">Create Listing</router-link>
   <router-link class="nav-link-desktop" to="/hawker-dashboard">Hawker Dashboard</router-link>
   </template>
   
@@ -43,10 +43,10 @@
             <i class="fa-solid fa-right-to-bracket me-2"></i>Login
           </router-link>
   
-        <!-- Desktop Logout Button -->
-          <a v-if="currentUser" href="#" @click.prevent="handleLogout" class="nav-link-desktop logout-link-desktop" aria-label="Logout" title="Logout">
-            <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
-          </a>
+  <!-- Desktop Logout Button (integrated into flex container) -->
+  <a v-if="currentUser" href="#" @click.prevent="handleLogout" class="logout-button-desktop" aria-label="Logout" title="Logout">
+    <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+  </a>
   </div>
   </div>
   </nav>
@@ -70,9 +70,11 @@
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
             <li class="nav-item"><router-link class="nav-link" to="/buyer-dashboard">Profile</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/cart" aria-label="Shopping Cart" title="Shopping Cart">
-              <i class="fa-solid fa-cart-shopping"></i> Cart
-            </router-link></li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/cart">
+                <i class="fa-solid fa-cart-shopping me-2"></i>Cart
+              </router-link>
+            </li>
           
   </template>
   
@@ -170,14 +172,17 @@
   <style scoped>
   .navbar-brand {
    font-size: 1.4rem;
-   margin-left: 1.5rem; /* Shift logo to the right */
   }
   
   /* Desktop Navigation Styles */
   .navbar-nav-desktop {
    gap: 1.5rem;
    align-items: center;
-   margin-right: 1.5rem; /* Standardized spacing from right edge */
+   margin-right: 1.5rem;
+  }
+  
+  .navbar-nav-desktop.has-logout {
+    /* No additional margin needed - logout is now integrated */
   }
   
   .nav-link-desktop {
@@ -218,22 +223,31 @@
     color: #ffffff;
   }
   
-  /* Logout link styling */
-  .logout-link-desktop {
-    color: #dc3545 !important;
+  /* Desktop Logout Button (integrated into navbar-nav-desktop) */
+  .logout-button-desktop {
+    color: #dc3545;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
   
-  .logout-link-desktop:hover {
-    color: #c82333 !important;
-    background-color: rgba(220, 53, 69, 0.1) !important;
+  .logout-button-desktop:hover {
+    color: #c82333;
+    background-color: rgba(220, 53, 69, 0.1);
   }
   
-  .logout-link-desktop i {
+  .logout-button-desktop i {
     color: #dc3545;
     font-size: 1.1rem;
   }
   
-  .logout-link-desktop:hover i {
+  .logout-button-desktop:hover i {
     color: #c82333;
   }
   
@@ -300,8 +314,7 @@
   
   /* Responsive adjustments */
   @media (max-width: 767.98px) {
-   .navbar-nav-desktop,
-   .navbar-logout-desktop {
+   .navbar-nav-desktop {
      display: none !important;
    }
    

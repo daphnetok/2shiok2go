@@ -33,7 +33,6 @@
 </template>
 
 <script>
-import { ref } from 'vue';
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
@@ -47,20 +46,9 @@ export default {
     ListingGrid,
     BackToTop
   },
-  setup() {
-    const searchQuery = ref('')
-    
-    const handleSearch = (query) => {
-      searchQuery.value = query
-    }
-
-    return {
-      searchQuery,
-      handleSearch
-    }
-  },
   data() {
     return {
+      searchQuery: '',
       filters: {
         priceOrder: null,
         dietary: [],
@@ -69,6 +57,9 @@ export default {
     };
   },
   methods: {
+    handleSearch(query) {
+      this.searchQuery = query;
+    },
     onFilterChange(payload) {
       this.filters = { ...this.filters, ...payload };
     }

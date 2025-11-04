@@ -170,89 +170,14 @@
                 on this order!
               </span>
             </div>
-            <!-- Card Information Section -->
-          <div class="card-info-section">
-            <h3>Card Information</h3>
-            <div v-if="savedCards.length > 0" class="saved-cards">
-              <label>
-                <input type="radio" name="card-selection" value="saved" v-model="cardSelection">
-                Use Saved Card
-              </label>
-              <select v-if="cardSelection === 'saved'" v-model="selectedCardIndex" class="card-select">
-                <option v-for="(card, index) in savedCards" :key="index" :value="index">
-                  •••• •••• •••• {{ card.lastFour }} ({{ card.cardholderName }})
-                </option>
+            <div class="payment-method-section">
+              <span><b>Payment Method:</b></span>
+              <select id="payment-method">
+                <option value="card">Credit/Debit Card</option>
+                <option value="paynow">PayNow</option>
+                <option value="cash">Cash on Delivery</option>
               </select>
             </div>
-            
-            <div class="new-card-option">
-              <label>
-                <input type="radio" name="card-selection" value="new" v-model="cardSelection">
-                {{ savedCards.length > 0 ? 'Use New Card' : 'Add Card Information' }}
-              </label>
-            </div>
-
-            <div v-if="cardSelection === 'new'" class="card-form">
-              <div class="form-group">
-                <label for="cardholder-name">Cardholder Name</label>
-                <input 
-                  type="text" 
-                  id="cardholder-name" 
-                  v-model="newCard.cardholderName"
-                  placeholder="John Doe"
-                  class="form-input"
-                />
-              </div>
-              
-              <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input 
-                  type="text" 
-                  id="card-number" 
-                  v-model="newCard.cardNumber"
-                  @input="formatCardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  maxlength="19"
-                  class="form-input"
-                />
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="expiry-date">Expiry Date</label>
-                  <input 
-                    type="text" 
-                    id="expiry-date" 
-                    v-model="newCard.expiryDate"
-                    @input="formatExpiryDate"
-                    placeholder="MM/YY"
-                    maxlength="5"
-                    class="form-input"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label for="cvv">CVV</label>
-                  <input 
-                    type="text" 
-                    id="cvv" 
-                    v-model="newCard.cvv"
-                    @input="formatCVV"
-                    placeholder="123"
-                    maxlength="3"
-                    class="form-input"
-                  />
-                </div>
-              </div>
-              
-              <div class="save-card-checkbox">
-                <label>
-                  <input type="checkbox" v-model="saveCardForFuture">
-                  Save this card for future purchases
-                </label>
-              </div>
-            </div>
-          </div>
             <button @click="checkout" class="checkout-btn" :disabled="updating">
               <span>Place Order</span>
               <i class="fa-solid fa-arrow-right"></i>
