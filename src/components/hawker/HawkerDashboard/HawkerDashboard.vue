@@ -29,7 +29,7 @@
     @saved="onListingSaved"
   />
   
-  <div class="dashboard-container container container">
+  <div>
     <!-- Navigation Tabs -->
     <nav class="tabs-nav">
       <ul class="tabs-list">
@@ -41,7 +41,7 @@
         </li>
         <li class="tab-item">
           <router-link to="/orders-table" class="tab-link">
-            <i class="fas fa-list"></i>
+          <i class="fas fa-clipboard-list"></i>
             <span>Orders Management</span>
           </router-link>
         </li>
@@ -67,7 +67,7 @@
 
 
     <!-- Active Listings Section -->
-    <section class="listings-section">
+    <section class="listings-section dashboard-container">
       <div class="section-header">
         <h2 class="section-title">
           Active Listings
@@ -149,7 +149,7 @@
     </section>
 
     <!-- Inactive Listings Section -->
-    <section class="listings-section inactive-section">
+    <section class="listings-section inactive-section dashboard-container">
       <div class="section-header">
         <h2 class="section-title inactive">
           Inactive Listings
@@ -292,4 +292,5 @@ export default {
 };
 </script>
 
-<style scoped src="../HawkerDashboard/HawkerDashboard.css"></style>
+<style  src="../HawkerDashboard/HawkerDashboard.css"></style>
+<style  src="../../../assets/css/HawkerDashboard.css"></style>
