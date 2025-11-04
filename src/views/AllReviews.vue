@@ -8,9 +8,7 @@
         <h1 class="page-title">{{ hawker?.hawkerName || 'Stall' }} - All Reviews</h1>
       </div>
 
-      <div v-if="loading" class="loading-state">
-        <p>Loading reviews...</p>
-      </div>
+      <LoadingSpinner v-if="loading" message="Loading reviews..." />
 
       <div v-else-if="errorMsg" class="error-state">
         <p>{{ errorMsg }}</p>
@@ -147,9 +145,11 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 export default {
   name: 'AllReviews',
+  components: { LoadingSpinner },
   setup() {
     const route = useRoute();
     const hawker = ref(null);

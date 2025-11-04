@@ -10,9 +10,7 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="loading-state">
-        <p>Loading your cart...</p>
-      </div>
+      <LoadingSpinner v-if="loading" message="Loading your cart..." />
 
       <!-- Error state -->
       <div v-else-if="errorMsg" class="error-state">

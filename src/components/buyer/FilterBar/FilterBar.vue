@@ -65,7 +65,7 @@
                 </div>
                 <div class="slider-container">
                   <label class="slider-label">Price Range</label>
-                  <Slider v-model="priceMax" :maxValue="50" @update:modelValue="emitFilters" />
+                  <Slider v-model="priceMax" :minValue="1" :maxValue="20" @update:modelValue="emitFilters" />
                 </div>
               </div>
             </transition>
@@ -179,14 +179,14 @@ export default {
       isStatusExpanded: false,
       isDietaryExpanded: false,
       priceOrder: null,
-      priceMax: 50,
+      priceMax: 20,
       status: [],
       dietary: []
     };
   },
   computed: {
     hasActiveFilters() {
-      return this.priceOrder !== null || this.priceMax !== 50 || this.status.length > 0 || this.dietary.length > 0;
+      return this.priceOrder !== null || this.priceMax !== 20 || this.status.length > 0 || this.dietary.length > 0;
     }
   },
   methods: {
@@ -205,7 +205,7 @@ export default {
     },
     clearAllFilters() {
       this.priceOrder = null;
-      this.priceMax = 50;
+      this.priceMax = 20;
       this.status = [];
       this.dietary = [];
       this.emitFilters();

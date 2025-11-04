@@ -1,9 +1,7 @@
 <template>
   <div class="stall-listing">
     <!-- Show loading state while fetching hawker data -->
-    <div v-if="loading && !hawker" class="text-center p-5">
-      <p>Loading stall information...</p>
-    </div>
+    <LoadingSpinner v-if="loading && !hawker" message="Loading stall information..." container-class="text-center p-5" />
 
     <!-- Show error if any -->
     <div v-else-if="errorMsg" class="alert alert-danger">

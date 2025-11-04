@@ -3,9 +3,7 @@
     <!-- <h2>Hawker Dashboard</h2> -->
 
     <!-- loading state -->
-    <div v-if="loading" class="text-center">
-      <p>Loading...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="Loading..." />
 
     <!-- show form if hawker hasn't registered -->
     <div v-else-if="!hasRegisteredStall">
@@ -27,10 +25,11 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import HawkerListings from '@/components/hawker/HawkerDashboard/HawkerDashboard.vue';
 import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 export default {
   name: "HawkerDashboard",
-  components: { HawkerListings, HawkerStallForm },
+  components: { HawkerListings, HawkerStallForm, LoadingSpinner },
   setup() {
     const loading = ref(true);
     const hasRegisteredStall = ref(false);

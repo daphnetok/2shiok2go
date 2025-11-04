@@ -4,9 +4,11 @@ import { db } from '/firebase/config';
 import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 export default {
   name: 'ShoppingCart',
+  components: { LoadingSpinner },
   setup() {
     const router = useRouter();
     const auth = getAuth();

@@ -12,9 +12,11 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 export default {
   name: 'OrdersManagement',
+  components: { LoadingSpinner },
   setup() {
     const auth = getAuth();
     const activeTab = ref('today');

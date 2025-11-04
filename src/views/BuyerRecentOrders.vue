@@ -72,12 +72,11 @@
           </div>
 
           <!-- Loading State -->
-          <div v-if="loading" class="loading-state" :class="{ 'dark-mode-card': isDarkMode }">
-            <div class="spinner-border text-success" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 mb-0">Loading your orders...</p>
-          </div>
+          <LoadingSpinner 
+            v-if="loading" 
+            message="Loading your orders..."
+            :container-class="isDarkMode ? 'loading-state dark-mode-card' : 'loading-state'"
+          />
 
           <!-- Empty State -->
           <div v-else-if="filteredOrders.length === 0" class="empty-state" :class="{ 'dark-mode-card': isDarkMode }">
@@ -201,9 +200,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 export default {
   name: 'BuyerRecentOrders',
+  components: { LoadingSpinner },
   setup() {
     const router = useRouter()
     const isDarkMode = ref(false)

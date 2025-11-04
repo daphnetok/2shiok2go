@@ -5,11 +5,13 @@ import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRem
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 export default {
   name: "StallListings",
   components: {
-    ReviewsSection
+    ReviewsSection,
+    LoadingSpinner
   },
   methods: {
     isDiscountApplied() {

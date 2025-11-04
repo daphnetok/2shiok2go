@@ -5,11 +5,15 @@ import VueSlider from "vue-3-slider-component";
 const props = defineProps({
   modelValue: {
     type: Number,
-    default: 50
+    default: 20
+  },
+  minValue: {
+    type: Number,
+    default: 1
   },
   maxValue: {
     type: Number,
-    default: 50
+    default: 20
   }
 });
 
@@ -30,8 +34,8 @@ watch(value, (newValue) => {
 
 <template>
   <div>
-    <VueSlider v-model="value" class="slider" :style="{ width: '80%' }" :max="props.maxValue"/>
-    <p>Between <span class="value">$0</span> to <span class="value">${{ value }}</span></p>
+    <VueSlider v-model="value" class="slider" :style="{ width: '80%' }" :min="props.minValue" :max="props.maxValue"/>
+    <p>Between <span class="value">${{ props.minValue }}</span> to <span class="value">${{ value }}</span></p>
   </div>
 </template>
 
