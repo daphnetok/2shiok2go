@@ -2,9 +2,6 @@
   
   <div class="container">
         <div class="row">
-            <SearchBar/>
-        </div>
-        <div class="row">
             <StallListing/>
         </div>
   </div>
@@ -12,16 +9,11 @@
 </template>
 
 <script>
-// Import the FilterBar component
-import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
-import SearchBar from '../components/shared/SearchBar.vue';
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
 
 export default { 
   name: "BuyerListings",
   components: {
-    FilterBar,
-    SearchBar,
     StallListing,
   }
 };

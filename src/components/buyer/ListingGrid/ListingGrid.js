@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
-import { useLoadHawkers } from '/firebase/firestore.js';
+import { useLoadHawkers, useLoadListings } from '/firebase/firestore';
 import { useGeolocation } from '@/assets/composables/useGeolocation';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '/firebase/config';
@@ -20,6 +20,10 @@ export default {
     status: {
       type: Array,
       default: () => []
+    },
+    searchQuery: {
+      type: String,
+      default: ''
     }
   },
   setup(props) {
@@ -27,83 +31,53 @@ export default {
     const hawkersRef = ref(null);
     const itemListings = ref([]);
     const itemsLoaded = ref(false);
-    const ROAD_FACTOR = 1.1 // for urban road detour estimate
+    const ROAD_FACTOR = 1.1; // for urban road detour estimate
     let unsubscribeItems = null;
 
-    // fetch user location on mount
+    // Fetch hawkers and listings
+    const allHawkers = useLoadHawkers();
+    const allItems = useLoadListings();
+    const searchResults = ref([]);
+    const searching = ref(false);
+
+    // Fetch user location on mount
     onMounted(async () => {
       await getUserLocation();
       setupItemListingsListener();
     });
 
-    // Set up real-time listener for item listings
+    // Real-time listener for item listings
     const setupItemListingsListener = () => {
       try {
         const itemsCollection = collection(db, 'itemListings');
-        unsubscribeItems = onSnapshot(itemsCollection, (snapshot) => {
-          itemListings.value = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          itemsLoaded.value = true;
-        }, (error) => {
-          console.error('Error loading item listings:', error);
-          itemsLoaded.value = true; // Set to true even on error to show hawkers
-        });
+        unsubscribeItems = onSnapshot(
+          itemsCollection,
+          (snapshot) => {
+            itemListings.value = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+            itemsLoaded.value = true;
+          },
+          (error) => {
+            console.error('Error loading item listings:', error);
+            itemsLoaded.value = true;
+          }
+        );
       } catch (error) {
         console.error('Error setting up item listings listener:', error);
         itemsLoaded.value = true;
       }
     };
 
-    watch(
-      userLocation,
-      (newLocation) => {
-        hawkersRef.value = useLoadHawkers(newLocation);
-        console.log(newLocation);
-      }
-    );
-
-    // load hawkers with user location (reactive)
-    const allHawkers = computed(() => {
-      const hawkers = hawkersRef.value?.value || [];
-
-      // apply road factor to all hawker distances
-      return hawkers.map(hawker => ({
-        ...hawker,
-        distance: hawker.distance && hawker.distance != 'N/A'
-          ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(1))
-          :hawker.distance
-      }));
-    });
-
-    const loading = computed(() => {
-      return hawkersRef.value?.value === null || !itemsLoaded.value;
-    });
-
-    // Helper: check if hawker has any items listed
-    const hasItems = (hawker) => {
-      // Check if any item in itemListings has matching hawkerName
-      const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
-      if (!hawkerName) return false;
-      
-      return itemListings.value.some(item => {
-        const itemHawkerName = item.hawkerName || item.stallName;
-        return itemHawkerName && itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
-      });
-    };
-
-    // Helpers aligned to your schema
-    const getDietary = (h) => {
-      // dietaryRestriction is a string like "Halal"
-      return (h.dietaryRestriction ?? '').toString().toLowerCase().trim();
-    };
+    // Helper functions
+    const getDietary = (h) => (h.dietaryRestriction ?? '').toString().toLowerCase().trim();
 
     const getDistance = (h) => {
-      return h.distance ?? 'N/A';
+      const d = Number((h.distance ?? '0').toString());
+      return Number.isNaN(d) ? 0 : d;
     };
 
-    // Helper: get status for a hawker (same logic as ListingCard)
     const getStatus = (hawker) => {
       if (!hawker.openingTime || !hawker.closingTime) return 'unknown';
       const now = new Date();
@@ -112,14 +86,13 @@ export default {
       const [closeHour, closeMin] = hawker.closingTime.split(':').map(Number);
       const openingTimeInMinutes = openHour * 60 + openMin;
       const closingTimeInMinutes = closeHour * 60 + closeMin;
+
       if (closingTimeInMinutes < openingTimeInMinutes) {
         if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
-          let minutesUntilClose;
-          if (currentTime >= openingTimeInMinutes) {
-            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
-          } else {
-            minutesUntilClose = closingTimeInMinutes - currentTime;
-          }
+          const minutesUntilClose =
+            currentTime >= openingTimeInMinutes
+              ? 24 * 60 - currentTime + closingTimeInMinutes
+              : closingTimeInMinutes - currentTime;
           if (minutesUntilClose <= 30) return 'closing-soon';
           return 'open';
         } else {
@@ -142,54 +115,105 @@ export default {
       }
     };
 
+    // Search logic
+    const performSearch = (query) => {
+      if (!query || query.trim() === '') {
+        searchResults.value = [];
+        searching.value = false;
+        return;
+      }
+
+      searching.value = true;
+      const searchTerm = query.toLowerCase().trim();
+      const matchingHawkerIds = new Set();
+      const hawkerMatchingItems = new Map();
+      const hawkersList = allHawkers.value || [];
+      const itemsList = allItems.value || [];
+
+      // Match hawkers by address
+      hawkersList.forEach((hawker) => {
+        const address = hawker.address?.formattedAddress || '';
+        if (address.toLowerCase().includes(searchTerm)) {
+          matchingHawkerIds.add(hawker.userId);
+          if (!hawkerMatchingItems.has(hawker.userId)) hawkerMatchingItems.set(hawker.userId, []);
+        }
+      });
+
+      // Match items by name
+      itemsList.forEach((item) => {
+        const itemName = item.itemName || '';
+        if (itemName.toLowerCase().includes(searchTerm) && item.userId) {
+          matchingHawkerIds.add(item.userId);
+          if (!hawkerMatchingItems.has(item.userId)) hawkerMatchingItems.set(item.userId, []);
+          hawkerMatchingItems.get(item.userId).push({
+            itemName: item.itemName,
+            imageUrl: item.imageUrl
+          });
+        }
+      });
+
+      const matchedHawkers = hawkersList
+        .filter((hawker) => matchingHawkerIds.has(hawker.userId))
+        .map((hawker) => ({
+          ...hawker,
+          matchingItems: hawkerMatchingItems.get(hawker.userId) || []
+        }));
+
+      searchResults.value = matchedHawkers;
+      searching.value = false;
+    };
+
+    // Watch for search query updates
+    watch(
+      () => props.searchQuery,
+      (newQuery) => performSearch(newQuery),
+      { immediate: true }
+    );
+
+    // Filtered hawkers (apply search + filters)
     const filteredHawkers = computed(() => {
-      let list = (allHawkers.value || []).slice();
+      let list = [];
 
-      // Filter out hawkers with no items listed
-      list = list.filter(h => hasItems(h));
+      // Search or all hawkers
+      if (props.searchQuery && props.searchQuery.trim() !== '') {
+        list = searchResults.value.slice();
+      } else {
+        list = (allHawkers.value || []).slice();
+      }
 
-      // Filter by dietaryRestriction (string) if any selected
+      // Filter by dietary
       if (props.dietary.length) {
-        list = list.filter(h => {
+        list = list.filter((h) => {
           const tag = getDietary(h);
-          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
+          return props.dietary.map((d) => d.toLowerCase().trim()).includes(tag);
         });
       }
 
-      // Filter by status if any selected
-      if (props.status && props.status.length) {
-        list = list.filter(h => props.status.includes(getStatus(h)));
+      // Filter by status
+      if (props.status.length) {
+        list = list.filter((h) => props.status.includes(getStatus(h)));
       }
 
-      // //TODO: Add price sorting when price field is available in schema
-      // if (props.priceOrder) {
-      //   
-      // }
-
-      // default sort by distance
-      const sortOrder = 'asc';
-      list.sort((a, b) => {
-        const da = getDistance(a);
-        const db = getDistance(b);
-
-        // handle 'N/A' distances
-        if (da === 'N/A' && db === 'N/A') return 0;
-        if (da === 'N/A') return 1;
-        if (db === 'N/A') return -1;
-
-        return sortOrder === 'asc' ? da - db : db - da;
-      })
+      // Sort by distance if priceOrder provided
+      if (props.priceOrder) {
+        list.sort((a, b) => {
+          const da = getDistance(a);
+          const db = getDistance(b);
+          return props.priceOrder === 'asc' ? da - db : db - da;
+        });
+      }
 
       return list;
     });
 
-    // Cleanup listener on component unmount
+    const loading = computed(() => allHawkers.value === null || searching.value);
+
+    // Clean up on unmount
     onUnmounted(() => {
-      if (unsubscribeItems) {
-        unsubscribeItems();
-      }
+      if (unsubscribeItems) unsubscribeItems();
     });
 
     return { filteredHawkers, loading, locationError };
   }
 };
+
