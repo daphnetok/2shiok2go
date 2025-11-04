@@ -104,6 +104,32 @@
               </div>
               
               <div class="order-body">
+                <!-- Order Items with Images -->
+                <div class="order-items mb-3" v-if="order.items && order.items.length > 0">
+                  <h6 class="mb-2" style="font-size: 0.9rem; font-weight: 600; color: #059669;">Order Items:</h6>
+                  <div class="items-grid">
+                    <div v-for="(item, idx) in order.items" :key="idx" class="item-card">
+                      <img 
+                        v-if="item.imageUrl || item.image" 
+                        :src="item.imageUrl || item.image" 
+                        :alt="item.itemName || item.name"
+                        class="item-image"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="item-image-placeholder">
+                        <i class="fas fa-utensils"></i>
+                      </div>
+                      <div class="item-info">
+                        <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
+                        <div class="item-details">
+                          <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
+                          <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="order-details">
                   <div class="detail-row">
                     <span class="detail-label">
@@ -113,13 +139,7 @@
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">
-                      <i class="fas fa-utensils me-2"></i>Items:
-                    </span>
-                    <span class="detail-value">{{ getItemsList(order.items) }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="detail-label">
-                      <i class="fas fa-box me-2"></i>Quantity:
+                      <i class="fas fa-box me-2"></i>Total Items:
                     </span>
                     <span class="detail-value">{{ getTotalQuantity(order.items) }} item(s)</span>
                   </div>
@@ -127,18 +147,22 @@
                     <span class="detail-label">
                       <i class="fas fa-clock me-2"></i>Pickup Time:
                     </span>
-                    <span class="detail-value">{{ order.pickupTime || 'To be confirmed' }}</span>
+                    <span class="detail-value">{{ order.pickupTime || order.time || 'To be confirmed' }}</span>
                   </div>
                 </div>
                 
                 <div class="order-summary">
                   <div class="summary-row">
                     <span class="summary-label">Subtotal:</span>
-                    <span class="summary-value">${{ order.subtotal?.toFixed(2) || '0.00' }}</span>
+                    <span class="summary-value">${{ formatPrice(calculateSubtotal(order.items)) }}</span>
+                  </div>
+                  <div class="summary-row" v-if="order.discount && order.discount > 0">
+                    <span class="summary-label">Discount:</span>
+                    <span class="summary-value text-success">-${{ formatPrice(order.discount) }}</span>
                   </div>
                   <div class="summary-row total-row">
                     <span class="summary-label fw-bold">Total Amount:</span>
-                    <span class="summary-value total-amount">${{ order.totalAmount?.toFixed(2) || '0.00' }}</span>
+                    <span class="summary-value total-amount">${{ formatPrice(calculateTotal(order)) }}</span>
                   </div>
                 </div>
               </div>
@@ -153,7 +177,14 @@
                         @click="cancelOrder(order.id)">
                   <i class="fas fa-times me-2"></i>Cancel Order
                 </button>
-                <button class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">
+                <button class="btn btn-outline-success btn-sm" 
+                        style="border-radius: 8px;"
+                        @click="contactSupport(order.id)">
+                  <i class="fas fa-headset me-2"></i>Contact Us
+                </button>
+                <button class="btn btn-outline-primary btn-sm" 
+                        style="border-radius: 8px;"
+                        @click="viewOrderDetails(order.id)">
                   <i class="fas fa-info-circle me-2"></i>View Details
                 </button>
               </div>
@@ -167,12 +198,14 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 
 export default {
   name: 'BuyerRecentOrders',
   setup() {
+    const router = useRouter()
     const isDarkMode = ref(false)
     const loading = ref(true)
     const orders = ref([])
@@ -226,6 +259,17 @@ export default {
       try {
         loading.value = true
         const fetchedOrders = await getOrdersByUser(currentUserId.value, 'buyer')
+        console.log('Fetched orders:', fetchedOrders)
+        
+        // Log first order to see data structure
+        if (fetchedOrders.length > 0) {
+          console.log('Sample order:', fetchedOrders[0])
+          console.log('Sample order items:', fetchedOrders[0].items)
+          console.log('Calculated subtotal:', calculateSubtotal(fetchedOrders[0].items))
+          console.log('Discount:', fetchedOrders[0].discount)
+          console.log('Calculated total:', calculateTotal(fetchedOrders[0]))
+        }
+        
         orders.value = fetchedOrders
       } catch (error) {
         console.error('Error fetching orders:', error)
@@ -258,6 +302,48 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    }
+
+    // Format price
+    const formatPrice = (price) => {
+      if (price === null || price === undefined) return '0.00'
+      const numPrice = typeof price === 'number' ? price : parseFloat(price) || 0
+      return numPrice.toFixed(2)
+    }
+
+    // Calculate subtotal from items
+    const calculateSubtotal = (items) => {
+      if (!items || items.length === 0) return 0
+      return items.reduce((sum, item) => {
+        // Try itemTotal first (pre-calculated), then calculate from price * quantity
+        let itemTotal = 0
+        if (item.itemTotal !== undefined) {
+          itemTotal = parseFloat(item.itemTotal) || 0
+        } else if (item.itemPrice !== undefined) {
+          itemTotal = (parseFloat(item.itemPrice) || 0) * (parseInt(item.qty) || parseInt(item.quantity) || 1)
+        } else {
+          itemTotal = (parseFloat(item.price) || 0) * (parseInt(item.qty) || parseInt(item.quantity) || 1)
+        }
+        return sum + itemTotal
+      }, 0)
+    }
+
+    // Calculate total with discount
+    const calculateTotal = (order) => {
+      if (order.totalAmount !== undefined) return order.totalAmount
+      if (order.total !== undefined) return order.total
+      
+      const subtotal = order.subtotal || calculateSubtotal(order.items)
+      const discount = parseFloat(order.discount) || 0
+      return subtotal - discount
+    }
+
+    // Handle image error
+    const handleImageError = (event) => {
+      event.target.style.display = 'none'
+      if (event.target.nextElementSibling) {
+        event.target.nextElementSibling.style.display = 'flex'
+      }
     }
 
     // Get items list
@@ -302,6 +388,19 @@ export default {
       localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
     }
 
+    // View order details - navigate to receipt page
+    const viewOrderDetails = (orderId) => {
+      router.push({ name: 'OrderReceipt', params: { orderId } })
+    }
+
+    // Contact support - navigate to support form with order ID
+    const contactSupport = (orderId) => {
+      router.push({ 
+        name: 'ContactSupport', 
+        query: { orderId: orderId }
+      })
+    }
+
     // Initialize
     onMounted(() => {
       // Check saved theme
@@ -334,7 +433,13 @@ export default {
       filteredOrders,
       toggleTheme,
       cancelOrder,
+      viewOrderDetails,
+      contactSupport,
       formatDate,
+      formatPrice,
+      calculateSubtotal,
+      calculateTotal,
+      handleImageError,
       getItemsList,
       getTotalQuantity,
       getStatusClass,
@@ -353,10 +458,6 @@ export default {
   min-height: 100vh;
   transition: all 0.3s ease;
   position: relative;
-}
-
-.buyer-dashboard-wrapper.dark-theme {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
 }
 
 /* Sidebar - Matching FilterBar Style */
@@ -671,9 +772,109 @@ export default {
 /* Order Body */
 .order-body {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Order Items Grid */
+.order-items {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark-mode-card .order-items {
+  border-bottom-color: #374151;
+}
+
+.items-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.item-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.dark-mode-card .item-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.item-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.item-image,
+.item-image-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.item-image-placeholder {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark-mode-card .item-name {
+  color: #f9fafb;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.item-quantity {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.dark-mode-card .item-quantity {
+  color: #9ca3af;
+}
+
+.item-price {
+  color: #059669;
+  font-weight: 700;
+}
+
+.dark-mode-card .item-price {
+  color: #10b981;
 }
 
 .order-details {
@@ -909,6 +1110,14 @@ export default {
   
   .order-card {
     margin-bottom: 1rem;
+  }
+
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .item-card {
+    flex-direction: row;
   }
 }
 

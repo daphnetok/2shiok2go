@@ -50,14 +50,46 @@
         <h6 class="mb-3 fw-semibold" :style="{ color: darkMode ? '#10b981' : '#059669', fontSize: '0.9rem' }">
           <i class="fas fa-calendar-day me-2"></i>{{ formatSelectedDate }}
         </h6>
-        <div v-if="getEventsForSelectedDate().length === 0" class="text-muted small">
+        
+        <!-- Public Holidays Section -->
+        <div v-if="getHolidaysForSelectedDate().length > 0" class="holidays-list mb-3">
+          <div v-for="(holiday, idx) in getHolidaysForSelectedDate()" :key="'holiday-' + idx" 
+               class="holiday-item d-flex align-items-center mb-2 p-2" 
+               :style="{ 
+                 background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : 'linear-gradient(135deg, #fef3c7 0%, #fde047 100%)', 
+                 borderRadius: '8px', 
+                 border: darkMode ? '1px solid #475569' : '1px solid #fbbf24'
+               }">
+            <span class="holiday-icon me-2" style="font-size: 1.25rem;">{{ holiday.icon }}</span>
+            <span class="fw-semibold" :style="{ fontSize: '0.875rem', color: darkMode ? '#fbbf24' : '#92400e' }">
+              {{ holiday.name }}
+            </span>
+            <span class="ms-auto badge" :style="{ 
+              background: darkMode ? '#374151' : '#fffbeb', 
+              color: darkMode ? '#fbbf24' : '#78350f',
+              fontSize: '0.7rem',
+              padding: '0.25rem 0.5rem'
+            }">
+              Public Holiday
+            </span>
+          </div>
+        </div>
+        
+        <!-- Custom Events Section -->
+        <div v-if="getEventsForSelectedDate().length === 0 && getHolidaysForSelectedDate().length === 0" class="text-muted small">
           No events scheduled
         </div>
-        <div v-else class="event-list">
-          <div v-for="(event, idx) in getEventsForSelectedDate()" :key="idx" 
+        <div v-else-if="getEventsForSelectedDate().length > 0" class="event-list">
+          <div v-for="(event, idx) in getEventsForSelectedDate()" :key="'event-' + idx" 
                class="event-item d-flex justify-content-between align-items-center mb-2 p-2" 
-               style="background: white; border-radius: 6px; border: 1px solid #d1fae5;">
-            <span class="fw-medium" style="font-size: 0.875rem;">{{ event.title }}</span>
+               :style="{ 
+                 background: darkMode ? '#1e293b' : 'white', 
+                 borderRadius: '6px', 
+                 border: darkMode ? '1px solid #334155' : '1px solid #d1fae5' 
+               }">
+            <span class="fw-medium" :style="{ fontSize: '0.875rem', color: darkMode ? '#10b981' : '#059669' }">
+              <i class="fas fa-calendar-check me-2" style="font-size: 0.75rem;"></i>{{ event.title }}
+            </span>
             <button class="btn btn-sm btn-outline-danger" style="border-radius: 6px; padding: 0.125rem 0.5rem;" @click="$emit('remove-event', event.id)">
               <i class="fas fa-times"></i>
             </button>
@@ -137,23 +169,69 @@ export default {
     },
     getCustomEventsForDate(date) {
       return this.events.filter(event => {
-        const eventDate = new Date(event.date)
-        return eventDate.toDateString() === date.toDateString()
+        if (!event.date) {
+          console.log('⚠️ Event has no date:', event)
+          return false
+        }
+        
+        console.log('🔍 Checking event:', event.title, 'with date:', event.date, 'against', date.toDateString())
+        
+        // Parse the event date
+        let eventDate = new Date(event.date)
+        
+        // Check if date is valid
+        if (isNaN(eventDate.getTime())) {
+          console.log('❌ Invalid date for event:', event.title, event.date)
+          return false
+        }
+        
+        // Compare dates (year, month, day only - ignore time)
+        const match = eventDate.getFullYear() === date.getFullYear() &&
+                     eventDate.getMonth() === date.getMonth() &&
+                     eventDate.getDate() === date.getDate()
+        
+        console.log(`${match ? '✅' : '❌'} Event "${event.title}" (${event.date}) ${match ? 'matches' : 'does not match'} ${date.toDateString()}`)
+        console.log(`   Event date parsed as: ${eventDate.toDateString()}`)
+        
+        return match
       })
     },
     getEventsForSelectedDate() {
       return this.selectedDate ? this.getCustomEventsForDate(this.selectedDate) : []
     },
+    getHolidaysForSelectedDate() {
+      if (!this.selectedDate) return []
+      const holiday = this.hasHoliday(this.selectedDate)
+      return holiday ? [holiday] : []
+    },
     hasHoliday(date) {
       const holidays = [
-        { month: 1, day: 1 }, { month: 1, day: 29 }, { month: 1, day: 30 },
-        { month: 3, day: 29 }, { month: 4, day: 13 }, { month: 5, day: 1 },
-        { month: 5, day: 12 }, { month: 6, day: 19 }, { month: 8, day: 9 },
-        { month: 10, day: 31 }, { month: 12, day: 25 }
+        { month: 1, day: 1, name: "New Year's Day", icon: '🎉' },
+        { month: 1, day: 29, name: 'Chinese New Year', icon: '🧧' },
+        { month: 1, day: 30, name: 'Chinese New Year', icon: '🧧' },
+        { month: 3, day: 29, name: 'Good Friday', icon: '✝️' },
+        { month: 4, day: 13, name: 'Hari Raya Puasa', icon: '🌙' },
+        { month: 5, day: 1, name: 'Labour Day', icon: '👷' },
+        { month: 5, day: 12, name: 'Vesak Day', icon: '☸️' },
+        { month: 6, day: 19, name: 'Hari Raya Haji', icon: '🕌' },
+        { month: 8, day: 9, name: 'National Day', icon: '🇸🇬' },
+        { month: 10, day: 31, name: 'Deepavali', icon: '🪔' },
+        { month: 12, day: 25, name: 'Christmas Day', icon: '🎄' }
       ]
       const month = date.getMonth() + 1
       const day = date.getDate()
       return holidays.find(h => h.month === month && h.day === day)
+    }
+  },
+  mounted() {
+    console.log('📅 CalendarCard mounted, events:', this.events)
+  },
+  watch: {
+    events: {
+      handler(newEvents) {
+        console.log('📅 Events updated:', newEvents)
+      },
+      deep: true
     }
   }
 }
@@ -262,6 +340,41 @@ export default {
 .event-list {
   max-height: 200px;
   overflow-y: auto;
+}
+
+.holidays-list {
+  border-bottom: 1px solid rgba(5, 150, 105, 0.2);
+  padding-bottom: 0.75rem;
+}
+
+.holiday-item {
+  animation: slideIn 0.3s ease;
+  transition: all 0.2s ease;
+}
+
+.holiday-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+}
+
+.holiday-icon {
+  animation: bounce 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 /* Dark Mode Styles */

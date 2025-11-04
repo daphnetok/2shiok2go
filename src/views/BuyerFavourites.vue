@@ -222,10 +222,6 @@ export default {
   position: relative;
 }
 
-.buyer-dashboard-wrapper.dark-theme {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-}
-
 /* Sidebar - Matching FilterBar Style */
 .sidebar {
   width: 280px;
