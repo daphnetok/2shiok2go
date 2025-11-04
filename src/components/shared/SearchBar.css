@@ -12,6 +12,7 @@
   border-radius: 20px;
   padding: 5px;
   width: 100%;
+  position: relative;
 }
 
 .search-box:hover {
@@ -34,16 +35,18 @@
 }
 
 .clear-search-btn {
-  background: transparent;
+  background: none;
   border: none;
-  color: #999;
+  padding: 0;
+  margin-right: 8px;
   cursor: pointer;
-  padding: 5px 10px;
+  color: #999;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 5px;
-  transition: color 0.2s ease;
+  width: 20px;
+  height: 20px;
+  transition: color 0.2s;
 }
 
 .clear-search-btn:hover {

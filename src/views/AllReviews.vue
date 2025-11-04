@@ -155,12 +155,13 @@ export default {
     const hawker = ref(null);
     const reviews = ref(null);
     const allReviews = ref([]);
-      const loading = ref(true);
-      const errorMsg = ref(null);
-      const selectedImage = ref(null);
-      const videoProgress = ref({});
-      const videoFullscreen = ref({});
-      const videoDuration = ref({});
+    const loading = ref(true);
+    const errorMsg = ref(null);
+    const selectedImage = ref(null);
+    const videoProgress = ref({});
+    const videoFullscreen = ref({});
+    const videoDuration = ref({});
+    const activeVideoRef = ref(null);
 
     // Computed properties
     const displayRating = computed(() => {
@@ -313,41 +314,25 @@ export default {
       }
     };
 
-    const activeVideoRef = ref(null);
-
     const playVideoInPictureInPicture = async (event) => {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item-large');
-      
-      // Find video index
-      let videoIndex = -1;
-      const dataIndex = video.getAttribute('data-video-index');
-      if (dataIndex !== null) {
-        videoIndex = parseInt(dataIndex);
-      } else {
-        for (let i = 0; i < videoRefs.value.length; i++) {
-          if (videoRefs.value[i] === video) {
-            videoIndex = i;
-            break;
-          }
-        }
-      }
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       try {
         if (video.paused) {
           // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
-          if (videoIndex >= 0) {
-            videoFullscreen.value[videoIndex] = true;
-            
-            // Get video duration
-            if (video.readyState >= 2) {
+          videoFullscreen.value[videoIndex] = true;
+          activeVideoRef.value = video;
+          
+          // Set video duration
+          if (video.duration) {
+            videoDuration.value[videoIndex] = video.duration;
+          } else {
+            video.addEventListener('loadedmetadata', () => {
               videoDuration.value[videoIndex] = video.duration;
-            } else {
-              video.addEventListener('loadedmetadata', () => {
-                videoDuration.value[videoIndex] = video.duration;
-              });
-            }
+            }, { once: true });
           }
           
           await video.play();
@@ -390,46 +375,20 @@ export default {
     };
 
     const exitVideoFullscreen = (event) => {
-      // Find video and index
-      let video = null;
-      let videoContainer = null;
-      let videoIndex = -1;
+      event.stopPropagation();
+      const video = event.target.closest('.video-media-item-large')?.querySelector('video') || 
+                   event.target.querySelector('video') || 
+                   activeVideoRef.value;
       
-      if (event && event.target) {
-        // Check if it's the exit button
-        const exitBtn = event.target.closest('.exit-fullscreen-btn-large');
-        if (exitBtn) {
-          videoContainer = exitBtn.closest('.video-media-item-large');
-          video = videoContainer?.querySelector('video');
-        } else {
-          video = event.target.tagName === 'VIDEO' ? event.target : event.target.closest('.video-media-item-large')?.querySelector('video');
-          videoContainer = video?.closest('.video-media-item-large');
-        }
-      } else if (activeVideoRef.value) {
-        video = activeVideoRef.value;
-        videoContainer = video.closest('.video-media-item-large');
-      }
+      if (!video) return;
       
-      if (!video || !videoContainer) return;
-      
-      // Find video index
-      const dataIndex = video.getAttribute('data-video-index');
-      if (dataIndex !== null) {
-        videoIndex = parseInt(dataIndex);
-      } else {
-        for (let i = 0; i < videoRefs.value.length; i++) {
-          if (videoRefs.value[i] === video) {
-            videoIndex = i;
-            break;
-          }
-        }
-      }
+      const videoContainer = video.closest('.video-media-item-large');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       video.pause();
       videoContainer.classList.remove('playing');
-      if (videoIndex >= 0) {
-        videoFullscreen.value[videoIndex] = false;
-      }
+      videoContainer.classList.remove('fullscreen');
+      videoFullscreen.value[videoIndex] = false;
       
       if (video._escapeHandler) {
         document.removeEventListener('keydown', video._escapeHandler);
@@ -447,8 +406,6 @@ export default {
       } else if (document.msFullscreenElement) {
         document.msExitFullscreen();
       }
-      
-      videoContainer.classList.remove('fullscreen');
     };
 
     const isVideoFullscreen = (index) => {
@@ -460,9 +417,6 @@ export default {
       if (video.duration) {
         const progress = (video.currentTime / video.duration) * 100;
         videoProgress.value[index] = progress;
-        if (!videoDuration.value[index]) {
-          videoDuration.value[index] = video.duration;
-        }
       }
     };
 
@@ -471,17 +425,14 @@ export default {
     };
 
     const seekVideo = (event, index) => {
-      const video = videoRefs.value[index];
+      const video = videoRefs.value[index] || activeVideoRef.value;
       if (!video || !video.duration) return;
       
-      const progressContainer = event.currentTarget;
-      const rect = progressContainer.getBoundingClientRect();
+      const progressTrack = event.currentTarget;
+      const rect = progressTrack.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
-      const percentage = (clickX / rect.width) * 100;
-      const seekTime = (percentage / 100) * video.duration;
-      
-      video.currentTime = seekTime;
-      videoProgress.value[index] = percentage;
+      const percentage = clickX / rect.width;
+      video.currentTime = percentage * video.duration;
     };
 
     onMounted(() => {
@@ -529,7 +480,7 @@ export default {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
@@ -827,69 +778,6 @@ export default {
   max-height: 100%;
 }
 
-.exit-fullscreen-btn-large {
-  display: none;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(128, 128, 128, 0.8);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0;
-  z-index: 10001;
-  transition: background 0.2s ease;
-}
-
-.exit-fullscreen-btn-large:hover {
-  background: rgba(128, 128, 128, 1);
-}
-
-.video-media-item-large.fullscreen .exit-fullscreen-btn-large {
-  display: flex !important;
-}
-
-.video-progress-container-large {
-  display: none;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 10001;
-  padding: 12px 16px;
-}
-
-.video-media-item-large.fullscreen .video-progress-container-large {
-  display: block;
-}
-
-.video-progress-track-large {
-  position: relative;
-  height: 4px;
-  background-color: rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.video-progress-line-large {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  background-color: white;
-  transition: width 0.1s linear;
-  border-radius: 2px;
-}
-
 .review-items-large {
   display: flex;
   flex-wrap: wrap;
@@ -943,23 +831,73 @@ export default {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   border: none;
-  border-radius: 50%;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem;
+  border-radius: 50%;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10001;
+  transition: background 0.2s;
 }
 
 .close-modal:hover {
-  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.exit-fullscreen-btn-large {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(128, 128, 128, 0.8);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: background 0.2s;
+}
+
+.exit-fullscreen-btn-large:hover {
+  background: rgba(128, 128, 128, 1);
+}
+
+.video-progress-container-large {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 600px;
+  z-index: 10000;
+}
+
+.video-progress-track-large {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+}
+
+.video-progress-line-large {
+  height: 100%;
+  background-color: #28a745;
+  border-radius: 3px;
+  transition: width 0.1s linear;
 }
 
 /* Responsive */
