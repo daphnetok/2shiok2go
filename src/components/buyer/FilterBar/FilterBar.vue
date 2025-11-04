@@ -15,7 +15,7 @@
         <i class="fas fa-chevron-down ms-2"></i>
       </button>
 
-      <div class="navbar-collapse w-100" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse w-100" id="navbarSupportedContent">
         <div class="filter-container w-100">
           <div class="filter-header-main">
             <h2><i class="fas fa-sliders-h me-2"></i>Filters</h2>

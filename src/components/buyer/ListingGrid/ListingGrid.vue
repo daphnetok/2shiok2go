@@ -329,6 +329,20 @@ export default {
         });
       }
 
+      // Final sort: Open hawkers first, then closed (maintains previous sorting within each group)
+      list.sort((a, b) => {
+        const statusA = getStatus(a);
+        const statusB = getStatus(b);
+        
+        // Priority: open/opening-soon/closing-soon come before closed
+        const isOpenA = ['open', 'opening-soon', 'closing-soon'].includes(statusA);
+        const isOpenB = ['open', 'opening-soon', 'closing-soon'].includes(statusB);
+        
+        if (isOpenA && !isOpenB) return -1; // A is open, B is closed: A comes first
+        if (!isOpenA && isOpenB) return 1;  // B is open, A is closed: B comes first
+        return 0; // Both same status, maintain existing order
+      });
+
       return list;
     });
 

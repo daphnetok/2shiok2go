@@ -210,12 +210,21 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { db } from '/firebase/config';
-import { collection, query, where, orderBy, limit, getDocs, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const router = useRouter();
+const route = useRoute();
+
+// Accept orderId as a prop
+const props = defineProps({
+  orderId: {
+    type: String,
+    default: null
+  }
+});
 
 // Format price to 2 decimal places
 const formatPrice = (price) => {
@@ -310,6 +319,55 @@ const fetchLatestOrder = async (userId) => {
   }
 };
 
+// Fetch a specific order by ID
+const fetchSpecificOrder = async (orderId, userId) => {
+  try {
+    loading.value = true;
+    errorMsg.value = null;
+
+    const orderRef = doc(db, 'orders', orderId);
+    const orderDoc = await getDoc(orderRef);
+    
+    if (orderDoc.exists()) {
+      const orderData = orderDoc.data();
+      
+      // Verify this order belongs to the current user
+      if (orderData.userId !== userId) {
+        errorMsg.value = 'You do not have permission to view this order';
+        return;
+      }
+      
+      console.log('Specific order fetched:', orderData);
+      
+      order.value = {
+        id: orderDoc.id,
+        orderID: orderData.orderID,
+        day: orderData.day,
+        date: orderData.date,
+        time: orderData.time,
+        status: orderData.status || 'pending',
+        ...orderData
+      };
+      
+      // Set up real-time listener for order status updates
+      setupOrderListener(orderId);
+      
+      // Fetch hawker details if hawkerId exists
+      if (orderData.hawkerId) {
+        await fetchHawkerDetails(orderData.hawkerId);
+      }
+    } else {
+      console.log('Order not found:', orderId);
+      errorMsg.value = 'Order not found';
+    }
+  } catch (error) {
+    console.error('Error fetching specific order:', error);
+    errorMsg.value = `Failed to load order: ${error.message}`;
+  } finally {
+    loading.value = false;
+  }
+};
+
 // Fetch hawker details from hawkerListings
 const fetchHawkerDetails = async (hawkerId) => {
   try {
@@ -359,7 +417,14 @@ onMounted(() => {
   // Wait for auth state to be ready
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {
-      fetchLatestOrder(user.uid);
+      // If orderId is provided via props or route params, fetch that specific order
+      const orderIdToFetch = props.orderId || route.params.orderId;
+      if (orderIdToFetch) {
+        fetchSpecificOrder(orderIdToFetch, user.uid);
+      } else {
+        // Otherwise fetch the latest order
+        fetchLatestOrder(user.uid);
+      }
     } else {
       loading.value = false;
       errorMsg.value = 'Please log in to view your order receipt';

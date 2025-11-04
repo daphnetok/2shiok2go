@@ -9,6 +9,9 @@
         </div>
   </div>
 
+  <!-- Floating Cart Button -->
+  <FloatingCartButton />
+
 </template>
 
 <script>
@@ -16,6 +19,7 @@
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
+import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
 
 export default { 
   name: "BuyerListings",
@@ -23,6 +27,7 @@ export default {
     FilterBar,
     SearchBar,
     StallListing,
+    FloatingCartButton
   }
 };
 </script>
