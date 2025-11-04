@@ -23,18 +23,21 @@ export default {
   },
   emits: ['search'],
   methods: {
-    isDiscountApplied(item) {
-      if (!item || !item.discountTime) return false; // prevent crash
-
+    isDiscountApplied() {
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      if (!this.hawker.discountTime){
+        return false
+      }
+      else{
+        const [discountHour, discountMin] = this.hawker.discountTime.split(':').map(Number);
+        const discountTimeInMinutes = discountHour * 60 + discountMin;
 
-      const [hours, minutes] = item.discountTime.split(':');
-      const discountStart = parseInt(hours) * 60 + parseInt(minutes);
-      return currentTime >= discountStart;
-    }
-,
-
+        if (currentTime>=discountTimeInMinutes) return true;
+        else return false;
+      }
+    },
   },
   setup(props, { emit }) {
     const route = useRoute();
@@ -249,7 +252,6 @@ export default {
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
             discount: data.discount,
-            discountTime: data.discountTime,
             imageUrl: data.imageUrl,
             description: data.description || '',
             count: savedData.qty,

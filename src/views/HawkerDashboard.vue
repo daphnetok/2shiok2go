@@ -1,5 +1,5 @@
 <template>
-  <div class="hawker-dashboard-container">
+  <div class="container mt-4">
     <!-- <h2>Hawker Dashboard</h2> -->
 
     <!-- loading state -->
@@ -67,4 +67,4 @@ export default {
 };
 
 </script>
-<style src="../assets/css/HawkerDashboard.css"></style>
+<!-- <style src="../assets/css/CreateListing.css"></style> -->
