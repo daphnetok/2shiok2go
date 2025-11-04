@@ -1,11 +1,12 @@
 import { computed, ref, onMounted, onActivated } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFavourites } from '../../../../firebase/firestore';
 
 export default {
   name: 'Favourites',
-  components: { ListingCard },
+  components: { ListingCard, LoadingSpinner },
   props: {
     priceOrder: {
       type: String,

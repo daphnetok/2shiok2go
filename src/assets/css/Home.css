@@ -1,4 +1,4 @@
-/* Base styles for consistency */
+/* Reset and Base styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,218 +6,201 @@
 }
 
 .homepage {
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   overflow-x: hidden;
-  background: linear-gradient(to top right, #d9ffd9, #ffffff); 
+  background: linear-gradient(to bottom, #d9ffd9, #ffffff);
+  position: relative;
 }
 
-body {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.6;
-  
-  color: #333;
-  padding: 0;
-  margin: 0;
+.router{
+  background-color: none !important;
+  background: none !important;
+}
+
+/* Prevent horizontal scroll on all sections */
+.hero,
+.benefits,
+.about,
+.testimonials,
+.cta,
+.footer {
   width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
 }
 
-/* Keyframes for subtle bounce with impact at the bottom */
-@keyframes bounce {
-  0% {
-    transform: translateY(0); /* Start at the original position */
-  }
-  30% {
-    transform: translateY(-5px); /* Move up slightly */
-  }
-  100% {
-    transform: translateY(0); /* Return to the original position */
-  }
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 20px 80px;
+  background: linear-gradient(135deg, #d9ffd9 0%, #ffffff 100%);
+  position: relative;
+}
+
+.hero-content {
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 20px;
+  text-align: center;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .action {
-  background-color: #a3f6bf59;
+  display: inline-block;
+  background-color: rgba(163, 246, 191, 0.35);
   color: #3c763d;
   border-radius: 30px;
-  padding: 10px 20px;
-  margin-bottom: 10px;
-
-  /* Apply the bounce animation */
-  animation: bounce 1.5s ease-in-out infinite; /* Infinite bounce with smoother movement */
+  padding: 12px 24px;
+  margin-bottom: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: bounce 2s ease-in-out infinite;
 }
 
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
 
-/* Hero Section with Gradient Background */
-.hero {
-  text-align: center;
-  padding: 100px 20px;
-  animation: fadeIn 1s ease-in-out;
-  background: linear-gradient(to top right, #d9ffd9, #ffffff);
-
-  /* Added Flexbox for centering content */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; /* Full viewport height */
+.action i {
+  margin-right: 8px;
 }
 
 .headline {
-  background: linear-gradient(45deg, #50C878, #008080, #32CD32); /* Emerald, Teal, Lime */
+  background: linear-gradient(45deg, #50C878, #008080, #32CD32);
   -webkit-background-clip: text;
-  color: transparent;
-  font-size: 3rem;
-  font-weight:800;
-  
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  line-height: 1.2;
 }
 
 .headline2 {
   font-size: 3rem;
-  margin-top: 10px;
-  color: black;
+  color: #1a1a1a;
   font-weight: 800;
-  width: 70%;  /* Keeps the text width to 60% of the parent container */
-  text-align: center; /* Ensures text is centered within the width */
+  margin-bottom: 20px;
+  line-height: 1.3;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  word-wrap: break-word;
 }
 
 .subheading {
   font-size: 1.3rem;
-  margin-top: 10px;
-  color: black;
-  letter-spacing: -1px; /* Decrease the letter spacing */
+  color: #555;
+  margin-bottom: 40px;
+  line-height: 1.6;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  word-wrap: break-word;
 }
 
-.buttons{
-    display: flex;
-    justify-content: center; 
-    width: 50%; 
-    align-items: center;
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 60px;
 }
 
-.router:hover{
-    background: none ;
-    background-color: transparent;
+.router {
+  text-decoration: none;
 }
 
-.signup1 {
-  background: linear-gradient(45deg, #50C878, #35a064, #018e61); /* Custom gradient */
+.btn-primary,
+.btn-secondary {
+  padding: 16px 36px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 50px;
   border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #50C878, #35a064, #018e61);
   color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 1.2rem;
-  margin: 10px;
-  border-radius: 50px;
-  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease, transform 0.3s ease; /* Smooth transitions */
-  font-weight: bold;
-  background-clip: padding-box;
-  animation: fadeIn 0.8s ease-out; /* Fade-in animation */
+  box-shadow: 0 4px 15px rgba(80, 200, 120, 0.3);
 }
 
-/* Hover Effect */
-.signup1:hover {
-  background-color: white; /* Background turns white on hover */
-  color: transparent; /* Makes the text transparent to show the gradient */
-  background-image: linear-gradient(45deg, #50C878, #35a064, #018e61); /* Gradient applied to text */
-  -webkit-background-clip: text; /* For webkit-based browsers */
-  background-clip: text; /* For non-webkit browsers */
-  border: 3px solid #018e61; /* Border color matches the gradient */
-  transform: scale(1.05); /* Slightly increase the size on hover */
+.btn-primary:hover {
+  background: white;
+  color: #018e61;
+  border: 3px solid #018e61;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(80, 200, 120, 0.4);
 }
 
-/* Fade-in animation for initial button load */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px); /* Starts below */
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0); /* Ends in normal position */
-  }
+.btn-primary .arrow {
+  transition: transform 0.3s ease;
 }
 
+.btn-primary:hover .arrow {
+  transform: translateX(5px);
+}
 
-.browse {
+.btn-secondary {
   background-color: transparent;
-  border: 2px solid #018e61; /* Border color */
-  color: #018e61; /* Text color */
-  padding: 15px 32px;
+  border: 3px solid #018e61;
+  color: #018e61;
+}
+
+.btn-secondary:hover {
+  background-color: #018e61;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(1, 142, 97, 0.3);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.stat {
   text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 1.2rem;
-  margin: 10px;
-  border-radius: 50px;
-  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
-  font-weight: bold;
-  position: relative; /* To enable pseudo-element positioning */
-  animation: fadeIn 0.8s ease-out; /* Fade-in animation when the button loads */
 }
 
-/* Hover Effect */
-.browse:hover {
-  background-color: #018e61; /* Background turns to green on hover */
-  color: white; /* Text color changes to white */
-  transform: scale(1.05); /* Slightly increase the size on hover */
+.stat h2 {
+  font-size: 3rem;
+  color: #20b423;
+  margin-bottom: 8px;
+  font-weight: 800;
 }
 
-/* Adding a shadow effect on hover */
-.browse:hover::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(1, 142, 97, 0.3); 
-  border-radius: 40px;
-  z-index: -1; 
+.stat p {
+  font-size: 1.1rem;
+  color: #555;
+  font-weight: 500;
 }
 
-/* Fade-in animation when the button loads */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px); 
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0); 
-  }
-}
-
-.stats{
-    display: flex;
-    justify-content: space-evenly;
-    margin-top: 50px;
-    width: 80%; 
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.stat{
-    align-items: center;
-}
-.stat h2{
-    font-size: 2.5rem;
-    color: #20b423;
-    margin-bottom: 10px;
-}
-
-.stat p{
-    font-size: 1.1rem;
-    color: black;
-}
-
-/* Benefits Section */
+/* Benefits Section - 2 cards per row */
 .benefits {
   background: linear-gradient(135deg, #ffffff 0%, #f0f9f0 100%);
-  padding: 80px 20px;
-  position: relative;
+  padding: 100px 20px;
 }
 
 .benefits h2 {
@@ -240,7 +223,7 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 30px;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -309,305 +292,192 @@ body {
   font-size: 1rem;
   color: #666;
   line-height: 1.6;
-  margin: 0;
+}
+
+/* About Section */
+.about {
+  padding: 100px 20px;
+  background-color: #f0fff0;
+}
+
+.about-content {
+  max-width: 90%;
+  margin: 0 auto;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.about-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 30px;
+  background: linear-gradient(135deg, #50C878, #008040);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 20px rgba(80, 200, 120, 0.3);
+  color: white;
+  font-size: 40px;
+}
+
+.about h2 {
+  font-size: 2.5rem;
+  margin-bottom: 25px;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.about h2 span {
+  background: linear-gradient(45deg, #50C878, #339966, #409d7f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.about p {
+  font-size: 1.25rem;
+  color: #555;
+  line-height: 1.8;
+}
+
+/* Testimonials Section */
+.testimonials {
+  background-color: #f9f9f9;
+  padding: 80px 20px;
+  overflow: hidden;
+}
+
+.testimonials h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.testimonials .user {
+  background: linear-gradient(45deg, #50C878, #008040);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+.testimonial-container {
+  display: flex;
+  width: fit-content;
+  animation: scrollRight 180s linear ;
+}
+
+.testimonial-track {
+  display: flex;
+  gap: 20px;
+}
+
+.testimonial {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fff0 100%);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 320px;
+  max-width: 320px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.testimonial:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 15px;
+  color: #ffd700;
+}
+
+.stars i {
+  font-size: 18px;
+}
+
+.testimonial .review {
+  font-size: 0.95rem;
+  color: #555;
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.testimonial .name {
+  font-weight: 700;
+  color: #4CAF50;
+  font-size: 1rem;
+  text-align: right;
+}
+
+@keyframes scrollRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* CTA Section */
 .cta {
   background: linear-gradient(45deg, #78f1a0, #3faa6d, #017c55);
   color: white;
+  padding: 80px 20px;
+}
+
+.cta-content {
+  max-width: 90%;
+  margin: 0 auto;
   text-align: center;
-  padding: 40px 20px;
+  padding: 0 20px;
 }
 
 .cta h2 {
   font-size: 2.5rem;
   color: white;
+  margin-bottom: 20px;
+  font-weight: 800;
 }
 
 .cta p {
   font-size: 1.2rem;
-  margin-left: 15%;
-  margin-right: 15%;
+  margin-bottom: 40px;
+  line-height: 1.7;
+  opacity: 0.95;
 }
 
 .cta-button {
-  padding: 15px 30px;
+  padding: 18px 40px;
   font-size: 1.2rem;
-  background-color: #ffffff;
+  background-color: white;
   color: #3c763d;
   border: none;
+  border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: bold;
+  font-weight: 700;
   text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .cta-button:hover {
   background-color: #2e8b57;
   color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* About Section */
-.about {
-  padding-top: 80px;
-  padding-bottom: 80px;
-  text-align: center;
-  background-color: #f0fff0;
-
-}
-
-.about h2 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  color: black;
-  letter-spacing: -1px;
-}
-
-.about h2 span{
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #50C878, #339966, #409d7f); /* Linear gradient */
-  -webkit-background-clip: text; /* Clip the background to text */
-  color: transparent;
-  letter-spacing: -1px;
-}
-
-.about p {
-  font-size: 1.25rem;
-  color: #555;
-  padding: 0 5%;
-}
-
-
-.leafIcon {
-  background-color: #339966; 
-  color: white; 
-  border-radius: 50%; 
-  padding: 30px;
-  display: block; 
-  margin: 0 auto 25px;
-  background: linear-gradient(135deg, #50C878, #008040);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
-  transition: all 0.4s ease;
-  color: white;
-  font-size: 30px;
-}
-
-
-/* Testimonials Section */
-.testimonials {
-  background-color: #f0f0f0;
-  padding: 40px 20px;
-  overflow: hidden;
-  position: relative;
-}
-
-.testimonials h2 {
-  text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 40px;
-  color: black;
-}
-
-.testimonials span {
-  background: linear-gradient(45deg, #50C878, #008040);
-  -webkit-background-clip: text;
-  color: transparent;
-  font-weight: 700;
-  font-size: 2.5rem;
-}
-
-.starIcon {
-  color: rgb(255, 215, 0);
-  font-size: 20px;
-  padding-right: 0px;
-}
-
-.testimonial-container {
-  display: flex;
-  width: fit-content;
-  animation: scrollRight 180s linear infinite;
-}
-
-.testimonial-track {
-  display: flex;
-}
-
-.testimonial {
-  background: linear-gradient(to top left, #e6f5e1, #ffffff);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 300px;
-  margin-right: 20px;
-  flex-shrink: 0;
-}
-
-.testimonial p {
-  font-family: 'Arial', sans-serif;
-  font-size: 16px;
-  color: #333333;
-  font-style: italic;
-}
-
-.testimonial p:last-child {
-  font-weight: bold;
-  color: #4CAF50;
-}
-
-/* Animation for seamless scrolling */
-@keyframes scrollRight {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-
-/* Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-footer{
-    background-color: #101826;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-}
-
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .benefits {
-    padding: 60px 20px;
-  }
-  
-  .benefits h2 {
-    font-size: 2rem;
-    margin-bottom: 40px;
-  }
-  
-  .benefits-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-  
-  .benefit {
-    padding: 35px 25px;
-  }
-  
-  .benefit-icon {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .benefit-icon i {
-    font-size: 30px;
-    
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .benefits {
-    padding: 60px 20px;
-  }
-  
-  .benefits h2 {
-    font-size: 2rem;
-    margin-bottom: 40px;
-  }
-  
-  .benefits-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-  
-  .benefit {
-    padding: 35px 25px;
-  }
-  
-  .benefit-icon {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .benefit-icon i {
-    font-size: 30px;
-  }
-}
-
-/* Mobile First */
-@media (max-width: 768px) {
-  .hero {
-    padding: 80px 10px; /* Adjust padding for smaller screens */
-  }
-
-  .headline {
-    font-size: 2.5rem; /* Smaller headline for mobile */
-  }
-
-  .subheading {
-    font-size: 1rem;
-  }
-
-  .benefits {
-    padding: 30px 10px;
-  }
-
-  .cta {
-    padding: 30px 10px;
-  }
-
-  .cta-button {
-    padding: 12px 25px;
-  }
-
-  .about {
-    padding: 30px 10px;
-  }
-
-  .testimonials {
-    padding: 30px 10px;
-  }
-}
-
-/* Footer Styles */
+/* Footer */
 .footer {
   background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #40916c 100%);
   color: white;
   padding: 60px 0 0;
-  margin-top: 60px;
   position: relative;
-  overflow: hidden;
 }
 
 .footer::before {
@@ -618,12 +488,6 @@ footer{
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #50C878, #95d5b2, #50C878);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
 }
 
 .footer-content {
@@ -632,35 +496,13 @@ footer{
   padding: 0 40px 40px;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 50px;
-  align-items: start;
+  gap: 40px;
 }
 
 .footer-section {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  animation: fadeInUp 0.8s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.footer-section:first-child {
-  text-align: left;
-}
-
-.footer-section:nth-child(2),
-.footer-section:nth-child(3) {
-  text-align: center;
 }
 
 .footer-tagline {
@@ -671,34 +513,30 @@ footer{
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 10px;
-  letter-spacing: -0.5px;
 }
 
 .footer-description {
   color: #d8f3dc;
   line-height: 1.7;
   font-size: 1rem;
-  opacity: 0.95;
 }
 
 .footer-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #d8f3dc;
-  margin-bottom: 18px;
+  margin-bottom: 15px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .footer-email {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 10px;
   padding: 12px 20px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 30px;
-  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
@@ -708,51 +546,30 @@ footer{
 }
 
 .footer-email i {
-  background-color: #95d5b2;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .footer-email a {
   color: white;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
-  background-color: none;
-  background: none;
-}
-
-.footer-email a:hover {
-  color: #95d5b2;
 }
 
 .social-links {
   display: flex;
-  gap: 18px;
-  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .social-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  text-decoration: none;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  font-size: 1.2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.social-link::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: white;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
 }
 
 .social-link.facebook {
@@ -761,7 +578,7 @@ footer{
 }
 
 .social-link.instagram {
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   color: white;
 }
 
@@ -775,48 +592,158 @@ footer{
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-.social-link:hover::before {
-  opacity: 0.1;
-}
-
-.social-link i {
-  position: relative;
-  z-index: 1;
-}
-
 .footer-bottom {
   background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
   padding: 25px 0;
   text-align: center;
   color: #d8f3dc;
   font-size: 0.95rem;
-  font-weight: 500;
 }
 
-/* Responsive Footer */
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+  .headline {
+    font-size: 2.8rem;
+  }
+  
+  .headline2 {
+    font-size: 2.4rem;
+  }
+  
+  .subheading {
+    font-size: 1.1rem;
+  }
+  
+  .stat h2 {
+    font-size: 2.5rem;
+  }
+  
+  .benefits h2,
+  .about h2,
+  .testimonials h2,
+  .cta h2 {
+    font-size: 2.2rem;
+  }
+}
+
+/* Small tablet/large mobile (600px - 768px) */
 @media (max-width: 768px) {
-  .footer {
-    padding: 50px 0 0;
+  .hero {
+    min-height: auto;
+    padding: 100px 20px 60px;
+  }
+  
+  .headline {
+    font-size: 2.2rem;
+  }
+  
+  .headline2 {
+    font-size: 1.9rem;
+  }
+  
+  .subheading {
+    font-size: 1rem;
+  }
+  
+  .action {
+    font-size: 0.85rem;
+    padding: 10px 20px;
+  }
+  
+  .buttons {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 180px;
+    font-size: 1.1rem;
+    padding: 14px 30px;
+    justify-content: center;
+  }
+  
+  .stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .stat h2 {
+    font-size: 2rem;
+  }
+  
+  .stat p {
+    font-size: 0.9rem;
+  }
+  
+  .benefits,
+  .about,
+  .testimonials,
+  .cta {
+    padding: 60px 20px;
+  }
+  
+  .benefits h2,
+  .about h2,
+  .testimonials h2,
+  .cta h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+  }
+  
+  .benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  
+  .benefit {
+    padding: 35px 25px;
+  }
+  
+  .benefit-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+  
+  .about-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 35px;
+  }
+  
+  .about p {
+    font-size: 1.1rem;
+  }
+  
+  .cta p {
+    font-size: 1.1rem;
+  }
+  
+  .cta-button {
+    font-size: 1.1rem;
+    padding: 16px 35px;
   }
   
   .footer-content {
     grid-template-columns: 1fr;
-    gap: 40px;
     text-align: center;
     padding: 0 20px 30px;
-  }
-  
-  .footer-section:first-child {
-    text-align: center;
+    gap: 35px;
   }
   
   .footer-tagline {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
   }
   
   .footer-email {
     justify-content: center;
+    width: fit-content;
+    margin: 0 auto;
   }
   
   .social-links {
@@ -824,19 +751,204 @@ footer{
   }
 }
 
-/* Responsive Footer */
-@media (max-width: 768px) {
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    text-align: center;
+/* Mobile (480px - 600px) */
+@media (max-width: 600px) {
+  .headline {
+    font-size: 1.9rem;
+  }
+  
+  .headline2 {
+    font-size: 1.6rem;
+  }
+  
+  .subheading {
+    font-size: 0.95rem;
+  }
+  
+  .benefits h2,
+  .about h2,
+  .testimonials h2,
+  .cta h2 {
+    font-size: 1.8rem;
+  }
+  
+  .benefit h3 {
+    font-size: 1.3rem;
+  }
+  
+  .benefit p {
+    font-size: 0.95rem;
+  }
+}
+
+/* Small mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .hero {
+    padding: 80px 15px 50px;
+  }
+  
+  .headline {
+    font-size: 1.7rem;
+  }
+  
+  .headline2 {
+    font-size: 1.4rem;
+  }
+  
+  .subheading {
+    font-size: 0.9rem;
+  }
+  
+  .action {
+    font-size: 0.8rem;
+    padding: 8px 16px;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    font-size: 1rem;
+    padding: 12px 24px;
+    max-width: 100%;
+  }
+  
+  .stat h2 {
+    font-size: 2rem;
+  }
+  
+  .stat p {
+    font-size: 0.95rem;
+  }
+  
+  .benefits,
+  .about,
+  .testimonials,
+  .cta {
+    padding: 50px 15px;
+  }
+  
+  .benefits h2,
+  .about h2,
+  .testimonials h2,
+  .cta h2 {
+    font-size: 1.6rem;
+  }
+  
+  .benefit {
+    padding: 30px 20px;
+  }
+  
+  .benefit-icon {
+    width: 65px;
+    height: 65px;
+    font-size: 26px;
+  }
+  
+  .benefit h3 {
+    font-size: 1.2rem;
+  }
+  
+  .benefit p {
+    font-size: 0.9rem;
+  }
+  
+  .about-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 30px;
+  }
+  
+  .about p {
+    font-size: 1rem;
+  }
+  
+  .testimonial {
+    min-width: 280px;
+    max-width: 280px;
+    padding: 25px;
+  }
+  
+  .testimonial .review {
+    font-size: 0.9rem;
+  }
+  
+  .testimonial .name {
+    font-size: 0.95rem;
+  }
+  
+  .cta p {
+    font-size: 1rem;
+  }
+  
+  .cta-button {
+    font-size: 1rem;
+    padding: 14px 28px;
   }
   
   .footer-tagline {
     font-size: 1.5rem;
   }
   
-  .social-links {
-    justify-content: center;
+  .footer-description,
+  .footer-email a {
+    font-size: 0.9rem;
+  }
+  
+  .footer-title {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small mobile (below 360px) */
+@media (max-width: 360px) {
+  .headline {
+    font-size: 1.5rem;
+  }
+  
+  .headline2 {
+    font-size: 1.3rem;
+  }
+  
+  .subheading {
+    font-size: 0.85rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    font-size: 0.95rem;
+    padding: 11px 20px;
+  }
+  
+  .stat h2 {
+    font-size: 1.8rem;
+  }
+  
+  .benefits h2,
+  .about h2,
+  .testimonials h2,
+  .cta h2 {
+    font-size: 1.5rem;
+  }
+  
+  .testimonial {
+    min-width: 260px;
+    max-width: 260px;
+    padding: 20px;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  .hero {
+    min-height: auto;
+    padding: 60px 20px 40px;
+  }
+  
+  .stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+  }
+  
+  .stat h2 {
+    font-size: 2rem;
   }
 }

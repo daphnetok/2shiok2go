@@ -1,48 +1,41 @@
 <template>
   <div class="listings-container">
-    <h2 v-if="!searchQuery">Near Me</h2>
-    <h2 v-else>Search Results</h2>
+    <h2>{{ searchQuery ? 'Search Results' : 'Near Me' }}</h2>
     
     <!-- location permission notice -->
     <div v-if="locationError" class="alert alert-warning">
       {{ locationError }} - Showing all stalls without distance sorting
     </div>
     <!-- Loading state -->
-    <div v-if="loading" class="loading">
-      <p>Loading listings...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="Loading listings..." />
     
     <!-- Empty state -->
     <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state">
-      <p v-if="searchQuery">No results found for "{{ searchQuery }}"</p>
-      <p v-else>No listings available</p>
+      <p>{{ searchQuery ? 'No results found for your search' : 'No listings available' }}</p>
     </div>
     
     <!-- Listings grid -->
     <div v-else class="listings-grid">
-      <div 
-        v-for="hawker in filteredHawkers" 
-        :key="hawker.id"
-        class="hawker-result-wrapper"
-      >
-        <ListingCard :hawker="hawker" />
-        
-        <!-- Display matching items if search query exists and items matched -->
+      <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper">
+        <ListingCard 
+          :hawker="hawker"
+        />
+        <!-- Display matching items if search is active and items exist -->
         <div v-if="searchQuery && hawker.matchingItems && hawker.matchingItems.length > 0" class="matching-items">
           <div class="matching-items-header">
             <span class="matching-items-label">Matching items:</span>
           </div>
           <div class="matching-items-grid">
             <div 
-              v-for="(item, index) in hawker.matchingItems" 
-              :key="index"
+              v-for="(item, idx) in hawker.matchingItems" 
+              :key="idx" 
               class="matching-item"
             >
               <img 
-                :src="item.imageUrl || require('../../assets/img/stall.jpg')" 
+                :src="item.imageUrl" 
                 :alt="item.itemName"
                 class="matching-item-image"
-                @error="$event.target.src = require('../../assets/img/stall.jpg')"
+                @error="handleImageError"
               />
               <span class="matching-item-name">{{ item.itemName }}</span>
             </div>
@@ -50,37 +43,27 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <ToastNotification
-      v-for="toast in toasts"
-      :key="toast.id"
-      :message="toast.message"
-      :duration="5000"
-      @close="removeToast(toast.id)"
-    />
   </div>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
-import ToastNotification from '../ToastNotification/ToastNotification.vue';
-import { useLoadHawkers } from '/firebase/firestore.js';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { useLoadHawkers, useLoadListings } from '/firebase/firestore';
 import { useGeolocation } from '@/assets/composables/useGeolocation';
-import ListingGridJS from './ListingGrid.js';
-
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '/firebase/config';
 
 export default {
-  ...ListingGridJS,
   name: 'ListingGrid',
-  components: { ListingCard, ToastNotification },
+  components: { ListingCard, LoadingSpinner },
   props: {
     priceOrder: {
       type: String,
       default: null // 'asc' | 'desc' | null
+    },
+    priceMax: {
+      type: Number,
+      default: 20
     },
     dietary: {
       type: Array,
@@ -89,47 +72,22 @@ export default {
     status: {
       type: Array,
       default: () => []
+    },
+    searchQuery: {
+      type: String,
+      default: ''
     }
   },
   setup(props) {
     const { userLocation, locationError, getUserLocation } = useGeolocation();
     const hawkersRef = ref(null);
-    const itemListings = ref([]);
-    const itemsLoaded = ref(false);
-    const ROAD_FACTOR = 1.1; // for urban road detour estimate
-    const MAX_DISTANCE_KM = 3; // 3km threshold for notifications
-    let unsubscribeItems = null;
-    
-    // Toast notification state
-    const toasts = ref([]);
-    const toastIdCounter = ref(0);
-    const trackedHawkers = ref(new Set()); // Track hawkers we've already notified about
+    const itemListings = useLoadListings();
+    const ROAD_FACTOR = 1.1 // for urban road detour estimate
 
     // fetch user location on mount
     onMounted(async () => {
       await getUserLocation();
-      setupItemListingsListener();
     });
-
-    // Set up real-time listener for item listings
-    const setupItemListingsListener = () => {
-      try {
-        const itemsCollection = collection(db, 'itemListings');
-        unsubscribeItems = onSnapshot(itemsCollection, (snapshot) => {
-          itemListings.value = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          itemsLoaded.value = true;
-        }, (error) => {
-          console.error('Error loading item listings:', error);
-          itemsLoaded.value = true; // Set to true even on error to show hawkers
-        });
-      } catch (error) {
-        console.error('Error setting up item listings listener:', error);
-        itemsLoaded.value = true;
-      }
-    };
 
     watch(
       userLocation,
@@ -148,12 +106,12 @@ export default {
         ...hawker,
         distance: hawker.distance && hawker.distance != 'N/A'
           ? parseFloat((hawker.distance * ROAD_FACTOR).toFixed(1))
-          : hawker.distance
+          :hawker.distance
       }));
     });
 
     const loading = computed(() => {
-      return hawkersRef.value?.value === null || !itemsLoaded.value;
+      return hawkersRef.value?.value === null;
     });
 
     // Helper: check if hawker has any active items listed
@@ -169,14 +127,72 @@ export default {
       });
     };
 
-    // Helper: check if hawker is within distance threshold
-    const isWithinRange = (hawker) => {
-      const distance = hawker.distance;
-      return distance !== 'N/A' && distance <= MAX_DISTANCE_KM;
+    // Perform search function
+    const performSearch = (query) => {
+      if (!query || query.trim() === '') {
+        return null;
+      }
+
+      const searchTerm = query.toLowerCase().trim();
+      const matchingHawkerIds = new Set(); // Store hawker IDs matched by address
+      const matchingUserIds = new Set(); // Store userIds matched by items
+      const hawkerItemMap = new Map(); // Map of hawker userId to matching items
+
+      // Search in hawker addresses and stall names
+      const hawkerListings = allHawkers.value || [];
+      hawkerListings.forEach(hawker => {
+        const address = hawker.address?.formattedAddress || '';
+        const stallName = hawker.hawkerName || '';
+        // Match by address or stall name
+        if (address.toLowerCase().includes(searchTerm) || stallName.toLowerCase().includes(searchTerm)) {
+          matchingHawkerIds.add(hawker.id);
+        }
+      });
+
+      // Search in item names
+      const items = itemListings.value || [];
+      items.forEach(item => {
+        const itemName = item.itemName || '';
+        if (itemName.toLowerCase().includes(searchTerm)) {
+          const userId = item.userId;
+          if (userId) {
+            matchingUserIds.add(userId);
+            // Store matching item info
+            if (!hawkerItemMap.has(userId)) {
+              hawkerItemMap.set(userId, []);
+            }
+            hawkerItemMap.get(userId).push({
+              itemName: item.itemName,
+              imageUrl: item.imageUrl || ''
+            });
+          }
+        }
+      });
+
+      // Return matching hawkers with their matching items
+      // Match by either hawker.id (address match) or hawker.userId (item match)
+      return hawkerListings
+        .filter(hawker => matchingHawkerIds.has(hawker.id) || matchingUserIds.has(hawker.userId))
+        .map(hawker => {
+          const matchingItems = hawkerItemMap.get(hawker.userId) || [];
+          return {
+            ...hawker,
+            matchingItems: matchingItems.length > 0 ? matchingItems : undefined
+          };
+        });
     };
+
+    // Search results
+    const searchResults = computed(() => {
+      if (!props.searchQuery || props.searchQuery.trim() === '') {
+        return null;
+      }
+      return performSearch(props.searchQuery);
+    });
 
     // Helpers aligned to your schema
     const getDietary = (h) => {
+      // dietaryRestriction is a string like "Halal"
       return (h.dietaryRestriction ?? '').toString().toLowerCase().trim();
     };
 
@@ -229,12 +245,42 @@ export default {
       // Filter out hawkers with no active items
       list = list.filter(h => hasActiveItems(h));
 
+      // Filter by price range - check hawker's priceRange field
+      if (props.priceMax && props.priceMax < 20) {
+        console.log('💰 Price filter active: max price =', props.priceMax);
+        list = list.filter(hawker => {
+          // Get priceRange from hawker document (stored as string in Firebase)
+          const hawkerPriceRange = parseFloat(hawker.priceRange) || 0;
+          const matches = hawkerPriceRange <= props.priceMax;
+          
+          if (!matches) {
+            console.log(`❌ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} exceeds max ${props.priceMax}`);
+          } else {
+            console.log(`✅ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} within max ${props.priceMax}`);
+          }
+          
+          return matches;
+        });
+        console.log(`📊 After price filter: ${list.length} hawkers remaining`);
+      }
+
       // Filter by dietaryRestriction (string) if any selected
       if (props.dietary.length) {
+        console.log('🍽️ Dietary filter active:', props.dietary);
         list = list.filter(h => {
           const tag = getDietary(h);
-          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
+          const normalizedFilters = props.dietary.map(d => d.toString().toLowerCase().trim());
+          const matches = normalizedFilters.includes(tag);
+          
+          if (!matches) {
+            console.log(`❌ Hawker "${h.name || h.hawkerName}" dietary="${tag}" doesn't match filters:`, normalizedFilters);
+          } else {
+            console.log(`✅ Hawker "${h.name || h.hawkerName}" dietary="${tag}" MATCHES!`);
+          }
+          
+          return matches;
         });
+        console.log(`📊 After dietary filter: ${list.length} hawkers remaining`);
       }
 
       // Filter by status if any selected
@@ -242,83 +288,78 @@ export default {
         list = list.filter(h => props.status.includes(getStatus(h)));
       }
 
-      // default sort by distance
-      const sortOrder = 'asc';
+      // Sort by price if priceOrder is set
+      if (props.priceOrder) {
+        list.sort((a, b) => {
+          // Get minimum price for each hawker
+          const getMinPrice = (hawker) => {
+            const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+            if (!hawkerName) return Infinity;
+            
+            const hawkerItems = itemListings.value.filter(item => {
+              const itemHawkerName = item.hawkerName || item.stallName;
+              const isMatchingHawker = itemHawkerName && 
+                itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+              return isMatchingHawker && item.makeActive;
+            });
+            
+            if (hawkerItems.length === 0) return Infinity;
+            
+            const prices = hawkerItems.map(item => item.discountedPrice || item.itemPrice || 0);
+            return Math.min(...prices);
+          };
+          
+          const priceA = getMinPrice(a);
+          const priceB = getMinPrice(b);
+          
+          return props.priceOrder === 'asc' ? priceA - priceB : priceB - priceA;
+        });
+      } else {
+        // Default sort by distance
+        list.sort((a, b) => {
+          const da = getDistance(a);
+          const db = getDistance(b);
+
+          // handle 'N/A' distances
+          if (da === 'N/A' && db === 'N/A') return 0;
+          if (da === 'N/A') return 1;
+          if (db === 'N/A') return -1;
+
+          return da - db;
+        });
+      }
+
+      // Final sort: Open hawkers first, then closed (maintains previous sorting within each group)
       list.sort((a, b) => {
-        const da = getDistance(a);
-        const db = getDistance(b);
-
-        // handle 'N/A' distances
-        if (da === 'N/A' && db === 'N/A') return 0;
-        if (da === 'N/A') return 1;
-        if (db === 'N/A') return -1;
-
-        return sortOrder === 'asc' ? da - db : db - da;
+        const statusA = getStatus(a);
+        const statusB = getStatus(b);
+        
+        // Priority: open/opening-soon/closing-soon come before closed
+        const isOpenA = ['open', 'opening-soon', 'closing-soon'].includes(statusA);
+        const isOpenB = ['open', 'opening-soon', 'closing-soon'].includes(statusB);
+        
+        if (isOpenA && !isOpenB) return -1; // A is open, B is closed: A comes first
+        if (!isOpenA && isOpenB) return 1;  // B is open, A is closed: B comes first
+        return 0; // Both same status, maintain existing order
       });
 
       return list;
     });
 
-    // Watch for new hawkers within range with active items
-    watch(
-      [allHawkers, itemListings],
-      ([newHawkers]) => {
-        if (!itemsLoaded.value || loading.value) return;
-
-        const nearbyNewHawkers = newHawkers.filter(hawker => {
-          const hawkerId = hawker.id;
-          const isNew = !trackedHawkers.value.has(hawkerId);
-          const isNearby = isWithinRange(hawker);
-          const hasItems = hasActiveItems(hawker);
-          
-          return isNew && isNearby && hasItems;
-        });
-
-        if (nearbyNewHawkers.length > 0) {
-          // Add new hawkers to tracked set
-          nearbyNewHawkers.forEach(h => trackedHawkers.value.add(h.id));
-
-          // Create toast notification
-          const message = nearbyNewHawkers.length === 1
-            ? `New hawker near you: ${nearbyNewHawkers[0].name || nearbyNewHawkers[0].hawkerName}!`
-            : `${nearbyNewHawkers.length} new hawkers near you!`;
-          
-          addToast(message);
-        }
-      },
-      { deep: true }
-    );
-
-    // Toast management functions
-    const addToast = (message) => {
-      const id = toastIdCounter.value++;
-      toasts.value.push({ id, message });
+    // Handle image error fallback
+    const handleImageError = (event) => {
+      event.target.src = '/img/chicken_rice.jpg'; // Fallback image
     };
-
-    const removeToast = (id) => {
-      const index = toasts.value.findIndex(t => t.id === id);
-      if (index !== -1) {
-        toasts.value.splice(index, 1);
-      }
-    };
-
-    // Cleanup listener on component unmount
-    onUnmounted(() => {
-      if (unsubscribeItems) {
-        unsubscribeItems();
-      }
-    });
 
     return { 
       filteredHawkers, 
       loading, 
       locationError,
-      toasts,
-      removeToast
+      searchQuery: computed(() => props.searchQuery),
+      handleImageError
     };
   }
 };
-
 </script>
 
 <style scoped>
@@ -330,8 +371,9 @@ h2 {
   margin-bottom: 20px;
   color: #333;
   display: flex;
-  justify-content: flex-start;
+  justify-content:flex-start;
   padding-left: 10px;
+
 }
 
 .loading, .empty-state {
@@ -352,35 +394,35 @@ h2 {
 }
 
 .matching-items {
-  margin-top: 15px;
-  padding: 15px;
-  background: #f8f9fa;
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
 }
 
 .matching-items-header {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .matching-items-label {
   font-weight: 600;
+  font-size: 14px;
   color: #333;
-  font-size: 0.9rem;
 }
 
 .matching-items-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 12px;
+  margin-top: 8px;
 }
 
 .matching-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 80px;
+  gap: 6px;
 }
 
 .matching-item-image {
@@ -388,15 +430,15 @@ h2 {
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #ddd;
 }
 
 .matching-item-name {
-  font-size: 0.85rem;
-  color: #495057;
+  font-size: 12px;
+  color: #555;
   text-align: center;
   word-break: break-word;
-  max-width: 100px;
+  max-width: 100%;
 }
 
 /* Responsive adjustments */
@@ -404,6 +446,16 @@ h2 {
   .listings-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
+  }
+  
+  .matching-items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+  }
+  
+  .matching-item-image {
+    width: 70px;
+    height: 70px;
   }
 }
 

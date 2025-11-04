@@ -3,9 +3,7 @@
     <h2>Your Favourited Hawkers</h2>
 
     <!-- Loading state -->
-    <div v-if="loading" class="loading">
-      <p>Loading your favourite hawkers...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="Loading your favourite hawkers..." />
 
     <!-- Empty state -->
     <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state">

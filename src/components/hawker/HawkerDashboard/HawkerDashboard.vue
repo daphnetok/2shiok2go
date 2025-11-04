@@ -29,7 +29,7 @@
     @saved="onListingSaved"
   />
   
-  <div class="dashboard-container container container">
+  <div>
     <!-- Navigation Tabs -->
     <nav class="tabs-nav">
       <ul class="tabs-list">
@@ -41,7 +41,7 @@
         </li>
         <li class="tab-item">
           <router-link to="/orders-table" class="tab-link">
-            <i class="fas fa-list"></i>
+          <i class="fas fa-clipboard-list"></i>
             <span>Orders Management</span>
           </router-link>
         </li>
@@ -67,7 +67,7 @@
 
 
     <!-- Active Listings Section -->
-    <section class="listings-section">
+    <section class="listings-section dashboard-container">
       <div class="section-header">
         <h2 class="section-title">
           Active Listings
@@ -90,7 +90,12 @@
         <div class="listing-card" v-for="listing of activeListings" :key="listing.id">
           <!-- Image Section -->
           <div class="listing-image-container">
-            <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+            <ImageWithLoader 
+              :src="listing.imageUrl" 
+              :alt="listing.itemName" 
+              image-class="listing-image"
+              error-icon="fas fa-utensils"
+            />
 
             <!-- Discount start time -->
             <div v-if="listing.discountTime" class="discount-time-badge">
@@ -144,7 +149,7 @@
     </section>
 
     <!-- Inactive Listings Section -->
-    <section class="listings-section inactive-section">
+    <section class="listings-section inactive-section dashboard-container">
       <div class="section-header">
         <h2 class="section-title inactive">
           Inactive Listings
@@ -164,7 +169,12 @@
         <div class="listing-card inactive" v-for="listing in inactiveListings" :key="listing.id">
           <!-- Image Section -->
           <div class="listing-image-container">
-            <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+            <ImageWithLoader 
+              :src="listing.imageUrl" 
+              :alt="listing.itemName" 
+              image-class="listing-image"
+              error-icon="fas fa-utensils"
+            />
 
             <!-- Discount start time -->
             <div v-if="listing.discountTime" class="discount-time-badge">
@@ -239,11 +249,13 @@ import {
 } from '@/components/hawker/useSharedListings';
 
 import EditModal from '@/components/hawker/editModal/editModal.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: "HawkerListings",
   components: {
-    EditModal
+    EditModal,
+    ImageWithLoader
   },
   setup() {
     onMounted(() => {
@@ -280,4 +292,5 @@ export default {
 };
 </script>
 
-<style scoped src="../HawkerDashboard/HawkerDashboard.css"></style>
+<style  src="../HawkerDashboard/HawkerDashboard.css"></style>
+<style  src="../../../assets/css/HawkerDashboard.css"></style>

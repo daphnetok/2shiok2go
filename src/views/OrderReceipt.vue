@@ -161,18 +161,47 @@
       <hr />
 
       <!-- Buttons -->
-      <div class="d-flex justify-content-end gap-2">
+      <div class="d-flex justify-content-end gap-2 align-items-center">
         <button class="btn btn-outline-success d-flex align-items-center">
           <i class="bi bi-download me-2"></i>
           Download Receipt
         </button>
+        <!-- Status Display or Action Button -->
+        <div v-if="order && order.status === 'preparing'" class="order-status-text preparing">
+          <i class="bi bi-clock me-2"></i>
+          Preparing...
+        </div>
         <button 
-          @click="goToReviews" 
+          v-else-if="order && order.status === 'ready'"
+          @click="markOrderCollected" 
           class="btn btn-success d-flex align-items-center"
-          :disabled="!order"
+          :disabled="isUpdating"
         >
           <i class="bi bi-house-door me-2"></i>
           Order Collected
+        </button>
+        <div v-else-if="order && order.status === 'collected'" class="order-status-text collected">
+          <i class="bi bi-check-circle me-2"></i>
+          Collected
+        </div>
+      </div>
+    </div>
+
+    <!-- Ready Notification Popup -->
+    <div v-if="showReadyNotification" class="ready-notification" @click="closeNotification">
+      <div class="notification-content" @click.stop>
+        <div class="notification-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="notification-text">
+          <h5>Your order is ready!</h5>
+          <p>Your food is ready for collection. Please proceed to collect your order.</p>
+        </div>
+        <button class="notification-close" @click="closeNotification">
+          <i class="bi bi-x"></i>
+        </button>
+        <button class="notification-acknowledge" @click="closeNotification">
+          Got it
         </button>
       </div>
     </div>
@@ -183,11 +212,19 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { db } from '/firebase/config';
-import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const router = useRouter();
 const route = useRoute();
+
+// Accept orderId as a prop
+const props = defineProps({
+  orderId: {
+    type: String,
+    default: null
+  }
+});
 
 // Format price to 2 decimal places
 const formatPrice = (price) => {
@@ -206,53 +243,9 @@ const order = ref(null);
 const hawker = ref(null);
 const loading = ref(true);
 const errorMsg = ref(null);
-
-// Fetch specific order by ID
-const fetchOrderById = async (orderId, userId) => {
-  try {
-    loading.value = true;
-    errorMsg.value = null;
-
-    console.log('Fetching order by ID:', orderId);
-    
-    // Get the specific order document
-    const orderDoc = await getDoc(doc(db, 'orders', orderId));
-    
-    if (orderDoc.exists()) {
-      const orderData = orderDoc.data();
-      
-      // Verify the order belongs to the current user (for security)
-      if (orderData.buyerId !== userId && orderData.userId !== userId) {
-        errorMsg.value = 'You do not have permission to view this order';
-        loading.value = false;
-        return;
-      }
-      
-      console.log('Order fetched:', orderData);
-      
-      order.value = {
-        orderID: orderData.orderID || orderId.substring(0, 8).toUpperCase(),
-        day: orderData.day,
-        date: orderData.date,
-        time: orderData.time,
-        ...orderData
-      };
-      
-      // Fetch hawker details if hawkerId exists
-      if (orderData.hawkerId) {
-        await fetchHawkerDetails(orderData.hawkerId);
-      }
-    } else {
-      console.log('Order not found:', orderId);
-      errorMsg.value = 'Order not found';
-    }
-  } catch (error) {
-    console.error('Error fetching order:', error);
-    errorMsg.value = `Failed to load order: ${error.message}`;
-  } finally {
-    loading.value = false;
-  }
-};
+const isUpdating = ref(false);
+const showReadyNotification = ref(false);
+let orderUnsubscribe = null;
 
 const fetchLatestOrder = async (userId) => {
   try {
@@ -296,12 +289,19 @@ const fetchLatestOrder = async (userId) => {
       console.log('Order fetched:', orderData);
       
       order.value = {
+        id: orderData.id,
         orderID: orderData.orderID,
         day: orderData.day,
         date: orderData.date,
         time: orderData.time,
+        status: orderData.status || 'pending',
         ...orderData
       };
+      
+      // Set up real-time listener for order status updates
+      if (order.value.id) {
+        setupOrderListener(order.value.id);
+      }
       
       // Fetch hawker details if hawkerId exists
       if (orderData.hawkerId) {
@@ -313,6 +313,55 @@ const fetchLatestOrder = async (userId) => {
     }
   } catch (error) {
     console.error('Error fetching order:', error);
+    errorMsg.value = `Failed to load order: ${error.message}`;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Fetch a specific order by ID
+const fetchSpecificOrder = async (orderId, userId) => {
+  try {
+    loading.value = true;
+    errorMsg.value = null;
+
+    const orderRef = doc(db, 'orders', orderId);
+    const orderDoc = await getDoc(orderRef);
+    
+    if (orderDoc.exists()) {
+      const orderData = orderDoc.data();
+      
+      // Verify this order belongs to the current user
+      if (orderData.userId !== userId) {
+        errorMsg.value = 'You do not have permission to view this order';
+        return;
+      }
+      
+      console.log('Specific order fetched:', orderData);
+      
+      order.value = {
+        id: orderDoc.id,
+        orderID: orderData.orderID,
+        day: orderData.day,
+        date: orderData.date,
+        time: orderData.time,
+        status: orderData.status || 'pending',
+        ...orderData
+      };
+      
+      // Set up real-time listener for order status updates
+      setupOrderListener(orderId);
+      
+      // Fetch hawker details if hawkerId exists
+      if (orderData.hawkerId) {
+        await fetchHawkerDetails(orderData.hawkerId);
+      }
+    } else {
+      console.log('Order not found:', orderId);
+      errorMsg.value = 'Order not found';
+    }
+  } catch (error) {
+    console.error('Error fetching specific order:', error);
     errorMsg.value = `Failed to load order: ${error.message}`;
   } finally {
     loading.value = false;
@@ -368,13 +417,12 @@ onMounted(() => {
   // Wait for auth state to be ready
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {
-      // Check if there's an orderId in the route params
-      const orderId = route.params.orderId;
-      if (orderId) {
-        console.log('Loading specific order:', orderId);
-        fetchOrderById(orderId, user.uid);
+      // If orderId is provided via props or route params, fetch that specific order
+      const orderIdToFetch = props.orderId || route.params.orderId;
+      if (orderIdToFetch) {
+        fetchSpecificOrder(orderIdToFetch, user.uid);
       } else {
-        console.log('Loading latest order');
+        // Otherwise fetch the latest order
         fetchLatestOrder(user.uid);
       }
     } else {
@@ -383,6 +431,69 @@ onMounted(() => {
     }
   });
 });
+
+// Set up real-time listener for order status updates
+const setupOrderListener = (orderId) => {
+  if (orderUnsubscribe) {
+    orderUnsubscribe();
+  }
+  
+  const orderRef = doc(db, 'orders', orderId);
+  orderUnsubscribe = onSnapshot(orderRef, (docSnapshot) => {
+    if (docSnapshot.exists()) {
+      const orderData = docSnapshot.data();
+      const newStatus = orderData.status || 'pending';
+      const oldStatus = order.value?.status;
+      
+      // Update order status in real-time
+      if (order.value) {
+        order.value.status = newStatus;
+      }
+      
+      // Show notification when status changes from 'preparing' to 'ready'
+      if (oldStatus === 'preparing' && newStatus === 'ready') {
+        showReadyNotification.value = true;
+      }
+    }
+  }, (error) => {
+    console.error('Error listening to order updates:', error);
+  });
+};
+
+// Close notification
+const closeNotification = () => {
+  showReadyNotification.value = false;
+};
+
+// Mark order as collected
+const markOrderCollected = async () => {
+  if (!order.value || !order.value.id) {
+    console.error('Order ID not available');
+    return;
+  }
+
+  try {
+    isUpdating.value = true;
+    const orderRef = doc(db, 'orders', order.value.id);
+    await updateDoc(orderRef, { status: 'collected' });
+    
+    // Navigate to reviews page after updating status
+    if (order.value && order.value.orderID) {
+      router.push({
+        path: '/reviews',
+        query: {
+          orderId: order.value.orderID,
+          hawkerId: order.value.hawkerId
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error marking order as collected:', error);
+    alert('Failed to mark order as collected. Please try again.');
+  } finally {
+    isUpdating.value = false;
+  }
+};
 
 // Navigate to reviews page with order data
 const goToReviews = () => {
@@ -401,6 +512,9 @@ onUnmounted(() => {
   if (authUnsubscribe) {
     authUnsubscribe();
   }
+  if (orderUnsubscribe) {
+    orderUnsubscribe();
+  }
 });
 </script>
 
@@ -417,6 +531,137 @@ onUnmounted(() => {
 .btn-success, .btn-outline-success {
   font-weight: 500;
   letter-spacing: 0.5px;
+}
+
+.order-status-text {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.order-status-text.preparing {
+  color: #ffffff;
+  background-color: #1570ef;
+  border: 1px solid #1570ef;
+}
+
+.order-status-text.collected {
+  color: #198754;
+  background-color: #d1e7dd;
+  border: 1px solid #badbcc;
+}
+
+/* Ready Notification Popup */
+.ready-notification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.notification-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.notification-icon {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.notification-icon i {
+  font-size: 3rem;
+  color: #198754;
+}
+
+.notification-text {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.notification-text h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.notification-text p {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.notification-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.notification-close:hover {
+  color: #333;
+}
+
+.notification-acknowledge {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #198754;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-acknowledge:hover {
+  background-color: #157347;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>
 

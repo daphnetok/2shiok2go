@@ -1,32 +1,40 @@
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: "StallListings",
   components: {
-    ReviewsSection
+    ReviewsSection,
+    LoadingSpinner,
+    ImageWithLoader
   },
+  props: {
+    searchQuery: {
+      type: String,
+      default: ''
+    }
+  },
+  emits: ['search'],
   methods: {
-    isDiscountApplied() {
+    isDiscountApplied(item) {
+      if (!item || !item.discountTime) return false; // prevent crash
+
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
-      
-      if (!this.hawker.discountTime){
-        return false
-      }
-      else{
-        const [discountHour, discountMin] = this.hawker.discountTime.split(':').map(Number);
-        const discountTimeInMinutes = discountHour * 60 + discountMin;
 
-        if (currentTime>=discountTimeInMinutes) return true;
-        else return false;
-      }
-    },
+      const [hours, minutes] = item.discountTime.split(':');
+      const discountStart = parseInt(hours) * 60 + parseInt(minutes);
+      return currentTime >= discountStart;
+    }
+,
+
     isStallOpen() {
       if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
         return true; // Default to open if no time specified
@@ -44,7 +52,7 @@ export default {
       return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
     },
   },
-  setup() {
+  setup(props, { emit }) {
     const route = useRoute();
     const isLiked = ref(false);
     const hawker = ref(null);
@@ -53,6 +61,8 @@ export default {
     const errorMsg = ref(null);
     const showToast = ref(false);
     const selectedItems = ref([]);
+    const localSearchQuery = ref('');
+    let debounceTimer = null;
 
     const auth = getAuth();
     const userId = ref(null);
@@ -255,13 +265,15 @@ export default {
             itemQty: data.itemQty,
             discountedPrice: data.discountedPrice,
             discount: data.discount,
+            discountTime: data.discountTime,
             imageUrl: data.imageUrl,
             description: data.description || '',
+            tags: data.tags || [],
+            allergens: data.allergens || [],
             count: savedData.qty,
             notes: savedData.notes,
             hover: false
           };
-          
           // Add to selectedItems if count > 0
           if (savedData.qty > 0) {
             selectedItems.value.push({ ...item });
@@ -438,8 +450,47 @@ export default {
       }
     };
 
+    // Handle search input
+    const handleSearch = () => {
+      // Clear existing timer
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      // Set new timer for debounced search
+      debounceTimer = setTimeout(() => {
+        emit('search', localSearchQuery.value);
+      }, 300);
+    };
+
+    // Clear search
+    const clearSearch = () => {
+      localSearchQuery.value = '';
+      emit('search', '');
+    };
+
+    // Sync local search query with prop
+    const syncSearchQuery = () => {
+      localSearchQuery.value = props.searchQuery || '';
+    };
+
+    // Filter food items based on search query (partial matching)
+    const filteredFoodItems = computed(() => {
+      const queryToUse = props.searchQuery || localSearchQuery.value;
+      if (!queryToUse || queryToUse.trim() === '') {
+        return foodItems.value;
+      }
+      
+      const query = queryToUse.toLowerCase().trim();
+      return foodItems.value.filter(item => {
+        const itemName = (item.itemName || '').toLowerCase();
+        return itemName.includes(query);
+      });
+    });
+
     // onMounted lifecycle hook to fetch hawker data and food items
     onMounted(async () => {
+      syncSearchQuery();
       await getHawkerData();
       if (hawker.value) {
         await fetchItemListings();
@@ -450,6 +501,9 @@ export default {
       isLiked,
       hawker,
       foodItems,
+      filteredFoodItems,
+      localSearchQuery,
+      searchQuery: computed(() => props.searchQuery),
       loading,
       errorMsg,
       showToast,
@@ -461,6 +515,8 @@ export default {
       increment,
       decrement,
       selectedItems,
+      handleSearch,
+      clearSearch,
       // Modal
       showModal,
       selectedItem,

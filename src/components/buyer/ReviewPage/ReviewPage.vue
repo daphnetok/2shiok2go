@@ -126,11 +126,12 @@
               @play="expandVideoFullscreen($event)"
               @pause="exitVideoFullscreen($event)"
               @timeupdate="updateVideoProgress($event, index)"
+              :data-video-index="index"
             ></video>
             <div class="video-play-overlay">
               <i class="fa-solid fa-play"></i>
             </div>
-            <button @click.stop="removeVideo(index)" class="remove-media-btn">
+            <button @click.stop="removeVideo(index)" class="remove-media-btn" v-if="!isVideoFullscreen(index)">
               <i class="fa-solid fa-times"></i>
             </button>
             <!-- Fullscreen exit button -->
@@ -212,6 +213,7 @@ export default {
     const videoProgress = ref({});
     const videoFullscreen = ref({});
     const videoDuration = ref({});
+    const activeVideoRef = ref(null);
 
     // Computed overall rating (average of the three ratings)
     const overallRating = computed(() => {
@@ -257,6 +259,10 @@ export default {
           reader.readAsDataURL(file);
         }
       });
+      // Reset input value to allow re-uploading the same file
+      if (event.target) {
+        event.target.value = '';
+      }
     };
 
     const handleVideoUpload = (event) => {
@@ -274,22 +280,26 @@ export default {
           reader.readAsDataURL(file);
         }
       });
+      // Reset input value to allow re-uploading the same file
+      if (event.target) {
+        event.target.value = '';
+      }
     };
 
     const removePhoto = (index) => {
       uploadedPhotos.value.splice(index, 1);
-    };
-
-    const openImageModal = (imageUrl) => {
-      selectedImage.value = imageUrl;
-    };
-
-    const closeImageModal = () => {
-      selectedImage.value = null;
+      // Reset input value to allow re-uploading
+      if (photoInput.value) {
+        photoInput.value.value = '';
+      }
     };
 
     const removeVideo = (index) => {
       uploadedVideos.value.splice(index, 1);
+      // Reset input value to allow re-uploading
+      if (videoInput.value) {
+        videoInput.value.value = '';
+      }
     };
 
     const videoRefs = ref([]);
@@ -300,32 +310,33 @@ export default {
       }
     };
 
+    const openImageModal = (imageUrl) => {
+      selectedImage.value = imageUrl;
+    };
+
+    const closeImageModal = () => {
+      selectedImage.value = null;
+    };
+
     const playVideoPreview = async (event) => {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item');
-      
-      // Find video index
-      let videoIndex = -1;
-      for (let i = 0; i < videoRefs.value.length; i++) {
-        if (videoRefs.value[i] === video) {
-          videoIndex = i;
-          break;
-        }
-      }
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       try {
         if (video.paused) {
           // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
           videoFullscreen.value[videoIndex] = true;
+          activeVideoRef.value = video;
           
-          // Get video duration
-          if (video.readyState >= 2) {
+          // Set video duration
+          if (video.duration) {
             videoDuration.value[videoIndex] = video.duration;
           } else {
             video.addEventListener('loadedmetadata', () => {
               videoDuration.value[videoIndex] = video.duration;
-            });
+            }, { once: true });
           }
           
           await video.play();
@@ -352,8 +363,6 @@ export default {
       }
     };
 
-    const activeVideoRef = ref(null);
-
     const expandVideoFullscreen = (event) => {
       const video = event.target;
       const videoContainer = video.closest('.video-media-item');
@@ -375,41 +384,20 @@ export default {
     };
 
     const exitVideoFullscreen = (event) => {
-      // Find video and index
-      let video = null;
-      let videoContainer = null;
-      let videoIndex = -1;
+      event.stopPropagation();
+      const video = event.target.closest('.video-media-item')?.querySelector('video') || 
+                   event.target.querySelector('video') || 
+                   activeVideoRef.value;
       
-      if (event && event.target) {
-        // Check if it's the exit button
-        const exitBtn = event.target.closest('.exit-fullscreen-btn');
-        if (exitBtn) {
-          videoContainer = exitBtn.closest('.video-media-item');
-          video = videoContainer?.querySelector('video');
-        } else {
-          video = event.target.tagName === 'VIDEO' ? event.target : event.target.closest('.video-media-item')?.querySelector('video');
-          videoContainer = video?.closest('.video-media-item');
-        }
-      } else if (activeVideoRef.value) {
-        video = activeVideoRef.value;
-        videoContainer = video.closest('.video-media-item');
-      }
+      if (!video) return;
       
-      if (!video || !videoContainer) return;
-      
-      // Find video index
-      for (let i = 0; i < videoRefs.value.length; i++) {
-        if (videoRefs.value[i] === video) {
-          videoIndex = i;
-          break;
-        }
-      }
+      const videoContainer = video.closest('.video-media-item');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       video.pause();
       videoContainer.classList.remove('playing');
-      if (videoIndex >= 0) {
-        videoFullscreen.value[videoIndex] = false;
-      }
+      videoContainer.classList.remove('fullscreen');
+      videoFullscreen.value[videoIndex] = false;
       
       // Remove escape key listener
       if (video._escapeHandler) {
@@ -429,8 +417,6 @@ export default {
       } else if (document.msFullscreenElement) {
         document.msExitFullscreen();
       }
-      
-      videoContainer.classList.remove('fullscreen');
     };
 
     const isVideoFullscreen = (index) => {
@@ -442,9 +428,6 @@ export default {
       if (video.duration) {
         const progress = (video.currentTime / video.duration) * 100;
         videoProgress.value[index] = progress;
-        if (!videoDuration.value[index]) {
-          videoDuration.value[index] = video.duration;
-        }
       }
     };
 
@@ -453,17 +436,14 @@ export default {
     };
 
     const seekVideo = (event, index) => {
-      const video = videoRefs.value[index];
+      const video = videoRefs.value[index] || activeVideoRef.value;
       if (!video || !video.duration) return;
       
-      const progressContainer = event.currentTarget;
-      const rect = progressContainer.getBoundingClientRect();
+      const progressTrack = event.currentTarget;
+      const rect = progressTrack.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
-      const percentage = (clickX / rect.width) * 100;
-      const seekTime = (percentage / 100) * video.duration;
-      
-      video.currentTime = seekTime;
-      videoProgress.value[index] = percentage;
+      const percentage = clickX / rect.width;
+      video.currentTime = percentage * video.duration;
     };
 
     // Get star fill style for partial stars
@@ -729,18 +709,18 @@ export default {
       removePhoto,
       removeVideo,
       setVideoRef,
-      playVideoPreview,
-      expandVideoFullscreen,
-      exitVideoFullscreen,
-      submitReview,
-      getStarFillStyle,
       selectedImage,
       openImageModal,
       closeImageModal,
+      playVideoPreview,
+      expandVideoFullscreen,
+      exitVideoFullscreen,
       isVideoFullscreen,
       updateVideoProgress,
       getVideoProgress,
-      seekVideo
+      seekVideo,
+      submitReview,
+      getStarFillStyle
     };
   }
 };

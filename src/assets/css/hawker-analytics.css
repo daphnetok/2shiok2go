@@ -5,7 +5,7 @@
 /* Main Container */
 .hawker-analytics {
   margin: 0 -1.5rem; 
-  padding: 3rem 3rem 0;
+  padding: 1rem 3rem 1rem 3rem;
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 35%, #a7f3d0 65%, #6ee7b7 100%);
   transition: all 0.3s ease;
   position: relative;
@@ -43,8 +43,11 @@
 
 /* Profile Card */
 .hawker-profile-card {
-  background: white;
+  /* Requested light green gradient (or slightly darker variant) */
+  background: linear-gradient(135deg, rgb(240, 253, 244) 0%, rgb(209, 250, 229) 100%);
   transition: all 0.3s ease;
+  color: #0f172a; /* ensure readable text on light background */
+  border-radius: 16px;
 }
 
 .hawker-profile-card:hover {
@@ -64,6 +67,14 @@
 .dark-profile-card:hover {
   box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3) !important;
   border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Dark theme variant for the profile card to keep contrast */
+.hawker-analytics.dark-theme .hawker-profile-card {
+  background: linear-gradient(135deg, rgba(6, 95, 54, 0.18) 0%, rgba(4, 64, 38, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  color: #e6f8ee;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .profile-icon {
@@ -234,6 +245,109 @@
 .dark-theme .btn-secondary {
   background: #475569 !important;
   border-color: #475569 !important;
+}
+
+/* Navigation Tabs - Matching HawkerDashboard Style */
+.hawker-analytics .tabs-nav {
+  background: white;
+  border-radius: 16px;
+  padding: 8px;
+  margin-bottom: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.hawker-analytics .tabs-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+}
+
+.hawker-analytics .tab-item {
+  flex: 1;
+}
+
+.hawker-analytics .tab-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #666;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.hawker-analytics .tab-item.active .tab-link {
+  background: #0c850c;
+  color: white;
+}
+
+.hawker-analytics .tab-link:hover {
+  background: #f0f0f0;
+  color: #0c850c;
+}
+
+.hawker-analytics .tab-item.active .tab-link:hover {
+  background: #0c850c;
+  color: white;
+}
+
+/* Dark Theme Navigation */
+.hawker-analytics.dark-theme .tabs-nav {
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.hawker-analytics.dark-theme .tab-link {
+  color: #94a3b8;
+}
+
+.hawker-analytics.dark-theme .tab-link:hover {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.hawker-analytics.dark-theme .tab-item.active .tab-link {
+  background: rgba(12, 133, 12, 0.9);
+  color: white;
+}
+
+.hawker-analytics.dark-theme .tab-item.active .tab-link:hover {
+  background: #0c850c;
+  color: white;
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+  .hawker-analytics .tab-link span {
+    display: none;
+  }
+  
+  .hawker-analytics .tab-link {
+    padding: 12px 10px;
+    justify-content: center;
+  }
+  
+  .hawker-analytics .tab-item {
+    min-width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .hawker-analytics .tabs-nav {
+    padding: 6px;
+  }
+  
+  .hawker-analytics .tabs-list {
+    gap: 6px;
+    justify-content: center;
+  }
 }
 
 /* Animations */

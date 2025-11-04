@@ -1,9 +1,7 @@
 <template>
   <div class="stall-listing">
     <!-- Show loading state while fetching hawker data -->
-    <div v-if="loading && !hawker" class="text-center p-5">
-      <p>Loading stall information...</p>
-    </div>
+    <LoadingSpinner v-if="loading && !hawker" message="Loading stall information..." container-class="text-center p-5" />
 
     <!-- Show error if any -->
     <div v-else-if="errorMsg" class="alert alert-danger">
@@ -13,8 +11,12 @@
     <!-- Show content only when hawker data is available -->
     <div v-else-if="hawker" class="container reset-style" style="position: relative;">
       <div class="row stall-info">
-        <div class="col-md-6 col-12">
-          <img :src="hawker.imageUrl" :alt="hawker.hawkerName" class="stallImg"/>
+        <div class="col-md-5">
+          <ImageWithLoader 
+            :src="hawker.imageUrl" 
+            :alt="hawker.hawkerName" 
+            image-class="stallImg"
+          />
         </div>
         <div class="col-md-6 col-12">
           <div>
@@ -81,27 +83,57 @@
       </div>
 
       <div class="row mt-4">
-        <div class="col-12">
-          <h4>Available Listings</h4>
+        <div class="d-flex justify-content-between align-items-center w-100 mb-3">
+          <h4 class="mb-0">Available Listings</h4>
+          <div class="small-search-container">
+            <div class="small-search-box">
+              <i class="fa-solid fa-search small-search-icon"></i>
+              <input 
+                type="text" 
+                placeholder="search for food item" 
+                class="small-search-input" 
+                v-model="localSearchQuery"
+                @input="handleSearch"
+              />
+              <button 
+                v-if="localSearchQuery" 
+                @click="clearSearch" 
+                class="small-clear-search-btn"
+                type="button"
+                aria-label="Clear search"
+              >
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+          </div>
         </div>
         
         <div v-if="loading" class="col-12">Loading available listings...</div>
         
-        <div v-else-if="foodItems.length === 0" class="col-12">No food listings available for this stall.</div>
+        <div v-else-if="filteredFoodItems.length === 0">
+          <div v-if="searchQuery">No food items found matching "{{ searchQuery }}"</div>
+          <div v-else>No food listings available for this stall.</div>
+        </div>
 
-          <div v-else class="row g-3">
-            <div v-for="item in foodItems" :key="item.id" class="col-12 col-sm-6 col-lg-4">
-              <div class="listing-card" @click="isStallOpen() && item.itemQty > 0 ? openItemModal(item) : null" :class="{ 'disabled': !isStallOpen() || item.itemQty === 0 }">
-                <div class="img-container">
-                  <img class="foodImg" :src="item.imageUrl" :alt="item.itemName"/>
-                  <div v-if="item.itemQty === 0" class="sold-out-overlay">
-                    <span class="sold-out-text">SOLD OUT</span>
-                  </div>
-                  <div v-else class="counter-btn"
-                    :class="{ 'square': item.count > 0, 'disabled': !isStallOpen() }"
-                    @mouseenter="item.hover = true"
-                    @mouseleave="item.hover = false"
-                    @click.stop="isStallOpen() ? increment(item) : null">
+        <div v-else class="row">
+          <div v-for="item in filteredFoodItems" :key="item.id" class="col-md-4">
+            <div class="listing-card" @click="isStallOpen() && item.itemQty > 0 ? openItemModal(item) : null" :class="{ 'disabled': !isStallOpen() || item.itemQty === 0 }">
+              <div class="img-container">
+                <ImageWithLoader 
+                  :src="item.imageUrl" 
+                  :alt="item.itemName"
+                  image-class="foodImg"
+                  error-icon="fas fa-utensils"
+                />
+                <div v-if="item.itemQty === 0" class="sold-out-overlay">
+                  <span class="sold-out-text">SOLD OUT</span>
+                </div>
+                <div v-else class="counter-btn"
+                  :class="{ 'square': item.count > 0, 'disabled': !isStallOpen() }"
+                  @mouseenter="item.hover = true"
+                  @mouseleave="item.hover = false"
+                  @click.stop="isStallOpen() ? increment(item) : null">
+
                   <template v-if="item.count === 0">+</template>
                   <template v-else>
                     <div v-if="item.hover" class="hover-controls">
@@ -121,17 +153,27 @@
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="item-name">{{ item.itemName }}</span>
                     <!-- show original price if discount applied -->
-                    <span class="original-price" v-if="isDiscountApplied()">${{ item.itemPrice }}</span>
+                    <span class="original-price" v-if="isDiscountApplied(item)">${{ item.itemPrice }}</span>
+                  </div>
+                  
+                  <!-- Tags and Allergens -->
+                  <div class="tags-container mt-2">
+                    <span v-for="tag in item.tags" :key="tag" class="tag dietary-tag">
+                      {{ tag }}
+                    </span>
+                    <span v-for="allergen in item.allergens" :key="allergen" class="tag allergen-tag">
+                      <i class="fa-solid fa-triangle-exclamation"></i> {{ allergen }}
+                    </span>
                   </div>
                   
                   <div class="d-flex justify-content-between align-items-center mt-2">
                     <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
                     <span class="discounted-price">${{ isDiscountApplied(item) 
-                                                        ? (item.itemPrice * ((100 - item.discount) / 100)).toFixed(2)
-                                                        : item.itemPrice }}</span>
+                                                        ? (item.discountedPrice).toFixed(2)
+                                                        : item.itemPrice.toFixed(2) }}</span>
                   </div>
                 </div>
-              </div> 
+              </div>
             </div>
           </div>
         </div>
@@ -148,10 +190,15 @@
           <button class="modal-close" @click="closeModal">
             <i class="fa-solid fa-xmark"></i>
           </button>  
-          <div class="row modal-info-section">
-            <div class="col-12 modal-image-section">
-              <img :src="selectedItem.imageUrl" :alt="selectedItem.itemName" class="modal-image"/>
-            </div>
+            <div class="modal-info-section">
+              <div class="modal-image-section">
+                <ImageWithLoader 
+                  :src="selectedItem.imageUrl" 
+                  :alt="selectedItem.itemName" 
+                  image-class="modal-image"
+                  error-icon="fas fa-utensils"
+                />
+              </div>
 
             <div class="col-12">
               <div class="modal-heading">

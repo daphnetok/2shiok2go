@@ -1,6 +1,6 @@
 <template>
-  <div v-if="hawker" class="row mt-4">
-    <h4>Reviews</h4>
+  <div v-if="hawker" class="row mt-4" id="reviews">
+  <h4>Reviews</h4>
     
     <div class="reviews-card">
     <div class="reviews-section-content">
@@ -92,7 +92,7 @@
                 @timeupdate="updateVideoProgress($event, idx)"
                 :data-video-index="idx"
               ></video>
-              <div class="video-icon-overlay">
+              <div class="video-icon-overlay" v-if="!isVideoFullscreen(idx)">
                 <i class="fa-solid fa-play"></i>
               </div>
               <!-- Fullscreen exit button -->
@@ -126,15 +126,15 @@
     </div>
     </div>
     </div>
+  </div>
 
-    <!-- Image Modal -->
-    <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
-      <div class="modal-content" @click.stop>
-        <img :src="selectedImage" alt="Review image" />
-        <button class="close-modal" @click="closeImageModal">
-          <i class="fa-solid fa-times"></i>
-        </button>
-      </div>
+  <!-- Image Modal -->
+  <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
+    <div class="modal-content" @click.stop>
+      <img :src="selectedImage" alt="Review image" />
+      <button class="close-modal" @click="closeImageModal">
+        <i class="fa-solid fa-times"></i>
+      </button>
     </div>
   </div>
 </template>
@@ -157,6 +157,7 @@ export default {
     const videoProgress = ref({});
     const videoFullscreen = ref({});
     const videoDuration = ref({});
+    const activeVideoRef = ref(null);
 
     // Computed properties
     const displayRating = computed(() => {
@@ -268,42 +269,37 @@ export default {
       }
     };
 
+    const openImageModal = (imageUrl) => {
+      selectedImage.value = imageUrl;
+    };
+
+    const closeImageModal = () => {
+      selectedImage.value = null;
+    };
+
     const playVideoFullscreen = async (event) => {
       const video = event.target;
       const videoContainer = video.closest('.review-video-container');
-      
-      // Find video index
-      let videoIndex = -1;
-      const dataIndex = video.getAttribute('data-video-index');
-      if (dataIndex !== null) {
-        videoIndex = parseInt(dataIndex);
-      } else {
-        for (let i = 0; i < videoRefs.value.length; i++) {
-          if (videoRefs.value[i] === video) {
-            videoIndex = i;
-            break;
-          }
-        }
-      }
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       try {
         if (video.paused) {
           // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
-          if (videoIndex >= 0) {
-            videoFullscreen.value[videoIndex] = true;
-            
-            // Get video duration
-            if (video.readyState >= 2) {
+          videoFullscreen.value[videoIndex] = true;
+          activeVideoRef.value = video;
+          
+          // Set video duration
+          if (video.duration) {
+            videoDuration.value[videoIndex] = video.duration;
+          } else {
+            video.addEventListener('loadedmetadata', () => {
               videoDuration.value[videoIndex] = video.duration;
-            } else {
-              video.addEventListener('loadedmetadata', () => {
-                videoDuration.value[videoIndex] = video.duration;
-              });
-            }
+            }, { once: true });
           }
           
           await video.play();
+          
           // Request fullscreen API if available
           try {
             if (videoContainer.requestFullscreen) {
@@ -326,78 +322,30 @@ export default {
       }
     };
 
-    const activeVideoRef = ref(null);
-
     const expandVideoFullscreen = (event) => {
       const video = event.target;
       const videoContainer = video.closest('.review-video-container');
       videoContainer.classList.add('playing');
-      
-      // Store reference to active video
-      activeVideoRef.value = video;
-      
-      // Add escape key listener
-      const handleEscape = (e) => {
-        if (e.key === 'Escape' && activeVideoRef.value) {
-          activeVideoRef.value.pause();
-        }
-      };
-      document.addEventListener('keydown', handleEscape);
-      
-      // Store handler for cleanup
-      video._escapeHandler = handleEscape;
     };
 
     const exitVideoFullscreen = (event) => {
-      // Find video and index
-      let video = null;
-      let videoContainer = null;
-      let videoIndex = -1;
+      event.stopPropagation();
+      const video = event.target.closest('.review-video-container')?.querySelector('video') || 
+                   event.target.querySelector('video') || 
+                   activeVideoRef.value;
       
-      if (event && event.target) {
-        // Check if it's the exit button
-        const exitBtn = event.target.closest('.exit-fullscreen-btn');
-        if (exitBtn) {
-          videoContainer = exitBtn.closest('.review-video-container');
-          video = videoContainer?.querySelector('video');
-        } else {
-          video = event.target.tagName === 'VIDEO' ? event.target : event.target.closest('.review-video-container')?.querySelector('video');
-          videoContainer = video?.closest('.review-video-container');
-        }
-      } else if (activeVideoRef.value) {
-        video = activeVideoRef.value;
-        videoContainer = video.closest('.review-video-container');
-      }
+      if (!video) return;
       
-      if (!video || !videoContainer) return;
-      
-      // Find video index
-      const dataIndex = video.getAttribute('data-video-index');
-      if (dataIndex !== null) {
-        videoIndex = parseInt(dataIndex);
-      } else {
-        for (let i = 0; i < videoRefs.value.length; i++) {
-          if (videoRefs.value[i] === video) {
-            videoIndex = i;
-            break;
-          }
-        }
-      }
+      const videoContainer = video.closest('.review-video-container');
+      const videoIndex = parseInt(video.getAttribute('data-video-index')) || 0;
       
       video.pause();
       videoContainer.classList.remove('playing');
-      if (videoIndex >= 0) {
-        videoFullscreen.value[videoIndex] = false;
-      }
-      
-      // Remove escape key listener
-      if (video._escapeHandler) {
-        document.removeEventListener('keydown', video._escapeHandler);
-        video._escapeHandler = null;
-      }
-      
+      videoContainer.classList.remove('fullscreen');
+      videoFullscreen.value[videoIndex] = false;
       activeVideoRef.value = null;
       
+      // Exit browser fullscreen if active
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else if (document.webkitFullscreenElement) {
@@ -407,8 +355,6 @@ export default {
       } else if (document.msFullscreenElement) {
         document.msExitFullscreen();
       }
-      
-      videoContainer.classList.remove('fullscreen');
     };
 
     const isVideoFullscreen = (index) => {
@@ -420,9 +366,6 @@ export default {
       if (video.duration) {
         const progress = (video.currentTime / video.duration) * 100;
         videoProgress.value[index] = progress;
-        if (!videoDuration.value[index]) {
-          videoDuration.value[index] = video.duration;
-        }
       }
     };
 
@@ -431,33 +374,14 @@ export default {
     };
 
     const seekVideo = (event, index) => {
-      const video = videoRefs.value[index];
+      const video = videoRefs.value[index] || activeVideoRef.value;
       if (!video || !video.duration) return;
       
-      const progressContainer = event.currentTarget;
-      const rect = progressContainer.getBoundingClientRect();
+      const progressTrack = event.currentTarget;
+      const rect = progressTrack.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
-      const percentage = (clickX / rect.width) * 100;
-      const seekTime = (percentage / 100) * video.duration;
-      
-      video.currentTime = seekTime;
-      videoProgress.value[index] = percentage;
-    };
-
-    const openImageModal = (imageUrl) => {
-      selectedImage.value = imageUrl;
-    };
-
-    const closeImageModal = () => {
-      selectedImage.value = null;
-    };
-
-    const hidePlayButton = (event) => {
-      event.target.classList.add('playing');
-    };
-
-    const showPlayButton = (event) => {
-      event.target.classList.remove('playing');
+      const percentage = clickX / rect.width;
+      video.currentTime = percentage * video.duration;
     };
 
     // Watch for hawker changes
@@ -484,12 +408,12 @@ export default {
       getVideos,
       getItemNames,
       setVideoRef,
-      playVideoFullscreen,
-      expandVideoFullscreen,
-      exitVideoFullscreen,
       selectedImage,
       openImageModal,
       closeImageModal,
+      playVideoFullscreen,
+      expandVideoFullscreen,
+      exitVideoFullscreen,
       isVideoFullscreen,
       updateVideoProgress,
       getVideoProgress,

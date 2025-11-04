@@ -21,6 +21,7 @@
         
         <ListingGrid
           :price-order="filters.priceOrder"
+          :price-max="filters.priceMax"
           :dietary="filters.dietary"
           :status="filters.status"
           :search-query="searchQuery"
@@ -33,7 +34,6 @@
 </template>
 
 <script>
-import { ref } from 'vue';
 import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
@@ -47,30 +47,25 @@ export default {
     ListingGrid,
     BackToTop
   },
-  setup() {
-    const searchQuery = ref('')
-    
-    const handleSearch = (query) => {
-      searchQuery.value = query
-    }
-
-    return {
-      searchQuery,
-      handleSearch
-    }
-  },
   data() {
     return {
+      searchQuery: '',
       filters: {
         priceOrder: null,
+        priceMax: 20,
         dietary: [],
         status: []
       }
     };
   },
   methods: {
+    handleSearch(query) {
+      this.searchQuery = query;
+    },
     onFilterChange(payload) {
+      console.log('📥 BuyerListing received filter change:', payload);
       this.filters = { ...this.filters, ...payload };
+      console.log('📦 BuyerListing updated filters:', this.filters);
     }
   }
 };

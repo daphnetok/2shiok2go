@@ -2,19 +2,34 @@
   
   <div class="container">
         <div class="row">
-            <StallListing/>
+            <StallListing :search-query="searchQuery" @search="handleSearch"/>
         </div>
   </div>
+
+  <!-- Floating Cart Button -->
+  <FloatingCartButton />
 
 </template>
 
 <script>
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
+import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
 
 export default { 
   name: "BuyerListings",
   components: {
     StallListing,
+    FloatingCartButton
+  },
+  data() {
+    return {
+      searchQuery: ''
+    };
+  },
+  methods: {
+    handleSearch(query) {
+      this.searchQuery = query;
+    }
   }
 };
 </script>
