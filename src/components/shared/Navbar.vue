@@ -34,7 +34,6 @@
   
   <!-- Hawkers see these links -->
   <template v-if="currentUser && userRole === 'hawker'">
-  <router-link class="nav-link-desktop" to="/create-listing">Create Listing</router-link>
   <router-link class="nav-link-desktop" to="/hawker-dashboard">Hawker Dashboard</router-link>
   </template>
   
@@ -80,7 +79,6 @@
   
   <!-- Hawkers see these links -->
   <template v-if="currentUser && userRole === 'hawker'">
-  <li class="nav-item"><router-link class="nav-link" to="/create-listing">Create Listing</router-link></li>
   <li class="nav-item"><router-link class="nav-link" to="/hawker-dashboard">Hawker Dashboard</router-link></li>
   </template>
   
