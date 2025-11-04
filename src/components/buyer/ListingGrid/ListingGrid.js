@@ -3,6 +3,9 @@ import ListingCard from '../ListingCard/ListingCard.vue';
 import LocationModal from '../BottomSheet/BottomSheet.vue';
 import { useLoadHawkers } from '/firebase/firestore';
 import { useGeolocation, reverseGeocode } from '@/assets/composables/useGeolocation';
+import { useRoute, useRouter } from 'vue-router';
+import { auth, db } from '/firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default {
   name: 'ListingGrid',
@@ -28,27 +31,77 @@ export default {
     const { userLocation, locationError, getUserLocation } = useGeolocation();
     const hawkersRef = ref(null);
     const ROAD_FACTOR = 1.1; 
-    const formattedAddress = ref('');
+    const formattedAddress = ref(''); // Selected location address (changes)
+    const currentGPSAddress = ref(''); // GPS location address (fixed unless GPS refreshes)
     const isLoadingAddress = ref(false);
     const isModalOpen = ref(false);
+    const route = useRoute();
+    const router = useRouter();
 
+    // FIX #2 & #3: Check for newLocationId FIRST, then get GPS if not found
     onMounted(async () => {
+      // Check for newLocationId first
+      if (route.query.newLocationId) {
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+            
+            if (userDoc.exists()) {
+              const savedLocs = userDoc.data().savedLocations || [];
+              const newLoc = savedLocs.find(loc => loc.id === route.query.newLocationId);
+              
+              if (newLoc) {
+                userLocation.value = {
+                  latitude: newLoc.latitude,
+                  longitude: newLoc.longitude
+                };
+                formattedAddress.value = newLoc.formattedAddress;
+                
+                // FIX #3: Clear the query param
+                router.replace({ query: {} });
+                return; // EXIT EARLY - don't call getUserLocation
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading new location:', error);
+        }
+      }
+      
+      // Only call if no newLocationId was found
       await getUserLocation();
     })
 
+    // FIX #8 & #16: Handle null location and skip reverseGeocode if address already set
     watch(
       userLocation,
       async (newLocation) => {
+        // FIX #8: Check for null location
+        if (!newLocation) {
+          hawkersRef.value = null;
+          return;
+        }
+        
         hawkersRef.value = useLoadHawkers(newLocation);
         console.log(newLocation);
 
-        if (newLocation && newLocation.latitude && newLocation.longitude) {
-          isLoadingAddress.value = true;
-          formattedAddress.value = await reverseGeocode(
-            newLocation.latitude,
-            newLocation.longitude
-          );
-          isLoadingAddress.value = false;
+        if (newLocation.latitude && newLocation.longitude) {
+          // FIX #16: Only fetch address if we don't already have it
+          if (!formattedAddress.value || formattedAddress.value === 'Loading...') {
+            isLoadingAddress.value = true;
+            const address = await reverseGeocode(
+              newLocation.latitude,
+              newLocation.longitude
+            );
+            formattedAddress.value = address;
+            
+            // NEW: Also set GPS address (this is the user's physical location)
+            currentGPSAddress.value = address;
+            
+            isLoadingAddress.value = false;
+          }
         }
       }
     );
@@ -162,9 +215,16 @@ export default {
       if (locationData.type === 'current') {
         // fetch fresh gps coords
         await getUserLocation();
+        // Reset formattedAddress to GPS address
+        formattedAddress.value = currentGPSAddress.value;
       } else if (locationData.type === 'saved') {
-        // update userLocation with saved locations
-        console.log('Saved location selected: ', locationData);
+        // Update userLocation with saved location coordinates
+        userLocation.value = {
+          latitude: locationData.data.latitude,
+          longitude: locationData.data.longitude
+        };
+        // Update ONLY formattedAddress (not currentGPSAddress)
+        formattedAddress.value = locationData.data.formattedAddress;
       }
     };
 
@@ -172,7 +232,8 @@ export default {
       filteredHawkers,
       loading,
       locationError,
-      formattedAddress,
+      formattedAddress, // For "Near Me" header
+      currentGPSAddress, // NEW: For "current location" radio option
       isLoadingAddress,
       isModalOpen,
       toggleModal,

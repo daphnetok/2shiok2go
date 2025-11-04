@@ -14,6 +14,7 @@
      <LocationModal
       :isOpen="isModalOpen"
       :formattedAddress="formattedAddress"
+      :currentGPSAddress="currentGPSAddress"
       @close="toggleModal"
       @locationSelected="handleLocationSelected"
     />

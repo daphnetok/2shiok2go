@@ -31,8 +31,8 @@
           <div class="option-content">
             <div class="location-icon">📍</div>
             <div class="location-details">
-              <p class="location-label">Use current location</p>
-              <p class="location-address">{{ formattedAddress || 'Loading...' }}</p>
+              <p class="location-label">Use Current Location</p>
+              <p class="location-address">{{ currentGPSAddress || 'Loading...' }}</p>
             </div>
           </div>
         </label>

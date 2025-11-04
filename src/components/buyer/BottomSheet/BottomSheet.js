@@ -1,11 +1,14 @@
 import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
+import { auth, db } from '/firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default {
   name: 'LocationModal',
   props: {
     isOpen: { type: Boolean, required: true },
-    formattedAddress: { type: String, default: '' }
+    formattedAddress: { type: String, default: '' },
+    currentGPSAddress: { type: String, default: '' } // NEW: Separate GPS address
   },
   emits: ['close', 'locationSelected'],
   setup(props, { emit }) {
@@ -17,7 +20,32 @@ export default {
     const isClosing = ref(false);
     const justDragged = ref(false);
     const selectedOption = ref('current');
-    const savedLocations = ref ([]);
+    const savedLocations = ref([]);
+
+    // UPDATED: Better error handling and logging
+    const fetchSavedLocations = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.warn('No authenticated user');
+          savedLocations.value = [];
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          savedLocations.value = userDoc.data().savedLocations || [];
+        } else {
+          console.warn('User document does not exist');
+          savedLocations.value = [];
+        }
+      } catch (error) {
+        console.error('Error fetching saved locations:', error);
+        savedLocations.value = [];
+      }
+    };
 
     const onLocationSelect = () => {
       // emit selected location data
@@ -56,15 +84,18 @@ export default {
       sheet.value.style.pointerEvents = '';
     };
 
+    // FIX #1: Fetch saved locations when sheet opens
     watch(() => props.isOpen, async (val) => {
       if (val) {
+        await fetchSavedLocations(); // ADDED THIS LINE
         await nextTick();
         if (sheet.value) resetSheetPosition();
       }
     });
 
-    onMounted(() => {
+    onMounted(async () => {
       if (props.isOpen && sheet.value) resetSheetPosition();
+      await fetchSavedLocations();
     });
 
     const startClose = () => {

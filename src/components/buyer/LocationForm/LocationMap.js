@@ -18,6 +18,7 @@ export default {
     const formModalRef = ref(null);
     let map = null;
     let dragTimeout = null;
+    let mapDragListener = null; // FIX #7: Store listener reference
     
     const currentAddress = ref('');
     const currentCoords = ref({ lat: null, lng: null });
@@ -78,7 +79,8 @@ export default {
 
         updateAddress(userLoc.latitude, userLoc.longitude);
 
-        map.addListener('dragend', onMapDragEnd);
+        // FIX #7: Store listener reference for cleanup
+        mapDragListener = map.addListener('dragend', onMapDragEnd);
 
       } catch (error) {
         console.error('Map initialization error:', error);
@@ -189,12 +191,13 @@ export default {
           return;
         }
 
-        if (!currentCoords.value.lat || !currentCoords.value.lng) {
+        if (!currentCoords.value || !currentCoords.value.lat || !currentCoords.value.lng) {
           saveError.value = 'Please select a valid location';
           return;
         }
 
-        const locationId = Date.now().toString();
+        // FIX #5: Better unique ID generation
+        const locationId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const newLocation = {
           id: locationId,
           customName: formData.name.trim(),
@@ -209,6 +212,19 @@ export default {
 
         if (!userDoc.exists()) {
           saveError.value = 'User profile not found';
+          return;
+        }
+
+        // FIX #4: Check for duplicate locations
+        const existingLocations = userDoc.data().savedLocations || [];
+        const isDuplicate = existingLocations.some(loc => 
+          (loc.latitude === currentCoords.value.lat && 
+           loc.longitude === currentCoords.value.lng) ||
+          loc.customName.toLowerCase().trim() === formData.name.toLowerCase().trim()
+        );
+
+        if (isDuplicate) {
+          saveError.value = 'A location with this name or coordinates already exists';
           return;
         }
 
@@ -242,8 +258,12 @@ export default {
       initMap();
     });
 
+    // FIX #7: Remove map listener on unmount
     onBeforeUnmount(() => {
       if (dragTimeout) clearTimeout(dragTimeout);
+      if (mapDragListener) {
+        window.google.maps.event.removeListener(mapDragListener);
+      }
     });
 
     return {
