@@ -21,6 +21,7 @@
         
         <ListingGrid
           :price-order="filters.priceOrder"
+          :price-max="filters.priceMax"
           :dietary="filters.dietary"
           :status="filters.status"
           :search-query="searchQuery"
@@ -63,6 +64,7 @@ export default {
     return {
       filters: {
         priceOrder: null,
+        priceMax: 50,
         dietary: [],
         status: []
       }
@@ -70,7 +72,9 @@ export default {
   },
   methods: {
     onFilterChange(payload) {
+      console.log('📥 BuyerListing received filter change:', payload);
       this.filters = { ...this.filters, ...payload };
+      console.log('📦 BuyerListing updated filters:', this.filters);
     }
   }
 };

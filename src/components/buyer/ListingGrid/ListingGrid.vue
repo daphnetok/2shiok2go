@@ -82,6 +82,10 @@ export default {
       type: String,
       default: null // 'asc' | 'desc' | null
     },
+    priceMax: {
+      type: Number,
+      default: 50
+    },
     dietary: {
       type: Array,
       default: () => []
@@ -229,12 +233,46 @@ export default {
       // Filter out hawkers with no active items
       list = list.filter(h => hasActiveItems(h));
 
+      // Filter by price range - check if hawker has any items within price range
+      if (props.priceMax && props.priceMax < 50) {
+        list = list.filter(hawker => {
+          const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+          if (!hawkerName) return false;
+          
+          // Find items for this hawker that are within price range
+          const hawkerItems = itemListings.value.filter(item => {
+            const itemHawkerName = item.hawkerName || item.stallName;
+            const isMatchingHawker = itemHawkerName && 
+              itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+            
+            if (!isMatchingHawker || !item.makeActive) return false;
+            
+            // Check if item's discounted price is within range
+            const price = item.discountedPrice || item.itemPrice || 0;
+            return price <= props.priceMax;
+          });
+          
+          return hawkerItems.length > 0;
+        });
+      }
+
       // Filter by dietaryRestriction (string) if any selected
       if (props.dietary.length) {
+        console.log('🍽️ Dietary filter active:', props.dietary);
         list = list.filter(h => {
           const tag = getDietary(h);
-          return props.dietary.map(d => d.toString().toLowerCase().trim()).includes(tag);
+          const normalizedFilters = props.dietary.map(d => d.toString().toLowerCase().trim());
+          const matches = normalizedFilters.includes(tag);
+          
+          if (!matches) {
+            console.log(`❌ Hawker "${h.name || h.hawkerName}" dietary="${tag}" doesn't match filters:`, normalizedFilters);
+          } else {
+            console.log(`✅ Hawker "${h.name || h.hawkerName}" dietary="${tag}" MATCHES!`);
+          }
+          
+          return matches;
         });
+        console.log(`📊 After dietary filter: ${list.length} hawkers remaining`);
       }
 
       // Filter by status if any selected
@@ -242,19 +280,46 @@ export default {
         list = list.filter(h => props.status.includes(getStatus(h)));
       }
 
-      // default sort by distance
-      const sortOrder = 'asc';
-      list.sort((a, b) => {
-        const da = getDistance(a);
-        const db = getDistance(b);
+      // Sort by price if priceOrder is set
+      if (props.priceOrder) {
+        list.sort((a, b) => {
+          // Get minimum price for each hawker
+          const getMinPrice = (hawker) => {
+            const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
+            if (!hawkerName) return Infinity;
+            
+            const hawkerItems = itemListings.value.filter(item => {
+              const itemHawkerName = item.hawkerName || item.stallName;
+              const isMatchingHawker = itemHawkerName && 
+                itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
+              return isMatchingHawker && item.makeActive;
+            });
+            
+            if (hawkerItems.length === 0) return Infinity;
+            
+            const prices = hawkerItems.map(item => item.discountedPrice || item.itemPrice || 0);
+            return Math.min(...prices);
+          };
+          
+          const priceA = getMinPrice(a);
+          const priceB = getMinPrice(b);
+          
+          return props.priceOrder === 'asc' ? priceA - priceB : priceB - priceA;
+        });
+      } else {
+        // Default sort by distance
+        list.sort((a, b) => {
+          const da = getDistance(a);
+          const db = getDistance(b);
 
-        // handle 'N/A' distances
-        if (da === 'N/A' && db === 'N/A') return 0;
-        if (da === 'N/A') return 1;
-        if (db === 'N/A') return -1;
+          // handle 'N/A' distances
+          if (da === 'N/A' && db === 'N/A') return 0;
+          if (da === 'N/A') return 1;
+          if (db === 'N/A') return -1;
 
-        return sortOrder === 'asc' ? da - db : db - da;
-      });
+          return da - db;
+        });
+      }
 
       return list;
     });
