@@ -1,4 +1,5 @@
 import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'LocationModal',
@@ -6,7 +7,7 @@ export default {
     isOpen: { type: Boolean, required: true },
     formattedAddress: { type: String, default: '' }
   },
-  emits: ['close'],
+  emits: ['close', 'locationSelected'],
   setup(props, { emit }) {
     const sheet = ref(null);
     const startY = ref(0);
@@ -15,6 +16,31 @@ export default {
     const isMouseDown = ref(false);
     const isClosing = ref(false);
     const justDragged = ref(false);
+    const selectedOption = ref('current');
+    const savedLocations = ref ([]);
+
+    const onLocationSelect = () => {
+      // emit selected location data
+      if (selectedOption.value === 'current') {
+        emit('locationSelected', { type: 'current' });
+      } else {
+        const location = savedLocations.value.find(loc => loc.id === selectedOption.value);
+        if (location) {
+          emit('locationSelected', {
+            type: 'saved',
+            data: location
+          });
+        }
+      }
+      // close modal after selection
+      startClose();
+    };
+
+    const router = useRouter();
+
+    const onAddLocationClick = () => {
+      router.push('/add-location');
+    }
 
     const getY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -131,7 +157,11 @@ export default {
       onDragMove,
       onDragEnd,
       onXClick,
-      onBackdropClick
+      onBackdropClick,
+      selectedOption,
+      savedLocations,
+      onLocationSelect,
+      onAddLocationClick
     };
   }
 };

@@ -18,6 +18,7 @@ import Favourites from '@/components/buyer/Favourites/Favourites.vue'
 import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
+import LocationForm from '../components/buyer/LocationForm/LocationMap.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -47,6 +48,7 @@ const routes = [
     component: AllReviews,
     props: true
   },
+  { path: '/add-location', component: LocationForm }
 ]
 
 const router = createRouter({

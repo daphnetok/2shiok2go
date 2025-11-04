@@ -15,6 +15,7 @@
       :isOpen="isModalOpen"
       :formattedAddress="formattedAddress"
       @close="toggleModal"
+      @locationSelected="handleLocationSelected"
     />
     
     <!-- location permission notice -->

@@ -158,6 +158,16 @@ export default {
       isModalOpen.value = !isModalOpen.value
     };
 
+    const handleLocationSelected = async (locationData) => {
+      if (locationData.type === 'current') {
+        // fetch fresh gps coords
+        await getUserLocation();
+      } else if (locationData.type === 'saved') {
+        // update userLocation with saved locations
+        console.log('Saved location selected: ', locationData);
+      }
+    };
+
     return {
       filteredHawkers,
       loading,
@@ -165,7 +175,8 @@ export default {
       formattedAddress,
       isLoadingAddress,
       isModalOpen,
-      toggleModal
+      toggleModal,
+      handleLocationSelected
     };
   }
 }
