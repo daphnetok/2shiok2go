@@ -8,6 +8,7 @@
     </div>
     <!-- Loading state -->
     <LoadingSpinner v-if="loading" message="Loading listings..." />
+    <LoadingSpinner v-if="loading" message="Loading listings..." />
     
     <!-- Empty state -->
     <div v-else-if="!filteredHawkers || filteredHawkers.length === 0" class="empty-state">
@@ -134,26 +135,80 @@ export default {
       }
 
       const searchTerm = query.toLowerCase().trim();
+      const searchWords = searchTerm.split(/\s+/); // Split into words for better matching
       const matchingHawkerIds = new Set(); // Store hawker IDs matched by address
       const matchingUserIds = new Set(); // Store userIds matched by items
       const hawkerItemMap = new Map(); // Map of hawker userId to matching items
+      const hawkerScores = new Map(); // Track relevance scores
 
       // Search in hawker addresses and stall names
       const hawkerListings = allHawkers.value || [];
       hawkerListings.forEach(hawker => {
-        const address = hawker.address?.formattedAddress || '';
-        const stallName = hawker.hawkerName || '';
-        // Match by address or stall name
-        if (address.toLowerCase().includes(searchTerm) || stallName.toLowerCase().includes(searchTerm)) {
+        const address = (hawker.address?.formattedAddress || '').toLowerCase();
+        const stallName = (hawker.hawkerName || '').toLowerCase();
+        const dietaryInfo = (hawker.dietaryRestriction || '').toLowerCase();
+        let score = 0;
+        
+        // Exact match gets highest score
+        if (stallName === searchTerm || address.includes(searchTerm)) {
+          score += 10;
           matchingHawkerIds.add(hawker.id);
+        } else {
+          // Check if all search words are present
+          const allWordsMatch = searchWords.every(word => 
+            stallName.includes(word) || address.includes(word) || dietaryInfo.includes(word)
+          );
+          if (allWordsMatch) {
+            score += 5;
+            matchingHawkerIds.add(hawker.id);
+          } else {
+            // Check if any search word matches
+            const anyWordMatch = searchWords.some(word => 
+              stallName.includes(word) || address.includes(word) || dietaryInfo.includes(word)
+            );
+            if (anyWordMatch) {
+              score += 2;
+              matchingHawkerIds.add(hawker.id);
+            }
+          }
+        }
+        
+        if (score > 0) {
+          hawkerScores.set(hawker.id, score);
         }
       });
 
       // Search in item names
       const items = itemListings.value || [];
       items.forEach(item => {
-        const itemName = item.itemName || '';
-        if (itemName.toLowerCase().includes(searchTerm)) {
+        const itemName = (item.itemName || '').toLowerCase();
+        const itemDescription = (item.description || '').toLowerCase();
+        let score = 0;
+        
+        // Exact match
+        if (itemName === searchTerm) {
+          score += 10;
+        } else if (itemName.includes(searchTerm)) {
+          score += 8;
+        } else {
+          // Check all words match
+          const allWordsMatch = searchWords.every(word => 
+            itemName.includes(word) || itemDescription.includes(word)
+          );
+          if (allWordsMatch) {
+            score += 6;
+          } else {
+            // Check if any word matches
+            const anyWordMatch = searchWords.some(word => 
+              itemName.includes(word) || itemDescription.includes(word)
+            );
+            if (anyWordMatch) {
+              score += 3;
+            }
+          }
+        }
+        
+        if (score > 0) {
           const userId = item.userId;
           if (userId) {
             matchingUserIds.add(userId);
@@ -163,23 +218,37 @@ export default {
             }
             hawkerItemMap.get(userId).push({
               itemName: item.itemName,
-              imageUrl: item.imageUrl || ''
+              imageUrl: item.imageUrl || '',
+              score: score
             });
+            
+            // Add item score to hawker score
+            const hawker = hawkerListings.find(h => h.userId === userId);
+            if (hawker) {
+              const currentScore = hawkerScores.get(hawker.id) || 0;
+              hawkerScores.set(hawker.id, currentScore + score);
+            }
           }
         }
       });
 
-      // Return matching hawkers with their matching items
-      // Match by either hawker.id (address match) or hawker.userId (item match)
-      return hawkerListings
+      // Return matching hawkers with their matching items, sorted by relevance
+      const results = hawkerListings
         .filter(hawker => matchingHawkerIds.has(hawker.id) || matchingUserIds.has(hawker.userId))
         .map(hawker => {
           const matchingItems = hawkerItemMap.get(hawker.userId) || [];
+          // Sort matching items by score
+          matchingItems.sort((a, b) => b.score - a.score);
           return {
             ...hawker,
-            matchingItems: matchingItems.length > 0 ? matchingItems : undefined
+            matchingItems: matchingItems.length > 0 ? matchingItems : undefined,
+            searchScore: hawkerScores.get(hawker.id) || 0
           };
-        });
+        })
+        .sort((a, b) => b.searchScore - a.searchScore); // Sort by relevance
+      
+      console.log(`🔍 Search for "${query}" found ${results.length} results`);
+      return results;
     };
 
     // Search results
@@ -240,7 +309,20 @@ export default {
     };
 
     const filteredHawkers = computed(() => {
-      let list = (allHawkers.value || []).slice();
+      // Start with search results if search is active, otherwise all hawkers
+      let list;
+      
+      if (props.searchQuery && props.searchQuery.trim() !== '') {
+        // If search is active, start with search results
+        const results = performSearch(props.searchQuery);
+        if (!results || results.length === 0) {
+          return []; // No search results
+        }
+        list = results.slice();
+      } else {
+        // No search, use all hawkers
+        list = (allHawkers.value || []).slice();
+      }
 
       // Filter out hawkers with no active items
       list = list.filter(h => hasActiveItems(h));

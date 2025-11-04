@@ -108,7 +108,7 @@
           </div>
         </div>
         
-        <div v-if="loading" class="col-12">Loading available listings...</div>
+        <div v-if="loading">Loading available listings...</div>
         
         <div v-else-if="filteredFoodItems.length === 0">
           <div v-if="searchQuery">No food items found matching "{{ searchQuery }}"</div>
