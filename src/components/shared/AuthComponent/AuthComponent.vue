@@ -118,6 +118,8 @@ export default {
 <style scoped>
 .auth-component {
   padding: 20px;
+  width: 75%;
+  margin: 0 auto;
 }
 
 .modal {
@@ -138,16 +140,30 @@ export default {
   padding: 30px;
   border-radius: 8px;
   text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 .modal-content h3 {
   margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .modal-content button {
   margin: 10px;
   padding: 12px 24px;
   font-size: 16px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content button:disabled {
+  background: #cccccc;
 }
 
 .user-info {
@@ -155,13 +171,25 @@ export default {
   padding: 20px;
   border-radius: 8px;
   margin: 20px 0;
+  text-align: center;
+}
+
+.user-info h3 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.user-info h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #666;
 }
 
 .email-form {
   margin-bottom: 0;
 }
 
-.form-group{
+.form-group {
   margin-bottom: 15px;
 }
 
@@ -173,8 +201,9 @@ export default {
   font-size: 14px;
 }
 
-.form-group input, .form-group select {
-  width: 75%;
+.form-group input,
+.form-group select {
+  width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -182,22 +211,23 @@ export default {
   box-sizing: border-box;
 }
 
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #4285f4;
 }
 
 .button-group {
-  width: 77%;
-  margin: auto;
+  margin-top: 20px;
 }
 
 button {
-  margin: 10px;
-  padding: 10px 20px;
+  margin: 10px 0;
+  padding: 12px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: 100%;
 }
 
 button:disabled {
@@ -214,11 +244,13 @@ button:disabled {
   justify-content: center;
   gap: 8px;
   padding: 12px 8px;
+  width: 100%;
 }
 
 .btn-primary {
   background: #4285f4;
   color: white;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -249,6 +281,26 @@ button:disabled {
 }
 
 .manual-toggle {
-  margin-top: 10px;
+  margin-top: 20px;
+  text-align: center;
 }
+
+.toggle-auth p {
+  font-size: 14px;
+}
+
+.toggle-auth a {
+  color: #4285f4;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle-auth a:hover {
+  text-decoration: underline;
+}
+
+p{
+  margin-bottom: 0;
+}
+
 </style>
