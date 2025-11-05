@@ -37,10 +37,10 @@
           </div>
         </label>
 
-        <!-- Saved Locations (v-if/v-for) -->
+        <!-- Saved Locations (limited to 3) -->
         <template v-if="savedLocations.length > 0">
           <label 
-            v-for="location in savedLocations" 
+            v-for="location in savedLocations.slice(0, 3)" 
             :key="location.id"
             class="location-option"
             :class="{ selected: selectedOption === location.id }"
@@ -59,16 +59,29 @@
                 <p class="location-address">{{ location.formattedAddress }}</p>
               </div>
             </div>
+            <!-- DELETE BUTTON -->
+            <button 
+              class="delete-btn" 
+              @click="deleteLocation(location.id, $event)"
+              title="Delete location"
+            >
+              ×
+            </button>
           </label>
         </template>
 
         <!-- Separator -->
         <div class="separator"></div>
 
-        <!-- Add New Location Button -->
-        <button class="add-location-btn" @click="onAddLocationClick">
+        <!-- Add New Location Button (disabled when 3 saved locations) -->
+        <button 
+          class="add-location-btn" 
+          @click="onAddLocationClick"
+          :disabled="!canAddMoreLocations()"
+          :style="!canAddMoreLocations() ? { opacity: 0.5, cursor: 'not-allowed' } : {}"
+        >
           <span class="plus-icon">+</span>
-          Add new saved location
+          {{ canAddMoreLocations() ? 'Add new saved location' : 'Maximum 3 saved locations' }}
         </button>
       </div>
     <div class="modal-extension"></div>

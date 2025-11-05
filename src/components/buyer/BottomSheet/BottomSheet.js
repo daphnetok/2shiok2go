@@ -1,14 +1,14 @@
 import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { auth, db } from '/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore'; // Added updateDoc and arrayRemove
 
 export default {
   name: 'LocationModal',
   props: {
     isOpen: { type: Boolean, required: true },
     formattedAddress: { type: String, default: '' },
-    currentGPSAddress: { type: String, default: '' } // NEW: Separate GPS address
+    currentGPSAddress: { type: String, default: '' }
   },
   emits: ['close', 'locationSelected'],
   setup(props, { emit }) {
@@ -22,7 +22,6 @@ export default {
     const selectedOption = ref('current');
     const savedLocations = ref([]);
 
-    // UPDATED: Better error handling and logging
     const fetchSavedLocations = async () => {
       try {
         const user = auth.currentUser;
@@ -47,8 +46,45 @@ export default {
       }
     };
 
+    // NEW: Delete location function
+    const deleteLocation = async (locationId, event) => {
+      event.stopPropagation(); // Prevent radio selection when deleting
+      
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.warn('No authenticated user');
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const currentLocations = userDoc.data().savedLocations || [];
+          const locationToDelete = currentLocations.find(loc => loc.id === locationId);
+          
+          if (locationToDelete) {
+            // Remove from Firestore
+            await updateDoc(userRef, {
+              savedLocations: arrayRemove(locationToDelete)
+            });
+
+            // Update local state immediately
+            savedLocations.value = savedLocations.value.filter(loc => loc.id !== locationId);
+            
+            // If the deleted location was selected, reset to current location
+            if (selectedOption.value === locationId) {
+              selectedOption.value = 'current';
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error deleting location:', error);
+      }
+    };
+
     const onLocationSelect = () => {
-      // emit selected location data
       if (selectedOption.value === 'current') {
         emit('locationSelected', { type: 'current' });
       } else {
@@ -60,7 +96,6 @@ export default {
           });
         }
       }
-      // close modal after selection
       startClose();
     };
 
@@ -69,6 +104,11 @@ export default {
     const onAddLocationClick = () => {
       router.push('/add-location');
     }
+
+    // NEW: Check if user can add more locations
+    const canAddMoreLocations = () => {
+      return savedLocations.value.length < 3;
+    };
 
     const getY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -84,10 +124,9 @@ export default {
       sheet.value.style.pointerEvents = '';
     };
 
-    // FIX #1: Fetch saved locations when sheet opens
     watch(() => props.isOpen, async (val) => {
       if (val) {
-        await fetchSavedLocations(); // ADDED THIS LINE
+        await fetchSavedLocations();
         await nextTick();
         if (sheet.value) resetSheetPosition();
       }
@@ -137,7 +176,6 @@ export default {
       if (!sheet.value) return;
 
       if (diff < 0) {
-        // progressive resistance for upward drag, capping at -100px
         diff = Math.max(diff * 0.4, -100)
       }
       sheet.value.style.transform = `translateY(${diff}px)`;
@@ -192,7 +230,9 @@ export default {
       selectedOption,
       savedLocations,
       onLocationSelect,
-      onAddLocationClick
+      onAddLocationClick,
+      deleteLocation, // NEW: Export delete function
+      canAddMoreLocations // NEW: Export check function
     };
   }
 };

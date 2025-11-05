@@ -8,7 +8,6 @@ import { useGeolocation, reverseGeocode } from '@/assets/composables/useGeolocat
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db } from '/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default {
   name: 'ListingGrid',
@@ -48,6 +47,7 @@ export default {
     const router = useRouter();
     const isMounted = ref(true);
     const itemListings = useLoadListings();
+    const isUsingCurrentLocation = ref(true);
 
     onMounted(async () => {
       // Check for newLocationId first
@@ -111,6 +111,11 @@ export default {
         }
       }
     );
+
+    const headerText = computed(() => {
+      if (props.searchQuery) return 'Search Results';
+      return isUsingCurrentLocation.value ? 'Near Me' : 'Selected Location';
+    });
 
     const allHawkers = computed(() => {
       const hawkers = hawkersRef.value?.value || [];
@@ -444,6 +449,7 @@ export default {
         // Set to Loading... FIRST so watch runs reverseGeocode
         formattedAddress.value = 'Loading...';
         isLoadingAddress.value = true;
+        isUsingCurrentLocation.value = true;
         
         try {
           await getUserLocation();
@@ -455,6 +461,7 @@ export default {
           isLoadingAddress.value = false;
         }
       } else if (locationData.type === 'saved') {
+        isUsingCurrentLocation.value = false;
         userLocation.value = {
           latitude: locationData.data.latitude,
           longitude: locationData.data.longitude
@@ -483,7 +490,8 @@ export default {
       toggleModal,
       handleLocationSelected,
       searchQuery: computed(() => props.searchQuery),
-      handleImageError
+      handleImageError,
+      headerText
     };
   }
 };
