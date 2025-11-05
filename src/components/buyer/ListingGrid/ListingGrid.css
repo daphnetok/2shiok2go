@@ -74,7 +74,7 @@ h2 {
   color: #999;
 }
 
-.listings-grid {
+.listing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
@@ -188,7 +188,7 @@ h2 {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .listings-grid {
+  .listing-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
   }
@@ -209,7 +209,7 @@ h2 {
 }
 
 @media (max-width: 480px) {
-  .listings-grid {
+  .listing-grid {
     grid-template-columns: 1fr;
   }
 
@@ -278,12 +278,6 @@ h2 {
   color: #999;
 }
 
-.listings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
 .hawker-result-wrapper {
   display: flex;
   flex-direction: column;
@@ -339,7 +333,7 @@ h2 {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .listings-grid {
+  .listing-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
   }
@@ -360,7 +354,7 @@ h2 {
 }
 
 @media (max-width: 480px) {
-  .listings-grid {
+  .listing-grid {
     grid-template-columns: 1fr;
   }
 
