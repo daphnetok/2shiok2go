@@ -27,7 +27,7 @@
 /* Exit Button */
 .exit-btn {
   position: absolute;
-  top: 60px;
+  top: 70px;
   left: 20px;
   width: 44px;
   height: 44px;
@@ -57,7 +57,7 @@
 /* Reset Location Button - Fixed below exit button */
 .reset-location-btn {
   position: absolute;
-  top: 120px; /* 60px (exit top) + 44px (exit height) + 16px (spacing) */
+  top: 130px; /* 60px (exit top) + 44px (exit height) + 16px (spacing) */
   left: 20px;
   width: 44px;
   height: 44px;
