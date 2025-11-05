@@ -5,13 +5,23 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // User subcollections (petData, preferences, etc.)
+      match /{subcollection}/{document=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
     }
     
     // Hawker listings
     match /hawkerListings/{hawkerId} {
       allow read: if true; // Anyone can read hawker listings
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null;
+      // Allow owner to write everything
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow any authenticated user to update favouritedUser array only
+      allow update: if request.auth != null && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favouritedUser']);
     }
     
     // Item listings

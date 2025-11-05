@@ -32,7 +32,7 @@ export async function updateOrder(orderId, updates) {
 // Get orders by hawker or buyer
 export async function getOrdersByUser(userId, role) {
   try {
-    const fieldName = role === 'hawker' ? 'hawkerId' : 'buyerId'
+    const fieldName = role === 'hawker' ? 'hawkerId' : 'userId'
     const q = query(ordersRef, where(fieldName, '==', userId))
     const snapshot = await getDocs(q)
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
