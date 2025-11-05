@@ -1,13 +1,15 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import Navbar from './components/shared/Navbar.vue'
 import '@fortawesome/fontawesome-free/css/all.css';
+
+const route = useRoute()
 
 </script>
 
 <template>
   <div id="app">
-    <Navbar />
+    <Navbar v-if="route.path !== '/'" />
     <main class="main-content">
       <RouterView />
     </main>

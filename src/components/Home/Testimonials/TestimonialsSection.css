@@ -1,0 +1,313 @@
+.stats-section {
+  padding: 5rem 1.5rem;
+  background: linear-gradient(180deg, #f8fafa 0%, #ffffff 50%, #f5f7f6 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top border accent */
+.stats-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #52b788, #95d5b2, #52b788, transparent);
+  opacity: 0.4;
+}
+
+/* Subtle decorative gradient orbs */
+.stats-section::after {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(82, 183, 136, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.stats-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.stat {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 2px solid rgba(82, 183, 136, 0.12);
+  box-shadow: 0 4px 20px rgba(45, 106, 79, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(40px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient shine effect on hover */
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(82, 183, 136, 0.05), transparent);
+  transition: left 0.5s ease;
+}
+
+.stat:hover::before {
+  left: 100%;
+}
+
+.stat.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+  animation: slideUp 0.7s ease-out forwards;
+  animation-delay: calc(var(--stat-index) * 0.12s);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stat:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 12px 40px rgba(82, 183, 136, 0.18);
+  border-color: rgba(82, 183, 136, 0.25);
+}
+
+.stat-icon-wrapper {
+  width: 85px;
+  height: 85px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(82, 183, 136, 0.08) 0%, rgba(149, 213, 178, 0.08) 100%);
+  border-radius: 50%;
+  transition: all 0.4s ease;
+  position: relative;
+  border: 3px solid rgba(82, 183, 136, 0.15);
+}
+
+/* Pulsing ring effect */
+.stat-icon-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(82, 183, 136, 0.3);
+  opacity: 0;
+  transform: scale(1);
+  transition: all 0.4s ease;
+}
+
+.stat:hover .stat-icon-wrapper::after {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Icon color variants */
+.stat-icon-wrapper.icon-primary {
+  background: linear-gradient(135deg, rgba(82, 183, 136, 0.1) 0%, rgba(149, 213, 178, 0.1) 100%);
+  border-color: rgba(82, 183, 136, 0.2);
+}
+
+.stat-icon-wrapper.icon-success {
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.1) 0%, rgba(82, 183, 136, 0.1) 100%);
+  border-color: rgba(45, 106, 79, 0.2);
+}
+
+.stat-icon-wrapper.icon-eco {
+  background: linear-gradient(135deg, rgba(64, 145, 108, 0.1) 0%, rgba(45, 106, 79, 0.1) 100%);
+  border-color: rgba(64, 145, 108, 0.2);
+}
+
+.stat-icon-wrapper.icon-neutral {
+  background: linear-gradient(135deg, rgba(100, 116, 139, 0.08) 0%, rgba(148, 163, 184, 0.08) 100%);
+  border-color: rgba(100, 116, 139, 0.15);
+}
+
+.stat:hover .stat-icon-wrapper {
+  transform: scale(1.1) rotate(8deg);
+  border-color: rgba(82, 183, 136, 0.35);
+}
+
+/* Emoji styling */
+.stat-emoji {
+  font-size: 2.8rem !important;
+  display: inline-block !important;
+  line-height: 1 !important;
+  user-select: none !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* FontAwesome icon styling */
+.stat-icon-wrapper i {
+  font-size: 2.2rem !important;
+  color: #52b788 !important;
+  display: inline-block !important;
+}
+
+.stat-value {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: #2d6a4f;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  position: relative;
+}
+
+/* Value color variants */
+.stat-value.value-primary {
+  color: #2d6a4f;
+}
+
+.stat-value.value-success {
+  color: #40916c;
+}
+
+.stat-value.value-neutral {
+  color: #334155;
+}
+
+.stat p {
+  font-size: 1.05rem;
+  color: #52555a;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+}
+
+/* Layout variants */
+.stats-container.layout-2-col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stats-container.layout-3-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stats-container.layout-4-col {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .stats-section {
+    padding: 4rem 1.5rem;
+  }
+  
+  .stats-container,
+  .stats-container.layout-3-col,
+  .stats-container.layout-4-col {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .stat {
+    padding: 2rem 1.25rem;
+  }
+  
+  .stat-icon-wrapper {
+    width: 75px;
+    height: 75px;
+    margin-bottom: 1.25rem;
+  }
+  
+  .stat-emoji {
+    font-size: 2.3rem !important;
+  }
+  
+  .stat-icon-wrapper i {
+    font-size: 1.9rem !important;
+  }
+  
+  .stat-value {
+    font-size: 2.8rem;
+  }
+  
+  .stat p {
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .stats-section {
+    padding: 3rem 1rem;
+  }
+  
+  .stats-container,
+  .stats-container.layout-2-col,
+  .stats-container.layout-3-col,
+  .stats-container.layout-4-col {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  
+  .stat {
+    padding: 1.75rem 1rem;
+  }
+  
+  .stat-icon-wrapper {
+    width: 65px;
+    height: 65px;
+    margin-bottom: 1rem;
+  }
+  
+  .stat-emoji {
+    font-size: 2rem !important;
+  }
+  
+  .stat-icon-wrapper i {
+    font-size: 1.6rem !important;
+  }
+  
+  .stat-value {
+    font-size: 2.3rem;
+    letter-spacing: -0.5px;
+  }
+  
+  .stat p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .stats-container,
+  .stats-container.layout-2-col,
+  .stats-container.layout-3-col,
+  .stats-container.layout-4-col {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat {
+    padding: 2rem 1.25rem;
+  }
+}
