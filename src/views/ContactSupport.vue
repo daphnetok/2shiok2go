@@ -4,7 +4,7 @@
     <div v-if="submitted" class="acknowledgement-container">
       <div class="acknowledgement-card">
         <div class="success-icon">
-          <i class="fas fa-check-circle"></i>
+          <i class="fas fa-check"></i>
         </div>
         <h2 class="mb-3">Thank You!</h2>
         <p class="text-muted mb-4">
@@ -259,7 +259,7 @@ export default {
       { value: 'missing-item', label: 'Missing Item' },
       { value: 'wrong-order', label: 'Wrong Order' },
       { value: 'damaged-item', label: 'Damaged Item' },
-      { value: 'late-delivery', label: 'Late Delivery' },
+      { value: 'late-preparation', label: 'Late Preparation' },
       { value: 'refund-request', label: 'Refund Request' },
       { value: 'quality-issue', label: 'Quality Issue' },
       { value: 'other', label: 'Other' }
@@ -365,9 +365,6 @@ export default {
         submitting.value = true
         errorMessage.value = ''
 
-        // Create support ticket in users/{userId}/supportTickets subcollection
-        const supportTicketsRef = collection(db, 'users', currentUserId.value, 'supportTickets')
-        
         // Get affected items details
         const affectedItemsDetails = formData.value.affectedItems.map(index => {
           const item = orderItems.value[index]
@@ -391,7 +388,16 @@ export default {
           userId: currentUserId.value
         }
 
-        const docRef = await addDoc(supportTicketsRef, ticketData)
+        // Create support ticket in main 'supportRequests' collection
+        const supportRequestsRef = collection(db, 'supportRequests')
+        const docRef = await addDoc(supportRequestsRef, ticketData)
+        
+        // Also store in user's subcollection for easy access
+        const userSupportTicketsRef = collection(db, 'users', currentUserId.value, 'supportTickets')
+        await addDoc(userSupportTicketsRef, {
+          ...ticketData,
+          supportRequestId: docRef.id
+        })
         
         ticketId.value = docRef.id.substring(0, 8).toUpperCase()
         submitted.value = true
@@ -453,13 +459,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 3rem 1.5rem;
 }
 
 .form-container,
 .acknowledgement-container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -467,16 +473,16 @@ export default {
 .acknowledgement-card {
   background: white;
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(5, 150, 105, 0.12);
+  box-shadow: 0 20px 60px rgba(5, 150, 105, 0.15);
   overflow: hidden;
-  border: 1px solid rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.1);
 }
 
 /* Form Header */
 .form-header {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: white;
-  padding: 2.5rem 3rem;
+  padding: 3rem;
 }
 
 .header-content {
@@ -506,6 +512,7 @@ export default {
 
 .header-text {
   text-align: left;
+  flex: 1;
 }
 
 .header-text h2 {
@@ -519,18 +526,18 @@ export default {
   color: rgba(255, 255, 255, 0.95);
   font-size: 1rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Form */
 .support-form {
-  padding: 2.5rem 3rem;
+  padding: 3rem;
 }
 
 .form-label {
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
   font-size: 0.95rem;
@@ -544,31 +551,42 @@ export default {
 
 .form-control,
 .form-select {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.25rem;
   border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  border-radius: 12px;
+  font-size: 1rem;
   transition: all 0.3s ease;
-  height: calc(1.5em + 1.5rem + 4px);
-  line-height: 1.5;
+  background-color: #f9fafb;
+  line-height: 1.6;
 }
 
 .form-control:focus,
 .form-select:focus {
   border-color: #059669;
-  box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.15);
+  box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.1);
+  background-color: white;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: #9ca3af;
 }
 
 textarea.form-control {
   resize: vertical;
-  height: auto;
-  min-height: calc(1.5em + 1.5rem + 4px);
+  min-height: 120px;
+  line-height: 1.6;
 }
 
 .form-text {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: #6b7280;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+/* Row spacing */
+.row.g-4 {
+  row-gap: 1.75rem !important;
 }
 
 /* Remove old grid styles */
@@ -765,35 +783,81 @@ body.dark-mode .alert-danger,
 
 /* Acknowledgement Page */
 .acknowledgement-card {
-  padding: 3rem 2rem;
+  padding: 4rem 3rem;
   text-align: center;
 }
 
 .success-icon {
-  width: 100px;
-  height: 100px;
+  width: 180px;
+  height: 180px;
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 2rem;
-  animation: scaleIn 0.5s ease;
+  margin: 0 auto 2.5rem;
+  animation: scaleIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 15px 40px rgba(5, 150, 105, 0.35);
+  position: relative;
+}
+
+.success-icon::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  animation: pulse 2s ease-in-out infinite;
+  z-index: -1;
 }
 
 .success-icon i {
-  font-size: 3.5rem;
+  font-size: 7rem;
   color: white;
+  animation: checkmark 0.8s ease 0.3s both;
+  transform-origin: center;
+  font-weight: 900;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes scaleIn {
-  from {
-    transform: scale(0);
+  0% {
+    transform: scale(0) rotate(-45deg);
     opacity: 0;
   }
-  to {
-    transform: scale(1);
+  50% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
     opacity: 1;
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
   }
 }
 
@@ -935,38 +999,123 @@ body.dark-mode .ticket-info strong,
   .header-text h2 {
     font-size: 1.75rem;
   }
+  
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-text {
+    text-align: center;
+  }
+  
+  .form-header {
+    padding: 2rem 1.5rem;
+  }
+  
+  .success-icon {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .success-icon i {
+    font-size: 5.5rem;
+  }
+  
+  .acknowledgement-card {
+    padding: 3rem 2rem;
+  }
+  
+  .contact-support-page {
+    padding: 2rem 1rem;
+  }
 }
 
 @media (min-width: 769px) and (max-width: 992px) {
-  /* Large tablets / small laptops */
+  /* Medium devices (tablets) */
   .support-form {
-    padding: 2rem 2.5rem;
+    padding: 2.5rem 2.5rem;
   }
   
-  .form-container {
+  .form-container,
+  .acknowledgement-container {
     max-width: 900px;
+  }
+  
+  .form-header {
+    padding: 2.5rem 2.5rem;
+  }
+  
+  .header-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .header-icon i {
+    font-size: 2.5rem;
+  }
+  
+  .header-text h2 {
+    font-size: 2rem;
+  }
+  
+  .success-icon {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .success-icon i {
+    font-size: 6rem;
   }
 }
 
 @media (min-width: 993px) {
-  /* Desktop and larger */
-  .form-container {
-    max-width: 1400px;
+  /* Large devices (desktops) */
+  .form-container,
+  .acknowledgement-container {
+    max-width: 1200px;
+  }
+  
+  .support-form {
+    padding: 3rem;
+  }
+  
+  .form-header {
+    padding: 3rem;
+  }
+  
+  .success-icon {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .success-icon i {
+    font-size: 7rem;
   }
 }
 
 @media (max-width: 768px) {
   .action-buttons {
     flex-direction: column;
+    gap: 1rem;
   }
 
   .action-buttons .btn {
     width: 100%;
   }
   
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 1rem;
+  }
+  
   .form-actions .btn {
     width: 100%;
     justify-content: center;
+  }
+  
+  .ticket-info {
+    padding: 1.25rem;
   }
 }
 </style>

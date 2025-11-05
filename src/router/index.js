@@ -20,6 +20,7 @@ import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
 import ContactSupport from '../views/ContactSupport.vue'
 import EditForm from '../views/EditForm.vue'
+import LocationForm from '../components/buyer/LocationForm/LocationMap.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -39,7 +40,7 @@ const routes = [
   },
   { path: '/cart', component: ShoppingCart },
   { 
-    path: '/order-receipt/:orderId', 
+    path: '/order-receipt/:orderId?', 
     name: 'OrderReceipt',
     component: OrderReceipt,
     props: true
@@ -65,6 +66,7 @@ const routes = [
     name: 'EditForm',
     component: EditForm
   },
+  { path: '/add-location', component: LocationForm }
 ]
 
 const router = createRouter({

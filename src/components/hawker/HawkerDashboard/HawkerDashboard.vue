@@ -1,4 +1,5 @@
 <template>
+  <div class="nav-container">
   <!-- Alert Box -->
   <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
     <div class="custom-alert-content">
@@ -14,7 +15,7 @@
       
       <p v-else class="alert-message">{{ alert.message }}</p>
       <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-        <button class="" @click="confirmationCancel">Cancel</button>
+        <button class="m-0" @click="confirmationCancel">Cancel</button>
         <button v-if="alert.actionType === 'Delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
         <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
       </div>
@@ -29,7 +30,7 @@
     @saved="onListingSaved"
   />
   
-  <div>
+  <div class="container-fluid px-3 px-md-4">
     <!-- Navigation Tabs -->
     <nav class="tabs-nav">
       <ul class="tabs-list">
@@ -59,7 +60,9 @@
         </li>
       </ul>
     </nav>
+  </div>
 
+  <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
@@ -230,6 +233,7 @@
       </div>
     </section>
   </div>
+  </div>
 </template>
 
 <script>
@@ -298,5 +302,8 @@ export default {
 };
 </script>
 
-<style  src="../HawkerDashboard/HawkerDashboard.css"></style>
-<style  src="../../../assets/css/HawkerDashboard.css"></style>
+
+<style scoped>
+@import '@/assets/css/HawkerDashboard.css';
+@import './HawkerDashboard.css';
+</style>

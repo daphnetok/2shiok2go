@@ -39,11 +39,11 @@
   align-items: center;
   gap: 10px;
   background: white;
-  color: #0c850c;
+  color: #059669;
   padding: 12px 24px;
   border-radius: 12px;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: bold;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -51,8 +51,8 @@
 .btn-create:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  background-color: #1bad50;
-  color: white;
+  background-color: #89dea8;
+  color: #044e37;
   font-weight: 800;
   border-radius: 12px;
 }
@@ -430,7 +430,11 @@
     height: 180px;
   }
 }
-
+@media (max-width: 576px) {
+  .dashboard-container{
+    padding: 0px 40px 40px 40px;
+  }
+}
 @media (max-width: 480px) {
   .page-title {
     font-size: 1.25rem;
