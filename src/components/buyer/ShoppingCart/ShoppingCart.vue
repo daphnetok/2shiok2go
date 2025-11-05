@@ -212,7 +212,7 @@
                   :class="{ 'input-error-border': touchedFields.cardholderName && fieldErrors.cardholderName }"
                 />
                 <div v-if="touchedFields.cardholderName && fieldErrors.cardholderName" class="field-error">
-                  • {{ fieldErrors.cardholderName }}
+                  {{ fieldErrors.cardholderName }}
                 </div>
               </div>
               
@@ -235,7 +235,7 @@
                   <span v-if="cardNumberError" class="input-error">{{ cardNumberError }}</span>
                 </div>
                 <div v-if="touchedFields.cardNumber && fieldErrors.cardNumber" class="field-error">
-                  • {{ fieldErrors.cardNumber }}
+                  {{ fieldErrors.cardNumber }}
                 </div>
               </div>
               
@@ -254,7 +254,7 @@
                     :class="{ 'input-error-border': touchedFields.expiryDate && fieldErrors.expiryDate }"
                   />
                   <div v-if="touchedFields.expiryDate && fieldErrors.expiryDate" class="field-error">
-                    • {{ fieldErrors.expiryDate }}
+                    {{ fieldErrors.expiryDate }}
                   </div>
                 </div>
                 
@@ -272,7 +272,7 @@
                     :class="{ 'input-error-border': touchedFields.cvv && fieldErrors.cvv }"
                   />
                   <div v-if="touchedFields.cvv && fieldErrors.cvv" class="field-error">
-                    • {{ fieldErrors.cvv }}
+                    {{ fieldErrors.cvv }}
                   </div>
                 </div>
               </div>
