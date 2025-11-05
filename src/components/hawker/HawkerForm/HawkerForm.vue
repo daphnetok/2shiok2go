@@ -48,6 +48,7 @@
                     @placeSelected="onAddressSelected"
                 />
             </div>
+
             <div class="form-group time-group">
                 <div class="time-field">
                     <label class="form-label">Opening Time</label>
@@ -122,9 +123,5 @@
     </div>
 </template>
 
-<script src="./HawkerForm.js">
-export default {
-    name: 'HawkerStallForm'
-}
-</script>
+<script src="./HawkerForm.js"></script>
 <style src="./HawkerForm.css"></style>

@@ -1,19 +1,22 @@
 import { computed, onMounted, ref, watch, onBeforeUnmount } from 'vue';
 import ListingCard from '../ListingCard/ListingCard.vue';
 import LocationModal from '../BottomSheet/BottomSheet.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ToastNotification from '../ToastNotification/ToastNotification.vue';
 import { useLoadHawkers, useLoadListings } from '/firebase/firestore';
 import { useGeolocation, reverseGeocode } from '@/assets/composables/useGeolocation';
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db } from '/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default {
   name: 'ListingGrid',
   components: {
     ListingCard,
     LocationModal,
-    LoadingSpinner
+    LoadingSpinner,
+    ToastNotification
   },
   props: {
     priceOrder: {
@@ -483,4 +486,4 @@ export default {
       handleImageError
     };
   }
-}
+};

@@ -19,12 +19,20 @@
       @locationSelected="handleLocationSelected"
     />
     
+    <!-- Toast Notification -->
+    <ToastNotification 
+      v-if="showToast"
+      :message="toastMessage"
+      :duration="5000"
+      @close="showToast = false"
+    />
+    
     <!-- location permission notice -->
     <div v-if="locationError" class="alert alert-warning">
-      {{ locationError }} - Showing all stalls without distance sorting
+      {{ locationError }}, please enable location settings
     </div>
+    
     <!-- Loading state -->
-    <LoadingSpinner v-if="loading" message="Loading listings..." />
     <LoadingSpinner v-if="loading" message="Loading listings..." />
     
     <!-- Empty state -->
@@ -33,7 +41,7 @@
     </div>
     
     <!-- Listings grid -->
-    <div v-else class="listings-grid">
+    <div v-else class="listing-grid">
       <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper">
         <ListingCard 
           :hawker="hawker"
