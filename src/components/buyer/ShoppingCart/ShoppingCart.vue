@@ -158,6 +158,7 @@
                 <i class="fa-solid fa-info-circle"></i> Unavailable items
               </span>
               <span class="unavailable-amount">-${{ safeToFixed(unavailableTotal) }}</span>
+              <!-- <span class="unavailable-amount">-${{ safeToFixed(closedStallsTotal) }}</span> -->
             </div>
             <div v-if="availableTotal !== cartTotal" class="payment-row available-total">
               <span><b>Total Available for Purchase</b></span>
@@ -197,7 +198,7 @@
               </label>
             </div>
 
-            <div v-if="cardSelection === 'new'" class="card-form">
+             <div v-if="cardSelection === 'new'" class="card-form">
               <div class="form-group">
                 <label for="cardholder-name">Cardholder Name</label>
                 <input 
@@ -263,12 +264,48 @@
               </div>
             </div>
           </div>
+
+          <!-- Saved Cards Picker Modal -->
+          <div v-if="showSavedCardsModal" class="modal-overlay" @click="closeSavedCardsModal">
+            <div class="modal-content" @click.stop>
+              <div class="modal-header">
+                <div class="modal-header-content">
+                  <i class="fa-solid fa-credit-card modal-icon"></i>
+                  <h2 class="modal-h2">Choose a saved card</h2>
+                </div>
+              </div>
+              <div class="modal-body">
+                <div class="saved-card-list">
+                  <div v-for="(card, index) in savedCards" :key="index" class="saved-card-row" :class="{ selected: selectedCardIndex === index }">
+                    <div class="saved-card-left">
+                      <input type="radio" :id="`modal-saved-${index}`" name="modal-saved-card" :value="index" v-model="selectedCardIndex" class="saved-radio">
+                      <label :for="`modal-saved-${index}`" class="saved-card-label">
+                        <span class="brand visa" v-if="card.brand === 'visa'">VISA</span>
+                        <span class="brand mastercard" v-else-if="card.brand === 'mastercard'">MasterCard</span>
+                        <span class="saved-card-mask">•••• •••• •••• {{ card.lastFour }}</span>
+                        <span class="saved-card-name">{{ card.cardholderName }}</span>
+                        <span class="saved-card-exp">Exp {{ card.expiryDate }}</span>
+                      </label>
+                    </div>
+                    <div class="saved-card-actions">
+                      <button type="button" class="card-action delete" @click="deleteSavedCard(index)">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer inline">
+                <button class="modal-btn proceed-btn" @click="applySavedCardSelection">Use This Card</button>
+                <button class="modal-btn cancel-btn" @click="closeSavedCardsModal">Cancel</button>
+              </div>
+            </div>
+          </div>
             <button @click="checkout" class="checkout-btn" :disabled="updating">
               <span>Place Order</span>
               <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
+
       </div>
     </div>
 

@@ -68,8 +68,12 @@
   animation: slideIn 0.5s ease;
 }
 
-.closed-stalls-warning i {
-  color: #f57c00;
+.closed-stalls-warning i,
+.closed-stalls-warning .fa-triangle-exclamation,
+.closed-stalls-warning i.fa-triangle-exclamation,
+.closed-stalls-warning i.fa-solid,
+.closed-stalls-warning i::before {
+  color: #f44336 !important;
   font-size: 24px;
   flex-shrink: 0;
 }
@@ -199,11 +203,6 @@
 
 /* Modal Styles */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
@@ -357,6 +356,11 @@
   gap: 12px;
 }
 
+.modal-footer.inline {
+  flex-direction: row;
+  justify-content: center;
+}
+
 .modal-btn {
   padding: 16px 24px;
   border: none;
@@ -375,6 +379,7 @@
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
 }
 
 .proceed-btn:hover {
@@ -1101,6 +1106,121 @@
   margin-bottom: 16px;
 }
 
+.saved-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.saved-card-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.saved-card-row.selected {
+  border-color: #c8e6c9;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+.saved-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.saved-card-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.saved-card-mask {
+  font-weight: 700;
+}
+
+.saved-card-name {
+  color: #666;
+}
+
+.saved-card-exp {
+  color: #888;
+  font-size: 12px;
+}
+
+.saved-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-action {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.card-action.edit {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #bbdefb;
+}
+
+.card-action.delete {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+.card-action.apply {
+  margin-left: 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.edit-banner {
+  margin-bottom: 10px;
+  background: #fff3e0;
+  color: #e65100;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.saved-current-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.saved-current-btn .caret {
+  margin-left: auto;
+  color: #888;
+}
+
 .saved-cards label,
 .new-card-option label {
   display: flex;
@@ -1428,7 +1548,12 @@
     font-size: 13px;
   }
 
-  .closed-stalls-warning i {
+  .closed-stalls-warning i,
+  .closed-stalls-warning .fa-triangle-exclamation,
+  .closed-stalls-warning i.fa-triangle-exclamation,
+  .closed-stalls-warning i.fa-solid,
+  .closed-stalls-warning i::before {
+    color: #f44336 !important;
     font-size: 20px;
   }
 }

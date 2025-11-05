@@ -34,23 +34,13 @@ export default {
     const cardSelection = ref('new');
     const selectedCardIndex = ref(0);
     const saveCardForFuture = ref(false);
+    // editing removed
     const newCard = ref({
       cardholderName: '',
       cardNumber: '',
       expiryDate: '',
       cvv: ''
     });
-
-    // Card validation state
-    const cardNumberError = ref(null);
-    const cardBrand = computed(() => {
-      const digits = newCard.value.cardNumber.replace(/\s/g, '');
-      if (!digits) return null;
-      if (digits.startsWith('4')) return 'visa';
-      if (digits.startsWith('5')) return 'mastercard';
-      return null;
-    });
-        
     
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
@@ -157,20 +147,11 @@ export default {
       }
     };
     
-    // Format card number with spaces
+    // Format card number with spaces and validate first digit (Visa/MasterCard)
     const formatCardNumber = (event) => {
       let value = event.target.value.replace(/\D/g, '');
       const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
       newCard.value.cardNumber = formattedValue;
-            
-      // Live validation of starting digit
-      if (value.length === 0) {
-        cardNumberError.value = null;
-      } else if (!(value.startsWith('4') || value.startsWith('5'))) {
-        cardNumberError.value = 'Invalid Card Number: Use Visa or MasterCard';
-      } else {
-        cardNumberError.value = null;
-      }
     };
 
     // Format expiry date
@@ -252,50 +233,10 @@ export default {
       }
     };
 
-    const deleteSavedCard = async (index) => {
-      if (!userId.value) return;
-      try {
-        const userRef = doc(db, 'users', userId.value);
-        const userSnap = await getDoc(userRef);
-        let currentCards = [];
-        if (userSnap.exists()) {
-          currentCards = userSnap.data().cardInfo || [];
-        }
-        currentCards.splice(index, 1);
-        await updateDoc(userRef, { cardInfo: currentCards }).catch(async () => {
-          await setDoc(userRef, { cardInfo: currentCards }, { merge: true });
-        });
-        savedCards.value = currentCards;
-        if (selectedCardIndex.value >= currentCards.length) {
-          selectedCardIndex.value = 0;
-        }
-      } catch (err) {
-        console.error('Error deleting saved card:', err);
-        validationMessage.value = 'Failed to delete saved card. Please try again.';
-        showValidationModal.value = true;
-      }
-    };
-
-    // edit card flow removed
-
-    const openSavedCardsModal = () => {
-      showSavedCardsModal.value = true;
-    };
-
-    const closeSavedCardsModal = () => {
-      showSavedCardsModal.value = false;
-    };
-
-    const applySavedCardSelection = () => {
-      // Keep selectedCardIndex as chosen in the modal
-      cardSelection.value = 'saved';
-      showSavedCardsModal.value = false;
-    };
-
-
     // Validate card information
     const validateCardInfo = () => {
       if (cardSelection.value === 'saved') {
+        // Using saved card: basic presence check
         return savedCards.value.length > 0;
       }
       
@@ -758,37 +699,6 @@ export default {
         return newOrderID;
       });
     };
-        // Get next order ID
-    // const getNextOrderID = async () => {
-    //   try {
-    //     const ordersRef = collection(db, 'orders');
-    //     const q = query(ordersRef, orderBy('orderID', 'desc'), limit(1));
-    //     const querySnapshot = await getDocs(q);
-        
-    //     if (querySnapshot.empty) {
-    //       return 1;
-    //     }
-        
-    //     const lastOrder = querySnapshot.docs[0].data();
-    //     return (lastOrder.orderID || 0) + 1;
-    //   } catch (error) {
-    //     console.error('Error getting next order ID:', error);
-    //     // Fallback: try without orderBy if index doesn't exist
-    //     try {
-    //       const ordersRef = collection(db, 'orders');
-    //       const querySnapshot = await getDocs(ordersRef);
-    //       if (querySnapshot.empty) {
-    //         return 1;
-    //       }
-    //       const orders = querySnapshot.docs.map(doc => doc.data());
-    //       const maxOrderID = Math.max(...orders.map(o => o.orderID || 0), 0);
-    //       return maxOrderID + 1;
-    //     } catch (fallbackError) {
-    //       console.error('Error in fallback order ID query:', fallbackError);
-    //       return 1;
-    //     }
-    //   }
-    // };
 
     // Get hawker address from hawkerListings
     const getHawkerAddress = async (hawkerId) => {
@@ -1038,6 +948,8 @@ export default {
       editMode,
       selectedItems,
       showClosedStallsModal,
+      showValidationModal,
+      validationMessage,
       
       // Card state
       savedCards,
@@ -1106,6 +1018,12 @@ export default {
       deleteSelected,
       closeModal,
       proceedWithAvailable,
+      // Delete confirmation modal
+      showDeleteModal,
+      deleteMode,
+      deleteTargetItem,
+      confirmDelete,
+      cancelDelete,
       formatCardNumber,
       formatExpiryDate,
       formatCVV,
