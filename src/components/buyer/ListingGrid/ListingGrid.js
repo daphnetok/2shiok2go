@@ -132,14 +132,10 @@ export default {
     });
 
     const hasActiveItems = (hawker) => {
-      const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
-      if (!hawkerName) return false;
+      if (!hawker.userId) return false;
       
       return itemListings.value.some(item => {
-        const itemHawkerName = item.hawkerName || item.stallName;
-        const isMatchingHawker = itemHawkerName && 
-          itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
-        return isMatchingHawker && item.makeActive === true;
+        return item.userId === hawker.userId && item.makeActive === true;
       });
     };
 
@@ -387,14 +383,10 @@ export default {
         list.sort((a, b) => {
           // Get minimum price for each hawker
           const getMinPrice = (hawker) => {
-            const hawkerName = hawker.name || hawker.hawkerName || hawker.stallName;
-            if (!hawkerName) return Infinity;
+            if (!hawker.userId) return Infinity;
             
             const hawkerItems = itemListings.value.filter(item => {
-              const itemHawkerName = item.hawkerName || item.stallName;
-              const isMatchingHawker = itemHawkerName && 
-                itemHawkerName.toLowerCase().trim() === hawkerName.toLowerCase().trim();
-              return isMatchingHawker && item.makeActive;
+              return item.userId === hawker.userId && item.makeActive;
             });
             
             if (hawkerItems.length === 0) return Infinity;
