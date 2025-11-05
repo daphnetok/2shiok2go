@@ -1,0 +1,302 @@
+/* Alert Overlay */
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  /* backdrop-filter: blur(4px); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+/* Alert Container */
+.custom-alert-container {
+  max-width: 480px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-alert-container.success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.98), rgba(5, 150, 105, 0.98));
+  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+}
+
+.custom-alert-container.error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.98), rgba(220, 38, 38, 0.98));
+  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4);
+}
+
+.custom-alert-container.confirmation {
+  /* background: linear-gradient(135deg, rgba(59, 130, 246, 0.98), rgba(37, 99, 235, 0.98));
+  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4); */
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  box-shadow: 0 4px 15px rgba(191, 173, 33, 0.2);
+}
+
+.custom-alert-container.redirect {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.98), rgba(5, 150, 105, 0.98));
+  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+}
+
+/* Alert Content */
+.custom-alert-content {
+  padding: 32px 28px;
+  position: relative;
+  color: white;
+}
+
+/* Close Button */
+.alert-close-btn-top {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: grey;
+  font-size: 16px;
+  z-index: 1;
+}
+
+.alert-close-btn-top:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* Icon Section */
+.alert-icon-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.alert-icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.alert-icon-circle i {
+  font-size: 36px;
+  color: white;
+}
+
+/* Message Section */
+.alert-message-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.alert-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: black;
+  letter-spacing: -0.5px;
+}
+
+.alert-message {
+  font-size: 20px;
+  color: black;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Alert Actions */
+.alert-actions {
+  margin-top: 28px;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.button-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Alert Buttons */
+.alert-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.alert-btn i {
+  font-size: 14px;
+}
+
+.alert-btn-cancel {
+  background: grey;
+  color: white;
+  /* border: 2px solid rgba(255, 255, 255, 0.3); */
+}
+
+.alert-btn-cancel:hover {
+  background: rgb(95, 95, 95);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.alert-btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  color: white;
+}
+
+.alert-btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.alert-btn-danger {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.alert-btn-danger:hover {
+  background: #c12f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.alert-btn-secondary {
+  /* background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  width: 100%; */
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  box-shadow: 0 4px 15px rgba(139, 126, 25, 0.2);
+}
+
+.alert-btn-secondary:hover {
+  /* background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px); */
+  background: linear-gradient(135deg, #feedb6 0%, #ffe180 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.alert-btn-large {
+  padding: 14px 28px;
+  width: 100%;
+  font-size: 16px;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+}
+
+/* Transition */
+.alert-scale-enter-active,
+.alert-scale-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alert-scale-enter-from {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.alert-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Dark Mode Adjustments */
+.dark-mode .alert-btn-primary {
+  color: #059669;
+}
+
+.dark-mode .alert-btn-danger {
+  color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .custom-alert-content {
+    padding: 24px 20px;
+  }
+  
+  .alert-icon-circle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .alert-icon-circle i {
+    font-size: 28px;
+  }
+  
+  .alert-title {
+    font-size: 20px;
+  }
+  
+  .alert-message {
+    font-size: 14px;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .alert-btn {
+    width: 100%;
+  }
+}

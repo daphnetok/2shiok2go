@@ -35,4 +35,4 @@
 </template>
 
 <script src="./LocationMap.js"></script>
-<style src="./LocationMap.css"></style>
+<style scoped src="./LocationMap.css"></style>

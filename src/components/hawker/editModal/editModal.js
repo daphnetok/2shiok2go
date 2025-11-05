@@ -2,7 +2,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import { uploadImage, deleteImage } from '/firebase/storage';
 import { updateListing, useLoadListings } from '/firebase/firestore';
 import AIFoodDescription from '../CreateListing/AIFoodDescription.vue';
-import { userListings } from '@/components/hawker/useSharedListings';
+import { userListings, activeListings, inactiveListings } from '@/components/hawker/useSharedListings';
 
 export default {
   name: 'EditModal',
@@ -34,14 +34,12 @@ export default {
     const isSubmitting = ref(false);
     const errorMessage = ref('');
 
+    const selectedListing = ref("all");
     const selectedListings = ref([]);
     const selectAll = ref(false);
+    const selectAllActive = ref(false);
+    const selectAllInactive = ref(false);
 
-    const toggleSelectAll = () => {
-      selectedListings.value = selectAll.value
-        ? userListings.value.map(l => l.id)
-        : [];
-    };
     const applyDiscountTime = async () => {
         try {
           if (!editForm.discountTime) {
@@ -149,6 +147,56 @@ export default {
       }
     };
 
+
+    // Select / Deselect all listings
+    const toggleSelectAll = () => {
+      const allIds = userListings.value.map(l => l.id);
+      if (selectAll.value) {
+        selectedListings.value = [...allIds];
+      } else {
+        selectedListings.value = [];
+      }
+    };
+
+    // Select / Deselect all active listings
+    const toggleSelectAllActive = () => {
+      const activeIds = activeListings.value.map(l => l.id);
+      if (selectAllActive.value) {
+        // Add any missing active listings to selection
+        selectedListings.value = Array.from(new Set([...selectedListings.value, ...activeIds]));
+      } else {
+        // Remove all active listings from selection
+        selectedListings.value = selectedListings.value.filter(id => !activeIds.includes(id));
+      }
+    };
+
+    // Select / Deselect all inactive listings
+    const toggleSelectAllInactive = () => {
+      const inactiveIds = inactiveListings.value.map(l => l.id);
+      if (selectAllInactive.value) {
+        selectedListings.value = Array.from(new Set([...selectedListings.value, ...inactiveIds]));
+      } else {
+        selectedListings.value = selectedListings.value.filter(id => !inactiveIds.includes(id));
+      }
+    };
+
+    // --- WATCHERS FOR AUTO-DESELECT LOGIC ---
+    // Watch selected listings
+    watch(selectedListings, (newSelected) => {
+      const allIds = userListings.value.map(l => l.id);
+      const activeIds = activeListings.value.map(l => l.id);
+      const inactiveIds = inactiveListings.value.map(l => l.id);
+
+      // Update "Select All My Listings"
+      selectAll.value = newSelected.length === allIds.length;
+
+      // Update "Select All Active Listings"
+      selectAllActive.value = activeIds.length > 0 && activeIds.every(id => newSelected.includes(id));
+
+      // Update "Select All Inactive Listings"
+      selectAllInactive.value = inactiveIds.length > 0 && inactiveIds.every(id => newSelected.includes(id));
+    });
+
     return {
       editForm, allergenOptions, tagOptions,
       newImageFile, previewImageUrl, fileInput,
@@ -156,6 +204,12 @@ export default {
       userListings, selectAll, selectedListings,
       toggleSelectAll, onFileSelected, removeNewImage,
       closeModal, handleSubmit,
+      toggleSelectAllActive,
+      toggleSelectAllInactive,
+      activeListings,
+      inactiveListings,
+      selectAllActive,
+      selectAllInactive,
     };
   }
 };

@@ -1,26 +1,72 @@
 <template>
-  <div class="nav-container">
+  <div class="nav-container" style="min-height: 100vh; transition: all 0.3s ease;">
   <!-- Alert Box -->
-  <div class="custom-alert-container" v-if="alert.show" :class="alert.type">
-    <div class="custom-alert-content">
-      <button v-if="alert.type === 'success' || alert.type === 'error'" class="alert-close-btn" @click="closeAlert">
-        <i class="fas fa-times"></i>
-      </button>
-      <h5>{{ alert.actionType }}</h5>
-      <span class="alert-icon" v-if="alert.type !== 'confirmation'">
-        <i v-if="alert.type === 'success'" class="fas fa-check-circle"></i>
-        <i v-else-if="alert.type === 'error'" class="fas fa-exclamation-circle"></i>
-      </span>
-      <p class="alert-message" v-if="alert.type !== 'confirmation'">{{ alert.message }}</p>
-      
-      <p v-else class="alert-message">{{ alert.message }}</p>
-      <div v-if="alert.type === 'confirmation'" class="confirmation-buttons">
-        <button class="m-0" @click="confirmationCancel">Cancel</button>
-        <button v-if="alert.actionType === 'Delete'" class="btn-delete" @click="confirmationConfirm">Delete</button>
-        <button v-else class="btn-confirm" @click="confirmationConfirm">Confirm</button>
+<transition name="alert-scale">
+  <div 
+    v-if="alert.show" 
+    class="custom-alert-overlay"
+    @click.self="alert.type !== 'confirmation' && closeAlert()"
+  >
+    <div class="custom-alert-container" :class="alert.type">
+      <div class="custom-alert-content">
+        <!-- Close Button (top right) -->
+        <button 
+          v-if="alert.type !== 'confirmation'" 
+          class="alert-close-btn-top" 
+          @click="closeAlert"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Icon Section -->
+        <div class="alert-icon-section">
+          <div v-if="alert.type === 'success'" class="alert-icon-circle" :class="alert.type">
+            <i 
+              class="fas" 
+              :class="{
+                'fa-check': alert.type === 'success',
+                // 'fa-exclamation-triangle': alert.actionType === 'Delete',
+                // 'fa-question': alert.type === 'confirmation'
+              }"
+            ></i>
+          </div>
+        </div>
+
+        <!-- Message Section -->
+        <div class="alert-message-section">
+          <h3 class="alert-title">{{ alert.actionType }}</h3>
+          <p class="alert-message">{{ alert.message }}</p>
+        </div>
+
+        <!-- Action Buttons Section -->
+        <div class="alert-actions" v-if="alert.type === 'confirmation'">
+          <div class="button-group">
+            <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+              <i class="fas fa-times"></i>
+              <span>Cancel</span>
+            </button>
+            <button 
+              v-if="alert.actionType === 'Delete'" 
+              class="alert-btn alert-btn-danger" 
+              @click="confirmationConfirm"
+            >
+              <i class="fas fa-trash"></i>
+              <span>Delete</span>
+            </button>
+            <button 
+              v-else 
+              class="alert-btn alert-btn-primary" 
+              @click="confirmationConfirm"
+            >
+              <i class="fas fa-check"></i>
+              <span>Confirm</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</transition>
 
   <!-- Edit Listing Modal -->
   <EditModal
@@ -41,7 +87,7 @@
           </a>
         </li>
         <li class="tab-item">
-          <router-link to="/orders-table" class="tab-link">
+          <router-link to="/orders-table" class="tab-link" >
           <i class="fas fa-clipboard-list"></i>
             <span>Orders Management</span>
           </router-link>
@@ -52,6 +98,12 @@
             <span>Analytics</span>
           </router-link>
         </li>
+        <li class="tab-item">
+          <router-link to="/edit-form" class="tab-link">
+            <i class="fas fa-file-edit"></i>
+            <span>Edit Stall Info</span>
+          </router-link>
+        </li>
       </ul>
     </nav>
   </div>
@@ -60,7 +112,7 @@
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
-        <h1 class="page-title">My Listings</h1>
+        <h1 class="page-title">{{ hawkerName }}'s Listings</h1>
         <router-link to="/create-listing" class="btn-create">
           <i class="fas fa-plus"></i>
           <span>Create New Listing</span>
@@ -71,14 +123,14 @@
 
     <!-- Active Listings Section -->
     <section class="listings-section dashboard-container">
-      <div class="section-header">
-        <h2 class="section-title">
+      <div class="section-header mb-5">
+        <h2 class="listings-section-title">
           Active Listings
           <span class="count-badge">{{ activeListings.length }}</span>
         </h2>
       </div>
 
-      <div v-if="activeListings.length === 0" class="empty-state">
+      <div v-if="activeListings.length === 0" class="emptyState">
         <div class="empty-icon">
           <i class="fas fa-box-open"></i>
         </div>
@@ -153,8 +205,8 @@
 
     <!-- Inactive Listings Section -->
     <section class="listings-section inactive-section dashboard-container">
-      <div class="section-header">
-        <h2 class="section-title inactive">
+      <div class="section-header mb-5">
+        <h2 class="listings-section-title inactive">
           Inactive Listings
           <span class="count-badge inactive">{{ inactiveListings.length }}</span>
         </h2>
@@ -231,7 +283,7 @@
 </template>
 
 <script>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue'
 import {
   alert,
   activeListings,
@@ -250,10 +302,13 @@ import {
   listingToEdit,
   closeEditModal,
   onListingSaved
-} from '@/components/hawker/useSharedListings';
+} from '@/components/hawker/useSharedListings'
 
-import EditModal from '@/components/hawker/editModal/editModal.vue';
-import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
+import EditModal from '@/components/hawker/editModal/editModal.vue'
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '/firebase/config'
 
 export default {
   name: "HawkerListings",
@@ -262,15 +317,59 @@ export default {
     ImageWithLoader
   },
   setup() {
+    const hawkerName = ref('') // store name reactively
+
+    // ✅ Function to fetch hawker name
+    const getHawkerName = async () => {
+      const auth = getAuth()
+      return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            console.error('❌ No user logged in')
+            hawkerName.value = 'Hawker'
+            return resolve(null)
+          }
+
+          try {
+            const hawkerListingsRef = collection(db, 'hawkerListings')
+            const q = query(hawkerListingsRef, where('userId', '==', user.uid))
+            const querySnapshot = await getDocs(q)
+
+            if (querySnapshot.empty) {
+              console.warn('⚠️ No hawker listing found for this user')
+              hawkerName.value = 'Hawker'
+              return resolve(null)
+            }
+
+            const hawkerData = querySnapshot.docs[0].data()
+            hawkerName.value =
+              hawkerData.hawkerName ||
+              hawkerData.name ||
+              hawkerData.stallName ||
+              'Hawker'
+
+            console.log('✅ Hawker name fetched:', hawkerName.value)
+            resolve(hawkerName.value)
+          } catch (error) {
+            console.error('❌ Error fetching hawker name:', error)
+            hawkerName.value = 'Hawker'
+            reject(error)
+          }
+        })
+      })
+    }
+
+    // Run when component is mounted
     onMounted(() => {
-      console.log("HawkerDashboard mounted");
-    });
+      console.log("HawkerDashboard mounted")
+      getHawkerName()
+    })
 
     const getStockClass = (stock) => {
-      if (stock <= 5) return 'critical';
-      if (stock <= 10) return 'low';
-      return 'normal';
-    };
+      if (stock <= 5) return 'critical'
+      if (stock <= 10) return 'low'
+      return 'normal'
+    }
 
     return {
       alert,
@@ -290,14 +389,16 @@ export default {
       listingToEdit,
       closeEditModal,
       onListingSaved,
-      getStockClass
-    };
+      getStockClass,
+      hawkerName
+    }
   }
-};
+}
 </script>
 
 
 <style scoped>
 @import '@/assets/css/HawkerDashboard.css';
 @import './HawkerDashboard.css';
+@import '/src/assets/css/alertBoxes.css';
 </style>
