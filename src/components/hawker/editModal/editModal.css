@@ -1,4 +1,4 @@
-.modal-overlay {
+.edit-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -13,7 +13,7 @@
   padding: 20px;
 }
 
-.modal-container {
+.edit-modal-container {
   background: white;
   border-radius: 12px;
   max-width: 900px;
@@ -23,7 +23,7 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-.modal-header {
+.edit-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,7 +31,7 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.modal-header h3 {
+.edit-modal-header h3 {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
@@ -52,7 +52,7 @@
   color: #333;
 }
 
-.modal-body {
+.edit-modal-body {
   padding: 30px;
 }
 
@@ -93,53 +93,49 @@
   background: rgba(255, 0, 0, 1);
 }
 
-#uploadImg {
-  border: 2px dashed #28a745;
-  border-radius: 8px;
-  padding: 30px;
-  text-align: center;
+.modal-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
 
-#uploadImg:hover {
-  background: #f8f9fa;
-  border-color: #218838;
+.modal-btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
-#uploadImg label {
-  cursor: pointer;
-  color: #28a745;
+
+.modal-btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
 }
 
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
+.modal-btn-cancel:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
 }
 
-.button-group button {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 6px;
-  width: 100%;
-}
 
-.form-label {
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
+.price-input-container{
+    position: relative;
 }
-
-.form-control {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 10px;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+.price-input-container::before{
+    content: "$";
+    position: absolute;
+    left: 25px;
+    top: 72%;
+    transform: translateY(-60%);
+    color: #555;
 }
