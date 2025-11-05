@@ -7,6 +7,7 @@
 
     <!-- show form if hawker hasn't registered -->
     <div v-else-if="!hasRegisteredStall">
+      <p>Welcome! Please register your stall to get started!</p>
       <HawkerStallForm @stallCreated="onStallCreated"/>
     </div>
 

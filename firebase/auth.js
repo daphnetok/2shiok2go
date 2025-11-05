@@ -15,79 +15,6 @@ import {
 
 const provider = new GoogleAuthProvider();
 
-// Helper function to initialize user data collections
-const initializeUserData = async (userId, role) => {
-  try {
-    console.log('🎨 Initializing user data for:', userId, 'Role:', role);
-    
-    // Initialize buyer-specific data
-    if (role === 'buyer') {
-      // Create pet data
-      const petRef = doc(db, 'users', userId, 'petData', 'current');
-      await setDoc(petRef, {
-        name: 'Buddy',
-        happiness: 85,
-        energy: 70,
-        level: 1,
-        experience: 0,
-        treats: 0,
-        mood: 'happy',
-        progress: 0,
-        mealsToLevelUp: 10,
-        avatar: {
-          body: 'dog',
-          color: '#FFD700',
-          background: 'linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%)',
-          accessory: 'none',
-          accessoryColor: '#FF69B4',
-          face: 'M 50 50 Q 60 55 70 50'
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      
-      // Create user preferences
-      const preferencesRef = doc(db, 'users', userId, 'preferences', 'settings');
-      await setDoc(preferencesRef, {
-        theme: 'light',
-        notifications: true,
-        emailNotifications: false,
-        createdAt: new Date()
-      });
-      
-      // Initialize empty cart
-      const cartRef = doc(db, 'cart', userId);
-      await setDoc(cartRef, {
-        items: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      
-      console.log('✅ Buyer data initialized successfully');
-    }
-    
-    // Initialize hawker-specific data
-    if (role === 'hawker') {
-      // Hawker data will be created when they create their first listing
-      // But we can initialize preferences
-      const preferencesRef = doc(db, 'users', userId, 'preferences', 'settings');
-      await setDoc(preferencesRef, {
-        theme: 'light',
-        notifications: true,
-        emailNotifications: true,
-        createdAt: new Date()
-      });
-      
-      console.log('✅ Hawker data initialized successfully');
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error('❌ Error initializing user data:', error);
-    return { success: false, error: error.message };
-  }
-};
-
 // sign in with Google
 export const signInWithGoogle = async () => {
   try {
@@ -122,14 +49,8 @@ export const registerWithEmail = async (email, password, displayName, role) => {
       uid: user.uid,
       email,
       displayName,
-      role,
-      createdAt: new Date(),
-      lastLogin: new Date()
+      role
     });
-    
-    // Initialize user data collections (pet, preferences, etc.)
-    await initializeUserData(user.uid, role);
-    
     return { success: true, user: user };
   } catch (error) {
     console.error('Sign up error: ', error);

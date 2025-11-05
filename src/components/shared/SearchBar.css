@@ -5,6 +5,7 @@
   margin: 15px auto 20px;
   padding: 0 15px;
   width: 100%;
+  max-width: 800px;
 }
 
 .search-box {
@@ -142,26 +143,6 @@
   
   .search-input {
     font-size: 14px;
-  }
-  
-  .search-icon {
-    font-size: 16px;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .search-container {
-    margin-bottom: 15px;
-  }
-  
-  .search-box {
-    padding: 6px 12px;
-  }
-  
-  .search-input {
-    font-size: 14px;
-    padding: 6px 10px;
   }
   
   .search-icon {
