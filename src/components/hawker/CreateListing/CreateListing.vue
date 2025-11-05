@@ -13,94 +13,85 @@
   <transition name="alert-scale">
     <div 
       v-if="alert.show" 
-      class="custom-alert-container" 
-      :class="alert.type"
+      class="custom-alert-overlay"
+      @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
     >
-      <div class="custom-alert-content">
-        <!-- Close Button (top right) -->
-        <button 
-          v-if="alert.type !== 'confirmation'" 
-          class="alert-close-btn-top" 
-          @click="closeAlert"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-
-        <!-- Icon Section -->
-        <div class="alert-icon-section">
-          <div class="alert-icon-circle" :class="alert.type">
-            <i 
-              class="fas" 
-              :class="{
-                'fa-check': alert.type === 'success',
-                'fa-exclamation': alert.type === 'error',
-                'fa-question': alert.type === 'confirmation',
-                'fa-info': alert.type === 'redirect'
-              }"
-            ></i>
-          </div>
-        </div>
-
-        <!-- Message Section -->
-        <div class="alert-message-section">
-          <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
-          <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
-          <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
-          <h3 v-else-if="alert.type === 'redirect'" class="alert-title">Listing Created!</h3>
-          
-          <p class="alert-message">{{ alert.message }}</p>
-        </div>
-
-        <!-- Action Buttons Section -->
-        <div class="alert-actions">
-          <!-- Confirmation Buttons -->
-          <div v-if="alert.type === 'confirmation'" class="button-group">
-            <button class="btn-secondary" @click="confirmationCancel">
-              <i class="fas fa-times"></i>
-              <span>Cancel</span>
-            </button>
-            <button 
-              v-if="alert.actionType === '`Delete`'" 
-              class="btn-danger" 
-              @click="confirmationConfirm"
-            >
-              <i class="fas fa-trash"></i>
-              <span>Delete</span>
-            </button>
-            <button 
-              v-else 
-              class="btn-primary" 
-              @click="confirmationConfirm"
-            >
-              <i class="fas fa-check"></i>
-              <span>Confirm</span>
-            </button>
-          </div>
-
-          <!-- Redirect Buttons -->
-          <div v-else-if="alert.type === 'redirect'" class="button-group-vertical">
-            <router-link to="/hawker-dashboard">
-              <button class="btn-primary-large w-100 m-0" @click="closeAlert">
-                <i class="fas fa-th-large"></i>
-                <span>View All My Listings</span>
-                <i class="fas fa-arrow-right"></i>
-              </button>
-            </router-link>
-            <button class="btn-secondary-outline w-100 m-0" @click="closeAlert">
-              <i class="fas fa-plus"></i>
-              <span>Create Another Listing</span>
-            </button>
-          </div>
-
-          <!-- Success/Error Close Button -->
+      <div class="custom-alert-container" :class="alert.type">
+        <div class="custom-alert-content">
+          <!-- Close Button (top right) -->
           <button 
-            v-else 
-            class="btn-close-primary" 
+            v-if="alert.type !== 'confirmation'" 
+            class="alert-close-btn-top" 
             @click="closeAlert"
           >
-            <span>Got it</span>
-            <i class="fas fa-check"></i>
+            <i class="fas fa-times"></i>
           </button>
+
+          <!-- Icon Section -->
+          <div class="alert-icon-section">
+            <div class="alert-icon-circle" :class="alert.type">
+              <i 
+                class="fas" 
+                :class="{
+                  'fa-check': alert.type === 'success' || alert.type === 'redirect',
+                  'fa-exclamation-triangle': alert.type === 'error',
+                  'fa-question': alert.type === 'confirmation'
+                }"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Message Section -->
+          <div class="alert-message-section">
+            <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+            <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+            <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+            <h3 v-else-if="alert.type === 'redirect'" class="alert-title">Listing Created!</h3>
+            
+            <p class="alert-message">{{ alert.message }}</p>
+          </div>
+
+          <!-- Action Buttons Section -->
+          <div class="alert-actions">
+            <!-- Confirmation Buttons -->
+            <div v-if="alert.type === 'confirmation'" class="button-group">
+              <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+                <i class="fas fa-times"></i>
+                <span>Cancel</span>
+              </button>
+              <button 
+                v-if="alert.actionType === 'Delete'" 
+                class="alert-btn alert-btn-danger" 
+                @click="confirmationConfirm"
+              >
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+              </button>
+              <button 
+                v-else 
+                class="alert-btn alert-btn-primary" 
+                @click="confirmationConfirm"
+              >
+                <i class="fas fa-check"></i>
+                <span>Confirm</span>
+              </button>
+            </div>
+
+            <!-- Redirect Buttons -->
+            <div v-else-if="alert.type === 'redirect'" class="button-group-vertical">
+              <router-link to="/hawker-dashboard" class="w-100">
+                <button class="alert-btn alert-btn-primary alert-btn-large" @click="closeAlert">
+                  <i class="fas fa-th-large"></i>
+                  <span>View All My Listings</span>
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </router-link>
+              <button class="alert-btn alert-btn-secondary" @click="closeAlert">
+                <i class="fas fa-plus"></i>
+                <span>Create Another Listing</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -111,7 +102,7 @@
       <button @click="goBack" class="create-listing back-btn">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
-      <h2 class="m-0">Create A New Listing</h2>
+      <h2 class="m-0 text-start">Create A New Listing</h2>
       
     </div>
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
@@ -150,7 +141,7 @@
                 </span>
               </div>
             
-              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2 w-100" style="overflow:auto;">
+              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2 w-100" style="overflow:hidden;">
                 <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg" />
                   <span v-if="!previewSelectedFileSRC"><b>Upload Photo</b></span>
                   <span v-else><b>Change Photo</b></span>
@@ -163,10 +154,16 @@
               
             <div class="col-md-8 p-0">
               <!-- Item Name field -->
-              <label class="form-label">Item Name</label>
-              <div>
-                <input type="text" class="form-control mb-4" required 
-                    placeholder="Type food name here" v-model="form.itemName" name="itemName">
+              <div class="mb-3">
+                <label for="itemName" class="form-label">Item Name</label>
+                <input
+                  type="text"
+                  id="itemName"
+                  class="form-control"
+                  v-model="form.itemName"
+                  placeholder="Enter food name"
+                />
+                <small v-if="itemNameError" class="text-danger">{{ itemNameError }}</small>
               </div>
 
               <!-- AI Food Description Component -->
@@ -180,12 +177,12 @@
 
         <!-- Price & Discount fields-->
         <div class="row mb-3 px-md-5">
-          <div class="price-input-container col-md-6 p-0 p-md-2">
+          <div class="price-input-container col-md-6 p-2">
             <label class="form-label">Original Price</label>
             <input type="number" class="form-control mb-3" style="padding-left:30px" required 
                 step="0.01" v-model.number="form.itemPrice" name="itemPrice">
           </div>
-          <div class="col-md-6 p-0 p-md-2">
+          <div class="col-md-6 p-2">
             <label class="form-label">Discount (%)</label>
             <input type="number" class="form-control mb-3" required 
                 step="0.01" v-model.number="form.discount" name="discount">
@@ -198,7 +195,7 @@
 
           <div class="row mb-3 px-md-5">
             <!-- Time of discount -->
-            <div class="col-md-6 p-0 p-md-2">
+            <div class="col-md-6 p-2">
               <label class="form-label">Set Discount Start Time</label>
               <input
                 type="time"
@@ -208,40 +205,79 @@
               >
             </div>
             <!-- This dropdown will appear only if hawker has listings -->
-            <div class="col-md-6 p-0 p-md-2" v-if="userListings">
+            <div class="col-md-6 p-2" v-if="userListings">
                 <label class="form-label">Apply Discount Start Time To</label>
 
                 <div class="border rounded p-3 bg-white text-dark">
                     <!-- Select All checkbox -->
-                    <div class="form-check">
-                        <input
+                    <p class="pt-1 fw-bold">Select All</p>
+                    <div class="form-check border-bottom pb-1">
+                      <input
                         type="checkbox"
                         id="selectAll"
                         class="form-check-input"
                         v-model="selectAll"
                         @change="toggleSelectAll"
-                        />
-                        <label for="selectAll" class="form-check-label">
+                      />
+                      <label for="selectAll" class="form-check-label">
                         All My Listings
-                        </label>
+                      </label>
                     </div>
 
-                    <!-- Individual listings checkboxes -->
-                    <div v-for="listing in userListings"
-                        :key="listing.id"
-                        class="form-check"
-                    >
-                        <input
+                    <!-- Active Listings -->
+                    <p class="pt-3 fw-bold">Active Listings</p>
+                    <div class="form-check">
+                      <input
                         type="checkbox"
-                        class="form-check-input individualCheckbox"
+                        id="selectAllActive"
+                        class="form-check-input"
+                        v-model="selectAllActive"
+                        @change="toggleSelectAllActive"
+                      />
+                      <label for="selectAllActive" class="form-check-label">
+                        Select All Active Listings
+                      </label>
+                    </div>
+
+                    <div v-for="listing in activeListings" :key="listing.id" class="form-check">
+                      <input
+                        type="checkbox"
+                        class="form-check-input individualCheckbox mx-3"
                         :id="listing.id"
                         :value="listing.id"
                         v-model="selectedListings"
-                        />
-                        <label class="form-check-label" :for="listing.id">
-                        {{ listing.itemName }}
-                        </label>
+                      />
+                      <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
                     </div>
+
+                    <div class="border-bottom pb-1"></div>
+
+                    <!-- Inactive Listings -->
+                    <p class="pt-3 fw-bold">Inactive Listings</p>
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        id="selectAllInactive"
+                        class="form-check-input"
+                        v-model="selectAllInactive"
+                        @change="toggleSelectAllInactive"
+                      />
+                      <label for="selectAllInactive" class="form-check-label">
+                        Select All Inactive Listings
+                      </label>
+                    </div>
+
+                    <div v-for="listing in inactiveListings" :key="listing.id" class="form-check">
+                      <input
+                        type="checkbox"
+                        class="form-check-input individualCheckbox mx-3"
+                        :id="listing.id"
+                        :value="listing.id"
+                        v-model="selectedListings"
+                      />
+                      <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
+                    </div>
+
                 </div>
             </div>
           </div>
