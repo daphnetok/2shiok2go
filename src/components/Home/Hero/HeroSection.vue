@@ -1,13 +1,16 @@
+
 <template>
   <div class="hero">
     <div class="hero-video-container">
       <video 
+        ref="heroVideo"
         class="hero-video"
-        src="/videos/cooking.mp4"
+        src="https://firebasestorage.googleapis.com/v0/b/test-25bd6.firebasestorage.app/o/webpageBackground%2FHeroBackground.mp4?alt=media&token=29610b60-aee6-43e1-ace4-b96db475822a"
         autoplay
         muted
         loop
         playsinline
+        preload="auto"
       ></video>
       <div class="hero-overlay"></div>
     </div>
@@ -36,6 +39,7 @@ export default {
   name: 'HeroSection',
   mounted() {
     this.animateHeroSection();
+    this.initVideo();
   },
   methods: {
     animateHeroSection() {
@@ -49,6 +53,31 @@ export default {
           item.style.transform = 'translateY(0)';
         }, index * 200);
       });
+    },
+    initVideo() {
+      const video = this.$refs.heroVideo;
+      if (video) {
+        // Ensure video plays
+        video.muted = true;
+        video.play().catch(error => {
+          console.log('Video autoplay failed:', error);
+          // Try again after user interaction
+          document.addEventListener('click', () => {
+            video.play().catch(err => console.log('Video play error:', err));
+          }, { once: true });
+        });
+        
+        // Handle video loading errors
+        video.addEventListener('error', (e) => {
+          console.error('Video loading error:', e);
+        });
+        
+        // Ensure video loops
+        video.addEventListener('ended', () => {
+          video.currentTime = 0;
+          video.play();
+        });
+      }
     }
   }
 };
