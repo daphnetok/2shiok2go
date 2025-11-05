@@ -1,6 +1,8 @@
 .form-bg{
-  background-color: white;
+  background-color: #f8fffb;
   border-radius: 20px;
+  padding-top: 20px;
+  border: white 1px solid;
 }
 
 .ai-description-container {
@@ -50,31 +52,6 @@ textarea:disabled {
   border-radius: 16px;
 }
 
-.generate-btn {
-  border: 2px solid #059669;
-  border-radius: 25px;
-  color: #059669;
-  background-color: #f1f8e9;
-  padding: 8px 16px;
-  font-size: 0.9em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.generate-btn:hover {
-  background-color: #059669;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
-.generate-btn:active {
-  transform: translateY(0);
-}
 
 /* ============================================
 BACKDROP
@@ -418,7 +395,7 @@ ACTION BUTTONS
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #666;
 }
-.create-listing.back-btn:hover{
+.create-listing .back-btn:hover{
   background-color: white;
   color: #059669;
 }
