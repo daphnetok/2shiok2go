@@ -68,8 +68,12 @@
   animation: slideIn 0.5s ease;
 }
 
-.closed-stalls-warning i {
-  color: #f57c00;
+.closed-stalls-warning i,
+.closed-stalls-warning .fa-triangle-exclamation,
+.closed-stalls-warning i.fa-triangle-exclamation,
+.closed-stalls-warning i.fa-solid,
+.closed-stalls-warning i::before {
+  color: #f44336 !important;
   font-size: 24px;
   flex-shrink: 0;
 }
@@ -199,11 +203,6 @@
 
 /* Modal Styles */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
@@ -250,8 +249,61 @@
 .modal-icon {
   font-size: 32px;
   color: #ff9800;
-  animation: bounce 1s ease infinite;
   margin: 0;
+}
+
+/* Payment Error Modal Specific Styles */
+.payment-error-modal .modal-header {
+  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+  border-bottom: 3px solid #f44336;
+}
+
+.payment-error-modal .modal-icon.fa-circle-exclamation {
+  color: #f44336 !important;
+  animation: pulse 2s infinite;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 50%;
+  padding: 12px;
+  min-width: 56px;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.payment-error-modal .modal-h2 {
+  color: #c62828;
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+.modal-body .error-message {
+  border-radius: 12px;
+  padding: 20px 24px 20px 40px;
+  margin: 0;
+  color: #c62828;
+  font-size: 15px;
+  line-height: 2.2;
+  white-space: pre-line;
+  font-weight: 500;
+  position: relative;
+}
+
+.modal-body .error-message::before {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 18px;
 }
 
 @keyframes bounce {
@@ -357,6 +409,11 @@
   gap: 12px;
 }
 
+.modal-footer.inline {
+  flex-direction: row;
+  justify-content: center;
+}
+
 .modal-btn {
   padding: 16px 24px;
   border: none;
@@ -375,6 +432,7 @@
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
 }
 
 .proceed-btn:hover {
@@ -1091,6 +1149,10 @@
   color: black;
 }
 
+.normal i {
+  color: #22adcf !important;
+}
+
 /* Card Information Section */
 .card-info-section h3 {
   margin: 20px 0 20px 0;
@@ -1099,6 +1161,121 @@
 .saved-cards,
 .new-card-option {
   margin-bottom: 16px;
+}
+
+.saved-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.saved-card-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.saved-card-row.selected {
+  border-color: #c8e6c9;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+.saved-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.saved-card-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.saved-card-mask {
+  font-weight: 700;
+}
+
+.saved-card-name {
+  color: #666;
+}
+
+.saved-card-exp {
+  color: #888;
+  font-size: 12px;
+}
+
+.saved-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-action {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.card-action.edit {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #bbdefb;
+}
+
+.card-action.delete {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+.card-action.apply {
+  margin-left: 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.edit-banner {
+  margin-bottom: 10px;
+  background: #fff3e0;
+  color: #e65100;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.saved-current-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.saved-current-btn .caret {
+  margin-left: auto;
+  color: #888;
 }
 
 .saved-cards label,
@@ -1161,6 +1338,14 @@
   border-color: #4CAF50;
 }
 
+.form-input.input-error-border {
+  border-color: #f44336;
+}
+
+.form-input.input-error-border:focus {
+  border-color: #f44336;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1185,6 +1370,68 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+/* Card brand + error row below number */
+.card-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.brand.visa {
+  color: #1a73e8;
+  background: #e8f0fe;
+}
+
+.brand.mastercard {
+  /* Mastercard text in brand colors (red → orange → yellow) */
+  background: linear-gradient(90deg, #d32f2f 0%, #f57c00 50%, #fbc02d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* subtle pill background to keep contrast */
+  box-shadow: inset 0 0 0 999px rgba(252, 195, 203, 0.42);
+}
+
+.input-error {
+  color: #d32f2f;
+  font-size: 12px;
+}
+
+.field-error {
+  color: #f44336;
+  font-size: 14px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: #ffebee;
+  border-left: 3px solid #f44336;
+  border-radius: 4px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
@@ -1290,7 +1537,12 @@
     font-size: 13px;
   }
 
-  .closed-stalls-warning i {
+  .closed-stalls-warning i,
+  .closed-stalls-warning .fa-triangle-exclamation,
+  .closed-stalls-warning i.fa-triangle-exclamation,
+  .closed-stalls-warning i.fa-solid,
+  .closed-stalls-warning i::before {
+    color: #f44336 !important;
     font-size: 20px;
   }
 }
