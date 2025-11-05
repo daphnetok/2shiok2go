@@ -115,7 +115,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="button-group">
                 <button class="btn btn-success" type="submit" :disabled="loading">
                     Confirm
