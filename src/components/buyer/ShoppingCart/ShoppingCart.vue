@@ -205,9 +205,15 @@
                   type="text" 
                   id="cardholder-name" 
                   v-model="newCard.cardholderName"
+                  @input="fieldErrors.cardholderName = ''"
+                  @blur="validateCardholderName"
                   placeholder="John Doe"
                   class="form-input"
+                  :class="{ 'input-error-border': touchedFields.cardholderName && fieldErrors.cardholderName }"
                 />
+                <div v-if="touchedFields.cardholderName && fieldErrors.cardholderName" class="field-error">
+                  • {{ fieldErrors.cardholderName }}
+                </div>
               </div>
               
               <div class="form-group">
@@ -217,14 +223,19 @@
                   id="card-number" 
                   v-model="newCard.cardNumber"
                   @input="formatCardNumber"
+                  @blur="validateCardNumber"
                   placeholder="1234 5678 9012 3456"
                   maxlength="19"
                   class="form-input"
+                  :class="{ 'input-error-border': touchedFields.cardNumber && fieldErrors.cardNumber }"
                 />
                 <div v-if="cardBrand || cardNumberError" class="card-brand-row">
                   <span v-if="cardBrand === 'visa'" class="brand visa">VISA</span>
                   <span v-else-if="cardBrand === 'mastercard'" class="brand mastercard">MasterCard</span>
                   <span v-if="cardNumberError" class="input-error">{{ cardNumberError }}</span>
+                </div>
+                <div v-if="touchedFields.cardNumber && fieldErrors.cardNumber" class="field-error">
+                  • {{ fieldErrors.cardNumber }}
                 </div>
               </div>
               
@@ -236,10 +247,15 @@
                     id="expiry-date" 
                     v-model="newCard.expiryDate"
                     @input="formatExpiryDate"
+                    @blur="validateExpiryDate"
                     placeholder="MM/YY"
                     maxlength="5"
                     class="form-input"
+                    :class="{ 'input-error-border': touchedFields.expiryDate && fieldErrors.expiryDate }"
                   />
+                  <div v-if="touchedFields.expiryDate && fieldErrors.expiryDate" class="field-error">
+                    • {{ fieldErrors.expiryDate }}
+                  </div>
                 </div>
                 
                 <div class="form-group">
@@ -249,10 +265,15 @@
                     id="cvv" 
                     v-model="newCard.cvv"
                     @input="formatCVV"
+                    @blur="validateCVV"
                     placeholder="123"
                     maxlength="3"
                     class="form-input"
+                    :class="{ 'input-error-border': touchedFields.cvv && fieldErrors.cvv }"
                   />
+                  <div v-if="touchedFields.cvv && fieldErrors.cvv" class="field-error">
+                    • {{ fieldErrors.cvv }}
+                  </div>
                 </div>
               </div>
               
@@ -445,7 +466,7 @@
     </div>
 
 </template>
-zz
+
 <script src="./ShoppingCart.js"> </script>
 
 <style>

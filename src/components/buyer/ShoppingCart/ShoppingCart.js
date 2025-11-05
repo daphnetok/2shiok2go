@@ -42,6 +42,28 @@ export default {
       cvv: ''
     });
     
+    // Card validation state
+    const cardNumberError = ref(null);
+    const fieldErrors = ref({
+      cardholderName: '',
+      cardNumber: '',
+      expiryDate: '',
+      cvv: ''
+    });
+    const touchedFields = ref({
+      cardholderName: false,
+      cardNumber: false,
+      expiryDate: false,
+      cvv: false
+    });
+    const cardBrand = computed(() => {
+      const digits = newCard.value.cardNumber.replace(/\s/g, '');
+      if (!digits) return null;
+      if (digits.startsWith('4')) return 'visa';
+      if (digits.startsWith('5')) return 'mastercard';
+      return null;
+    });
+    
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
       if (typeof price === 'number') {
@@ -152,6 +174,20 @@ export default {
       let value = event.target.value.replace(/\D/g, '');
       const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
       newCard.value.cardNumber = formattedValue;
+       
+      // Live validation of starting digit
+      if (value.length === 0) {
+        cardNumberError.value = null;
+      } else if (!(value.startsWith('4') || value.startsWith('5'))) {
+        cardNumberError.value = 'Invalid Card Number: Use Visa or MasterCard';
+      } else {
+        cardNumberError.value = null;
+      }
+      
+      // Clear error when user starts typing
+      if (value.length > 0) {
+        fieldErrors.value.cardNumber = '';
+      }
     };
 
     // Format expiry date
@@ -161,11 +197,84 @@ export default {
         value = value.slice(0, 2) + '/' + value.slice(2, 4);
       }
       newCard.value.expiryDate = value;
+      
+      // Clear error when user starts typing
+      if (value.length > 0) {
+        fieldErrors.value.expiryDate = '';
+      }
     };
 
     // Format CVV (numbers only)
     const formatCVV = (event) => {
       newCard.value.cvv = event.target.value.replace(/\D/g, '');
+      
+      // Clear error when user starts typing
+      if (newCard.value.cvv.length > 0) {
+        fieldErrors.value.cvv = '';
+      }
+    };
+
+    // Validate individual fields on blur
+    const validateCardholderName = () => {
+      touchedFields.value.cardholderName = true;
+      if (!newCard.value.cardholderName.trim()) {
+        fieldErrors.value.cardholderName = 'Please enter cardholder name';
+      } else {
+        fieldErrors.value.cardholderName = '';
+      }
+    };
+
+    const validateCardNumber = () => {
+      touchedFields.value.cardNumber = true;
+      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
+      
+      if (cardNumber.length === 0) {
+        fieldErrors.value.cardNumber = 'Please enter a card number';
+      } else if (cardNumber.length < 13 || cardNumber.length > 19) {
+        fieldErrors.value.cardNumber = 'Please enter a valid card number (13-19 digits)';
+      } else if (!(cardNumber.startsWith('4') || cardNumber.startsWith('5'))) {
+        fieldErrors.value.cardNumber = 'Invalid card: Use Visa or MasterCard';
+      } else {
+        fieldErrors.value.cardNumber = '';
+      }
+    };
+
+    const validateExpiryDate = () => {
+      touchedFields.value.expiryDate = true;
+      const expiryDate = newCard.value.expiryDate;
+      const expiryParts = expiryDate.split('/');
+      
+      if (expiryDate.length === 0) {
+        fieldErrors.value.expiryDate = 'Please enter an expiry date';
+      } else if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+        fieldErrors.value.expiryDate = 'Please enter a valid expiry date (MM/YY)';
+      } else {
+        const month = parseInt(expiryParts[0], 10);
+        const year = 2000 + parseInt(expiryParts[1], 10);
+        if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
+          fieldErrors.value.expiryDate = 'Please enter a valid expiry month (01-12)';
+        } else {
+          const now = new Date();
+          const currentYear = now.getFullYear();
+          const currentMonth = now.getMonth() + 1;
+          if (year < currentYear || (year === currentYear && month <= currentMonth)) {
+            fieldErrors.value.expiryDate = 'Card has expired. Use a future expiry date.';
+          } else {
+            fieldErrors.value.expiryDate = '';
+          }
+        }
+      }
+    };
+
+    const validateCVV = () => {
+      touchedFields.value.cvv = true;
+      if (newCard.value.cvv.length === 0) {
+        fieldErrors.value.cvv = 'Please enter a CVV';
+      } else if (newCard.value.cvv.length !== 3) {
+        fieldErrors.value.cvv = 'Please enter a valid CVV (3 digits)';
+      } else {
+        fieldErrors.value.cvv = '';
+      }
     };
 
     // Fetch saved cards from Firebase
@@ -233,61 +342,79 @@ export default {
       }
     };
 
+    const deleteSavedCard = async (index) => {
+      if (!userId.value) return;
+      try {
+        const userRef = doc(db, 'users', userId.value);
+        const userSnap = await getDoc(userRef);
+        let currentCards = [];
+        if (userSnap.exists()) {
+          currentCards = userSnap.data().cardInfo || [];
+        }
+        currentCards.splice(index, 1);
+        await updateDoc(userRef, { cardInfo: currentCards }).catch(async () => {
+          await setDoc(userRef, { cardInfo: currentCards }, { merge: true });
+        });
+        savedCards.value = currentCards;
+        if (selectedCardIndex.value >= currentCards.length) {
+          selectedCardIndex.value = 0;
+        }
+      } catch (err) {
+        console.error('Error deleting saved card:', err);
+        validationMessage.value = 'Failed to delete saved card. Please try again.';
+        showValidationModal.value = true;
+      }
+    };
+
+    // edit card flow removed
+
+    const openSavedCardsModal = () => {
+      showSavedCardsModal.value = true;
+    };
+
+    const closeSavedCardsModal = () => {
+      showSavedCardsModal.value = false;
+    };
+
+    const applySavedCardSelection = () => {
+      // Keep selectedCardIndex as chosen in the modal
+      cardSelection.value = 'saved';
+      showSavedCardsModal.value = false;
+    };
+
     // Validate card information
     const validateCardInfo = () => {
       if (cardSelection.value === 'saved') {
         // Using saved card: basic presence check
-        return savedCards.value.length > 0;
+        if (savedCards.value.length === 0) {
+          validationMessage.value = 'Please select a saved card or add a new card.';
+          showValidationModal.value = true;
+          return false;
+        }
+        return true;
       }
       
-      // Validate new card
-      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
-      const expiryParts = newCard.value.expiryDate.split('/');
+      // Mark all fields as touched to show errors
+      touchedFields.value.cardholderName = true;
+      touchedFields.value.cardNumber = true;
+      touchedFields.value.expiryDate = true;
+      touchedFields.value.cvv = true;
       
-      if (!newCard.value.cardholderName.trim()) {
-        validationMessage.value = 'Please enter cardholder name';
-        showValidationModal.value = true;
-        return false;
-      }
+      // Validate all fields
+      validateCardholderName();
+      validateCardNumber();
+      validateExpiryDate();
+      validateCVV();
       
-      // Brand validation: only Visa (4) or MasterCard (5)
-      if (!(cardNumber.startsWith('4') || cardNumber.startsWith('5'))) {
-        validationMessage.value = 'Invalid card: Use Visa or MasterCard';
-        showValidationModal.value = true;
-        return false;
-      }
+      // Check if there are any errors
+      const hasErrors = Object.values(fieldErrors.value).some(error => error !== '');
       
-      if (cardNumber.length < 13 || cardNumber.length > 19) {
-        validationMessage.value = 'Please enter a valid card number';
-        showValidationModal.value = true;
-        return false;
-      }
-      
-      if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
-        validationMessage.value = 'Please enter a valid expiry date (MM/YY)';
-        showValidationModal.value = true;
-        return false;
-      }
-      // Validate future expiry (must be later than today)
-      const month = parseInt(expiryParts[0], 10);
-      const year = 2000 + parseInt(expiryParts[1], 10);
-      if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
-        validationMessage.value = 'Please enter a valid expiry month (01-12)';
-        showValidationModal.value = true;
-        return false;
-      }
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // 1-12
-      if (year < currentYear || (year === currentYear && month <= currentMonth)) {
-        validationMessage.value = 'Card has expired. Use a future expiry date.';
-        showValidationModal.value = true;
-        return false;
-      }
-      
-      if (newCard.value.cvv.length !== 3) {
-        validationMessage.value = 'Please enter a valid CVV';
-        showValidationModal.value = true;
+      if (hasErrors) {
+        // Scroll to first error field
+        const firstErrorField = document.querySelector('.field-error');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return false;
       }
       
@@ -1027,6 +1154,12 @@ export default {
       formatCardNumber,
       formatExpiryDate,
       formatCVV,
+      validateCardholderName,
+      validateCardNumber,
+      validateExpiryDate,
+      validateCVV,
+      fieldErrors,
+      touchedFields,
       cardBrand,
       cardNumberError,
       // Saved card CRUD
