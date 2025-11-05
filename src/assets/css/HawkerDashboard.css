@@ -1,7 +1,7 @@
 /* Main Container */
-.hawker-dashboard-container {
+.nav-container {
   margin: 0 -1.5rem; 
-  padding: 3rem 3rem 0;
+  padding: 1rem 3rem 1rem 3rem;
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 35%, #a7f3d0 65%, #6ee7b7 100%);
   transition: all 0.3s ease;
   position: relative;
@@ -13,7 +13,7 @@
   background: white;
   border-radius: 16px;
   padding: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -53,6 +53,48 @@
 }
 
 .tab-item.active .tab-link:hover {
-  background: #0c850c;
+  color: white;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+  .tab-link span {
+    display: none;
+  }
+  
+  .tab-link {
+    padding: 12px 10px;
+    justify-content: center;
+  }
+  
+  .tab-item {
+    min-width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    margin: 0 -0.75rem !important;
+  }
+  .tabs-nav {
+    padding: 6px;
+  }
+  
+  .tabs-list {
+    gap: 6px;
+    justify-content: center;
+  }
+  
+}
+
+
+
+/* Animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }

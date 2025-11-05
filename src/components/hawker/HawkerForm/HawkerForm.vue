@@ -48,6 +48,7 @@
                     @placeSelected="onAddressSelected"
                 />
             </div>
+
             <div class="form-group time-group">
                 <div class="time-field">
                     <label class="form-label">Opening Time</label>
@@ -65,10 +66,54 @@
                     v-model="form.closingTime"
                     name="closingTime"
                     required
-                    />
+                />
                 </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Price Range</label>
+                <div class="price-range-options">
+                    <label class="radio-option">
+                        <input
+                            type="radio"
+                            name="priceRange"
+                            :value="1"
+                            v-model="form.priceRange"
+                            required
+                        />
+                        <span>$2 - $5 ($)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input
+                            type="radio"
+                            name="priceRange"
+                            :value="2"
+                            v-model="form.priceRange"
+                            required
+                        />
+                        <span>$5 - $10 ($$)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input
+                            type="radio"
+                            name="priceRange"
+                            :value="3"
+                            v-model="form.priceRange"
+                            required
+                        />
+                        <span>$10 - $20 ($$$)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input
+                            type="radio"
+                            name="priceRange"
+                            :value="4"
+                            v-model="form.priceRange"
+                            required
+                        />
+                        <span>$20 + ($$$$)</span>
+                    </label>
                 </div>
-
+            </div>
             <div class="button-group">
                 <button class="btn btn-success" type="submit" :disabled="loading">
                     Confirm
@@ -78,9 +123,5 @@
     </div>
 </template>
 
-<script src="./HawkerForm.js">
-export default {
-    name: 'HawkerStallForm'
-}
-</script>
+<script src="./HawkerForm.js"></script>
 <style src="./HawkerForm.css"></style>

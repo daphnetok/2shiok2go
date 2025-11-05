@@ -12,8 +12,9 @@ export default {
   setup(props, { emit }) {
     const form = reactive({
       stallName: '',
-      closingTime: '',
       openingTime: '',
+      closingTime: '',
+      priceRange: null,
       address: {
         formattedAddress: '',
         latitude: null,
@@ -67,6 +68,9 @@ export default {
         if(!form.address.formattedAddress) {
           throw new Error('Please enter a valid address')
         }
+        if(!form.priceRange) {
+          throw new Error('Please select a price range')
+        }
         // upload image to storage
         const imageData = await uploadImage(selectedFile.value, 'hawkerListings');
 
@@ -75,6 +79,7 @@ export default {
           hawkerName: form.stallName,
           closingTime: form.closingTime,
           openingTime: form.openingTime,
+          priceRange: form.priceRange,
           address: {
             formattedAddress: form.address.formattedAddress,
             latitude: form.address.latitude,
@@ -100,6 +105,7 @@ export default {
         form.stallName = '';
         form.closingTime = '';
         form.openingTime = '';
+        form.priceRange = null;
         form.address = {
           formattedAddress: '',
           latitude: null,

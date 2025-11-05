@@ -1,7 +1,7 @@
 #uploadImg{
     height: 150px;
-    background-color:rgb(241, 255, 241);
-    border: 1px dashed rgb(71, 153, 71);
+    background-color:#e6f8ee;
+    border: 1px dashed #059669;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -31,6 +31,7 @@ input[type=file]{
     display: none;
 }
 #uploadImg label{
+    color: #047857;
     display: block;
     margin: auto;
     text-align: center;
@@ -45,7 +46,7 @@ input[type=file]{
 #img-container{
     position: relative;
     padding:10px;
-    border: 1px dashed rgb(71, 153, 71);
+    border: 1px dashed #059669;
     border-radius: 10px;
 }
 .remove-btn{

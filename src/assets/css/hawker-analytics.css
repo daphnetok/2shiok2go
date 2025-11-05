@@ -282,17 +282,17 @@
 }
 
 .hawker-analytics .tab-item.active .tab-link {
-  background: #0c850c;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
 .hawker-analytics .tab-link:hover {
   background: #f0f0f0;
-  color: #0c850c;
+  color: #059669;
 }
 
 .hawker-analytics .tab-item.active .tab-link:hover {
-  background: #0c850c;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
