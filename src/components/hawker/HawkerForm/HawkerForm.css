@@ -282,3 +282,185 @@ label.radio-option {
 .btn-ok:hover {
     background: #45a049;
 }
+
+/* Responsive Breakpoints */
+/* Small devices (phones, 576px and down) */
+@media (max-width: 576px) {
+  .hawker-form {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .form-group label,
+  .form-group input,
+  .form-group select,
+  .form-group :deep(.address-autocomplete .form-label),
+  .form-group :deep(.address-autocomplete .form-control),
+  .form-group :deep(.address-autocomplete .text-muted),
+  #uploadImg,
+  #img-container,
+  .price-range-options {
+    width: 100% !important;
+  }
+
+  .time-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .button-group {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  button {
+    margin: 5px 0;
+    width: 100%;
+  }
+
+  .toast-notification {
+    width: 90%;
+    height: auto;
+    min-height: 80px;
+    padding: 15px;
+  }
+
+  .toast-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-ok {
+    width: 100%;
+  }
+}
+
+/* Medium devices (tablets, 577px to 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .hawker-form {
+    width: 85%;
+    padding: 18px;
+  }
+
+  .form-group label,
+  .form-group input,
+  .form-group select,
+  .form-group :deep(.address-autocomplete .form-label),
+  .form-group :deep(.address-autocomplete .form-control),
+  .form-group :deep(.address-autocomplete .text-muted),
+  #uploadImg,
+  #img-container,
+  .price-range-options {
+    width: 85% !important;
+  }
+
+  .button-group {
+    width: 87%;
+  }
+}
+
+/* Large devices (desktops, 769px to 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+  .hawker-form {
+    width: 80%;
+  }
+
+  .form-group label,
+  .form-group input,
+  .form-group select,
+  .form-group :deep(.address-autocomplete .form-label),
+  .form-group :deep(.address-autocomplete .form-control),
+  .form-group :deep(.address-autocomplete .text-muted),
+  #uploadImg,
+  #img-container,
+  .price-range-options {
+    width: 80% !important;
+  }
+
+  .button-group {
+    width: 82%;
+  }
+}
+
+/* Extra large devices (large desktops, 993px and up) */
+@media (min-width: 993px) {
+  .hawker-form {
+    width: 75%;
+    max-width: 800px; /* Prevent it from getting too wide */
+  }
+
+  /* Keep your existing 75% widths for larger screens */
+  .form-group label,
+  .form-group input,
+  .form-group select,
+  .form-group :deep(.address-autocomplete .form-label),
+  .form-group :deep(.address-autocomplete .form-control),
+  .form-group :deep(.address-autocomplete .text-muted),
+  #uploadImg,
+  #img-container,
+  .price-range-options {
+    width: 75% !important;
+  }
+
+  .button-group {
+    width: 77%;
+  }
+}
+
+/* Additional responsive improvements */
+@media (max-width: 768px) {
+  .time-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .time-field {
+    width: 100%;
+  }
+
+  .radio-option {
+    padding: 8px 10px;
+  }
+
+  .radio-option input[type="radio"] {
+    right: 10px;
+  }
+}
+
+/* Very small devices (phones, 360px and down) */
+@media (max-width: 360px) {
+  .hawker-form {
+    padding: 10px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  #uploadImg {
+    height: 120px;
+    padding: 10px;
+  }
+
+  .toast-message {
+    font-size: 14px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hawker-form {
+    padding: 10px;
+  }
+
+  #uploadImg {
+    height: 100px;
+  }
+}
