@@ -11,9 +11,6 @@
         <button class="btn btn-sm btn-success" style="border-radius: 8px;" @click="$emit('feed')">
           <i class="fas fa-cookie-bite"></i> Feed ({{ pet.treats }})
         </button>
-        <button class="btn btn-sm btn-primary" style="border-radius: 8px;" @click="$emit('play')">
-          <i class="fas fa-heart"></i> Show Love
-        </button>
       </div>
     </div>
     <div class="card-body" style="padding: 1.5rem;">
