@@ -154,3 +154,48 @@ input[type="file"] {
 .form-label {
   font-weight: bold;
 }
+
+.price-range-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+label.radio-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* This pushes label left, radio right */
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  line-height: 1;
+  position: relative;
+}
+
+.radio-option:hover {
+  background-color: #f8f9fa;
+}
+
+.radio-option input[type="radio"] {
+  margin-left: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  position: absolute; /* NEW: Absolute positioning */
+  right: 15px; /* NEW: Fixed distance from right edge */
+}
+
+.radio-option span {
+  font-weight: 500;
+  line-height: 1;
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+  flex-grow: 1; /* NEW: Takes up available space */
+}

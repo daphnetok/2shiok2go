@@ -19,7 +19,7 @@
     </button>
 
     <!-- Fixed Center Pin -->
-    <div class="center-pin">📍</div>
+    <div class="center-pin"><i class="fa-solid fa-location-dot"></i></div>
     
     <!-- Bottom Sheet -->
     <FormModal
