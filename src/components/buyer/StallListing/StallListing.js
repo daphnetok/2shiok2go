@@ -5,11 +5,15 @@ import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRem
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: "StallListings",
   components: {
-    ReviewsSection
+    ReviewsSection,
+    LoadingSpinner,
+    ImageWithLoader
   },
   props: {
     searchQuery: {
@@ -31,6 +35,22 @@ export default {
     }
 ,
 
+    isStallOpen() {
+      if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
+        return true; // Default to open if no time specified
+      }
+      
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      const [openHour, openMin] = this.hawker.openingTime.split(':').map(Number);
+      const [closeHour, closeMin] = this.hawker.closingTime.split(':').map(Number);
+      
+      const openingTimeInMinutes = openHour * 60 + openMin;
+      const closingTimeInMinutes = closeHour * 60 + closeMin;
+      
+      return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
+    },
   },
   setup(props, { emit }) {
     const route = useRoute();
@@ -248,11 +268,12 @@ export default {
             discountTime: data.discountTime,
             imageUrl: data.imageUrl,
             description: data.description || '',
+            tags: data.tags || [],
+            allergens: data.allergens || [],
             count: savedData.qty,
             notes: savedData.notes,
             hover: false
           };
-          
           // Add to selectedItems if count > 0
           if (savedData.qty > 0) {
             selectedItems.value.push({ ...item });

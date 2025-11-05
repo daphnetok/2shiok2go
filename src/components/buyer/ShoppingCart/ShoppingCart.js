@@ -1,9 +1,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
-import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
+import { runTransaction } from 'firebase/firestore';
 
 export default {
   name: 'ShoppingCart',
@@ -20,6 +21,18 @@ export default {
     const editMode = ref(false);
     const selectedItems = ref([]);
     const showClosedStallsModal = ref(false);
+    
+    // Card information state
+    const savedCards = ref([]);
+    const cardSelection = ref('new');
+    const selectedCardIndex = ref(0);
+    const saveCardForFuture = ref(false);
+    const newCard = ref({
+      cardholderName: '',
+      cardNumber: '',
+      expiryDate: '',
+      cvv: ''
+    });
     
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
@@ -109,6 +122,124 @@ export default {
         console.log('Normal hours stall, isClosed:', isClosed);
         return isClosed;
       }
+    };
+    
+    // Format card number with spaces
+    const formatCardNumber = (event) => {
+      let value = event.target.value.replace(/\s/g, '');
+      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+      newCard.value.cardNumber = formattedValue;
+    };
+
+    // Format expiry date
+    const formatExpiryDate = (event) => {
+      let value = event.target.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+      }
+      newCard.value.expiryDate = value;
+    };
+
+    // Format CVV (numbers only)
+    const formatCVV = (event) => {
+      newCard.value.cvv = event.target.value.replace(/\D/g, '');
+    };
+
+    // Fetch saved cards from Firebase
+    const fetchSavedCards = async () => {
+      if (!userId.value) return;
+      
+      try {
+        const userRef = doc(db, 'users', userId.value);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          savedCards.value = userData.cardInfo || [];
+          
+          // Set default selection
+          if (savedCards.value.length > 0) {
+            cardSelection.value = 'saved';
+            selectedCardIndex.value = 0;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching saved cards:', error);
+      }
+    };
+
+    // Save card to Firebase
+    const saveCardToFirebase = async () => {
+      if (!userId.value || !saveCardForFuture.value) return;
+      
+      try {
+        const userRef = doc(db, 'users', userId.value);
+        const cardData = {
+          cardholderName: newCard.value.cardholderName,
+          lastFour: newCard.value.cardNumber.replace(/\s/g, '').slice(-4),
+          expiryDate: newCard.value.expiryDate,
+          addedAt: new Date()
+        };
+        
+        // Get current cards or initialize empty array
+        const userSnap = await getDoc(userRef);
+        let currentCards = [];
+        
+        if (userSnap.exists()) {
+          currentCards = userSnap.data().cardInfo || [];
+        }
+        
+        // Add new card
+        currentCards.push(cardData);
+        
+        // Update or create user document
+        await updateDoc(userRef, {
+          cardInfo: currentCards
+        }).catch(async () => {
+          // If document doesn't exist, create it
+          await setDoc(userRef, {
+            cardInfo: currentCards
+          }, { merge: true });
+        });
+        
+        console.log('Card saved successfully');
+        savedCards.value = currentCards;
+      } catch (error) {
+        console.error('Error saving card:', error);
+      }
+    };
+
+    // Validate card information
+    const validateCardInfo = () => {
+      if (cardSelection.value === 'saved') {
+        return savedCards.value.length > 0;
+      }
+      
+      // Validate new card
+      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
+      const expiryParts = newCard.value.expiryDate.split('/');
+      
+      if (!newCard.value.cardholderName.trim()) {
+        alert('Please enter cardholder name');
+        return false;
+      }
+      
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        alert('Please enter a valid card number');
+        return false;
+      }
+      
+      if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+        alert('Please enter a valid expiry date (MM/YY)');
+        return false;
+      }
+      
+      if (newCard.value.cvv.length !== 3) {
+        alert('Please enter a valid CVV');
+        return false;
+      }
+      
+      return true;
     };
     
     // Fetch cart items and current stock levels from Firebase
@@ -447,35 +578,50 @@ export default {
     
     // Get next order ID
     const getNextOrderID = async () => {
-      try {
-        const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, orderBy('orderID', 'desc'), limit(1));
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) {
-          return 1;
+      const counterRef = doc(db, 'meta', 'orderCounter');
+      return await runTransaction(db, async (transaction) => {
+        const counterSnap = await transaction.get(counterRef);
+        let newOrderID = 1;
+        if (counterSnap.exists()) {
+          newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
+          transaction.update(counterRef, { lastOrderID: newOrderID });
+        } else {
+          transaction.set(counterRef, { lastOrderID: 1 });
         }
-        
-        const lastOrder = querySnapshot.docs[0].data();
-        return (lastOrder.orderID || 0) + 1;
-      } catch (error) {
-        console.error('Error getting next order ID:', error);
-        // Fallback: try without orderBy if index doesn't exist
-        try {
-          const ordersRef = collection(db, 'orders');
-          const querySnapshot = await getDocs(ordersRef);
-          if (querySnapshot.empty) {
-            return 1;
-          }
-          const orders = querySnapshot.docs.map(doc => doc.data());
-          const maxOrderID = Math.max(...orders.map(o => o.orderID || 0), 0);
-          return maxOrderID + 1;
-        } catch (fallbackError) {
-          console.error('Error in fallback order ID query:', fallbackError);
-          return 1;
-        }
-      }
+        return newOrderID;
+      });
     };
+        // Get next order ID
+    // const getNextOrderID = async () => {
+    //   try {
+    //     const ordersRef = collection(db, 'orders');
+    //     const q = query(ordersRef, orderBy('orderID', 'desc'), limit(1));
+    //     const querySnapshot = await getDocs(q);
+        
+    //     if (querySnapshot.empty) {
+    //       return 1;
+    //     }
+        
+    //     const lastOrder = querySnapshot.docs[0].data();
+    //     return (lastOrder.orderID || 0) + 1;
+    //   } catch (error) {
+    //     console.error('Error getting next order ID:', error);
+    //     // Fallback: try without orderBy if index doesn't exist
+    //     try {
+    //       const ordersRef = collection(db, 'orders');
+    //       const querySnapshot = await getDocs(ordersRef);
+    //       if (querySnapshot.empty) {
+    //         return 1;
+    //       }
+    //       const orders = querySnapshot.docs.map(doc => doc.data());
+    //       const maxOrderID = Math.max(...orders.map(o => o.orderID || 0), 0);
+    //       return maxOrderID + 1;
+    //     } catch (fallbackError) {
+    //       console.error('Error in fallback order ID query:', fallbackError);
+    //       return 1;
+    //     }
+    //   }
+    // };
 
     // Get hawker address from hawkerListings
     const getHawkerAddress = async (hawkerId) => {
@@ -517,7 +663,7 @@ export default {
         showClosedStallsModal.value = true;
         return;
       }
-
+      
       // Filter out closed stall items
       const availableItems = cartItems.value.filter(item => !item.isClosed);
       
@@ -525,21 +671,28 @@ export default {
         alert('No available items to order. Please check back when stalls are open.');
         return;
       }
-
+      
+      // Validate card information
+      if (!validateCardInfo()) {
+        return;
+      }
+      
       // Get payment method
       const paymentMethodSelect = document.getElementById('payment-method');
       const paymentMethod = paymentMethodSelect ? paymentMethodSelect.value : 'card';
-
+      
       updating.value = true;
       errorMsg.value = null;
-
+      
       try {
+        // Save card if user opted to
+        if (cardSelection.value === 'new' && saveCardForFuture.value) {
+          await saveCardToFirebase();
+        }
+        
         // Group items by hawker
         const itemsByHawker = {};
         for (const item of availableItems) {
-          // Update stock on hawker side
-          await updateStockAfterOrder(item.itemId, item.qty);
-
           const hawkerId = item.hawkerId;
           if (!itemsByHawker[hawkerId]) {
             itemsByHawker[hawkerId] = {
@@ -550,19 +703,26 @@ export default {
           }
           itemsByHawker[hawkerId].items.push(item);
         }
-
-        // Create orders for each hawker
+        
+        // Get current date/time once
         const { day, date, time } = formatDateTime();
+        const timestamp = new Date();
+        
+        // Get starting order ID
         let currentOrderID = await getNextOrderID();
-
+        
+        // Create all orders
+        const orderPromises = [];
+        const createdOrderIds = []; // Track created order document IDs
+        
         for (const hawkerId in itemsByHawker) {
           const hawkerGroup = itemsByHawker[hawkerId];
           const hawkerItems = hawkerGroup.items;
-
+          
           // Get hawker address
           const hawkerAddress = await getHawkerAddress(hawkerId);
           const formattedAddress = hawkerAddress?.formattedAddress || 'Address not available';
-
+          
           // Calculate totals
           let subtotalBeforeDiscount = 0;
           let totalDiscount = 0;
@@ -573,10 +733,10 @@ export default {
             const qty = parseInt(item.qty) || 1;
             const discountedPrice = itemPrice * ((100 - discount) / 100);
             const itemTotal = discountedPrice * qty;
-
+            
             subtotalBeforeDiscount += itemPrice * qty;
             totalDiscount += (itemPrice * qty) - itemTotal;
-
+            
             return {
               itemName: item.itemName,
               itemPrice: itemPrice,
@@ -586,20 +746,20 @@ export default {
               itemTotal: itemTotal
             };
           });
-
+          
           const orderTotal = subtotalBeforeDiscount - totalDiscount;
-
+          
           // Create order document
           const orderData = {
-            orderID: currentOrderID++,
+            orderID: currentOrderID, // Use current ID
             day: day,
             date: date,
             time: time,
-            timestamp: new Date(),
+            timestamp: timestamp, // Use same timestamp for all orders
+            createdAt: timestamp, // Add createdAt field
             paymentMethod: paymentMethod,
-            status: 'preparing',
+            status: 'pending', 
             userId: userId.value,
-            buyerId: userId.value, // Also include buyerId for compatibility
             hawkerId: hawkerId,
             hawkerName: hawkerGroup.hawkerName,
             hawkerAddress: formattedAddress,
@@ -608,26 +768,40 @@ export default {
             discount: totalDiscount,
             orderTotal: orderTotal
           };
-
+          
+          // Add to order creation promises
           const ordersRef = collection(db, 'orders');
-          await addDoc(ordersRef, orderData);
-          console.log('Order created successfully:', orderData.orderID);
-
-
-          // Clear cart after successful checkout
-          const cartRef = doc(db, 'cart', userId.value);
-          await deleteDoc(cartRef);
-          cartItems.value = [];
+          const orderDocRef = await addDoc(ordersRef, orderData);
+          createdOrderIds.push(orderDocRef.id); // Store the document ID
           
-          console.log('Stock updated for all items');
+          // Update stock for each item
+          hawkerItems.forEach(item => {
+            orderPromises.push(updateStockAfterOrder(item.itemId, item.qty));
+          });
           
-          // Redirect to order receipt page
-          router.push('/order-receipt');
+          console.log('Order created with ID:', orderDocRef.id, 'OrderID:', orderData.orderID);
           
+          // Increment for next hawker's order
+          currentOrderID++;
         }
-
-        // Redirect to order receipt page after successful order creation
-        router.push('/order-receipt');
+        
+        // Wait for all stock updates to complete
+        await Promise.all(orderPromises);
+        console.log('All orders created and stock updated successfully');
+        
+        // Clear cart after successful checkout
+        const cartRef = doc(db, 'cart', userId.value);
+        await deleteDoc(cartRef);
+        cartItems.value = [];
+        
+        // Redirect to order receipt page with the first order's document ID
+        if (createdOrderIds.length > 0) {
+          router.push(`/order-receipt/${createdOrderIds[0]}`);
+        } else {
+          // Fallback to just order-receipt if no orders created (shouldn't happen)
+          router.push('/order-receipt');
+        }
+        
       } catch (error) {
         console.error('Error creating order:', error);
         errorMsg.value = 'Failed to create order. Please try again.';
@@ -636,7 +810,7 @@ export default {
         updating.value = false;
       }
     };
-    
+
     // Initialize on mount
     onMounted(() => {
       console.log('ShoppingCart component mounted');
@@ -646,6 +820,7 @@ export default {
         console.log('User already authenticated:', currentUser.uid);
         userId.value = currentUser.uid;
         fetchCartItems();
+        fetchSavedCards();
       } else {
         console.log('No user authenticated on mount');
         loading.value = false;
@@ -659,6 +834,7 @@ export default {
           if (userId.value !== user.uid) {
             userId.value = user.uid;
             await fetchCartItems();
+            await fetchSavedCards();
           }
         } else {
           userId.value = null;
@@ -686,6 +862,13 @@ export default {
       selectedItems,
       showClosedStallsModal,
       
+      // Card state
+      savedCards,
+      cardSelection,
+      selectedCardIndex,
+      saveCardForFuture,
+      newCard,
+      
       // Computed properties
       cartCount,
       cartTotal,
@@ -710,7 +893,10 @@ export default {
       selectAll,
       deleteSelected,
       closeModal,
-      proceedWithAvailable
+      proceedWithAvailable,
+      formatCardNumber,
+      formatExpiryDate,
+      formatCVV
     };
   }
 };

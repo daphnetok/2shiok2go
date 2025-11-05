@@ -124,9 +124,10 @@
             </div>
           </div>
 
-          <!-- Play & Earn Section -->
+          <!-- Play & Earn Section with Customization -->
           <div class="row mb-4">
-            <div class="col-12">
+            <div :class="showCustomization ? 'col-lg-7 mb-4 mb-lg-0' : 'col-12'" class="transition-all">
+              <!-- Pet Playground Card -->
               <div class="highlight-card" :class="{ 'dark-mode-card': isDarkMode }">
                 <div class="highlight-header">
                   <h5 class="mb-0 fw-semibold" style="color: #059669;"><i class="fas fa-gamepad me-2"></i>Play & Earn
@@ -178,237 +179,124 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Customization Panel (Hidden by default) -->
-          <div class="row mb-4" v-if="showCustomization">
-            <div class="col-12">
-              <Card title="✨ Customize Your Rescue Buddy" :card-class="isDarkMode ? 'dark-mode-card' : ''">
-                <div class="customization-wrapper">
-                  <!-- Pet Preview -->
-                  <div class="preview-section">
-                    <div class="preview-card">
-                      <div class="preview-label">Preview</div>
-                      <div class="pet-preview" :style="{ background: petData.avatar.background }">
-                        <div class="avatar-preview-container">
-                          <svg width="150" height="150" viewBox="0 0 120 120" class="preview-avatar">
-                            <!-- Shadow -->
-                            <ellipse cx="60" cy="100" rx="40" ry="8" fill="rgba(0,0,0,0.15)" />
-
-                            <!-- Body -->
-                            <ellipse cx="60" cy="80" rx="35" ry="25" :fill="petData.avatar.color" class="avatar-body" />
-
-                            <!-- Head -->
-                            <circle cx="60" cy="45" r="30" :fill="petData.avatar.color" class="avatar-head" />
-
-                            <!-- Ears based on animal type -->
-                            <g v-if="petData.avatar.body === 'cat'">
-                              <polygon points="40,25 35,10 50,20" :fill="petData.avatar.color" />
-                              <polygon points="80,25 85,10 70,20" :fill="petData.avatar.color" />
-                              <polygon points="40,25 38,15 48,22" fill="#FFB6C1" opacity="0.6" />
-                              <polygon points="80,25 82,15 72,22" fill="#FFB6C1" opacity="0.6" />
-                            </g>
-                            <g v-else-if="petData.avatar.body === 'dog'">
-                              <ellipse cx="35" cy="25" rx="8" ry="15" :fill="petData.avatar.color" />
-                              <ellipse cx="85" cy="25" rx="8" ry="15" :fill="petData.avatar.color" />
-                            </g>
-                            <g v-else-if="petData.avatar.body === 'bunny'">
-                              <ellipse cx="45" cy="15" rx="6" ry="20" :fill="petData.avatar.color" />
-                              <ellipse cx="75" cy="15" rx="6" ry="20" :fill="petData.avatar.color" />
-                              <ellipse cx="45" cy="18" rx="3" ry="12" fill="#FFB6C1" opacity="0.6" />
-                              <ellipse cx="75" cy="18" rx="3" ry="12" fill="#FFB6C1" opacity="0.6" />
-                            </g>
-                            <g v-else-if="petData.avatar.body === 'fox'">
-                              <polygon points="38,20 30,5 48,18" :fill="petData.avatar.color" />
-                              <polygon points="82,20 90,5 72,18" :fill="petData.avatar.color" />
-                              <polygon points="38,20 34,10 45,19" fill="#FFF" opacity="0.8" />
-                              <polygon points="82,20 86,10 75,19" fill="#FFF" opacity="0.8" />
-                            </g>
-                            <g v-else-if="petData.avatar.body === 'bear'">
-                              <circle cx="38" cy="22" r="10" :fill="petData.avatar.color" />
-                              <circle cx="82" cy="22" r="10" :fill="petData.avatar.color" />
-                              <circle cx="38" cy="22" r="6" fill="#D2691E" opacity="0.6" />
-                              <circle cx="82" cy="22" r="6" fill="#D2691E" opacity="0.6" />
-                            </g>
-                            <g v-else-if="petData.avatar.body === 'panda'">
-                              <circle cx="38" cy="22" r="10" fill="#000" />
-                              <circle cx="82" cy="22" r="10" fill="#000" />
-                            </g>
-
-                            <!-- Eyes -->
-                            <circle cx="50" cy="40" r="5" fill="#000" class="avatar-eye" />
-                            <circle cx="70" cy="40" r="5" fill="#000" class="avatar-eye" />
-                            <circle cx="52" cy="38" r="2" fill="#FFF" opacity="0.9" />
-                            <circle cx="72" cy="38" r="2" fill="#FFF" opacity="0.9" />
-
-                            <!-- Nose -->
-                            <ellipse cx="60" cy="52" rx="4" ry="3" fill="#FF69B4" />
-
-                            <!-- Mouth -->
-                            <path d="M 50 55 Q 60 60 70 55" fill="none" stroke="#000" stroke-width="2"
-                              stroke-linecap="round" />
-
-                            <!-- Accessory -->
-                            <g v-if="petData.avatar.accessory === 'bow'">
-                              <path d="M 45 20 Q 40 25 45 30 L 50 25 Z" :fill="petData.avatar.accessoryColor" />
-                              <path d="M 75 20 Q 80 25 75 30 L 70 25 Z" :fill="petData.avatar.accessoryColor" />
-                              <circle cx="60" cy="25" r="4" :fill="petData.avatar.accessoryColor" />
-                            </g>
-                            <g v-else-if="petData.avatar.accessory === 'hat'">
-                              <rect x="40" y="8" width="40" height="6" :fill="petData.avatar.accessoryColor" rx="2" />
-                              <path d="M 35 8 L 85 8 L 80 0 L 40 0 Z" :fill="petData.avatar.accessoryColor" />
-                            </g>
-                            <g v-else-if="petData.avatar.accessory === 'glasses'">
-                              <circle cx="50" cy="40" r="8" fill="none" stroke="#000" stroke-width="2" />
-                              <circle cx="70" cy="40" r="8" fill="none" stroke="#000" stroke-width="2" />
-                              <line x1="58" y1="40" x2="62" y2="40" stroke="#000" stroke-width="2" />
-                            </g>
-                            <g v-else-if="petData.avatar.accessory === 'scarf'">
-                              <path d="M 40 65 Q 60 70 80 65 L 80 72 Q 60 77 40 72 Z"
-                                :fill="petData.avatar.accessoryColor" />
-                              <rect x="78" y="65" width="8" height="20" :fill="petData.avatar.accessoryColor" rx="2" />
-                            </g>
-                            <g v-else-if="petData.avatar.accessory === 'crown'">
-                              <path
-                                d="M 35 15 L 40 5 L 45 12 L 50 2 L 55 12 L 60 0 L 65 12 L 70 2 L 75 12 L 80 5 L 85 15 Z"
-                                fill="#FFD700" />
-                              <circle cx="50" cy="8" r="2" fill="#FF1493" />
-                              <circle cx="60" cy="6" r="2" fill="#FF1493" />
-                              <circle cx="70" cy="8" r="2" fill="#FF1493" />
-                            </g>
-                            <g v-else-if="petData.avatar.accessory === 'flower'">
-                              <circle cx="30" cy="20" r="5" fill="#FF69B4" />
-                              <circle cx="25" cy="23" r="4" fill="#FFB6C1" />
-                              <circle cx="35" cy="23" r="4" fill="#FFB6C1" />
-                              <circle cx="28" cy="27" r="4" fill="#FFB6C1" />
-                              <circle cx="32" cy="27" r="4" fill="#FFB6C1" />
-                              <circle cx="30" cy="24" r="3" fill="#FFD700" />
-                            </g>
-                          </svg>
-                          <div class="pet-name-display">{{ petData.name }}</div>
-                        </div>
-                      </div>
+            
+            <!-- Customization Panel (Toggleable) -->
+            <transition name="slide-fade">
+              <div v-if="showCustomization" class="col-lg-5">
+                <div class="customization-card" :class="{ 'dark-mode-card': isDarkMode }">
+                  <div class="customization-header">
+                    <div>
+                      <h5 class="mb-0 fw-semibold" style="color: #059669;">
+                        <i class="fas fa-palette me-2"></i>Customize Buddy
+                      </h5>
+                      <p class="mb-0 text-muted" style="font-size: 0.85rem; margin-top: 0.25rem;">
+                        Changes save automatically
+                      </p>
                     </div>
+                    <button class="btn-close-panel" @click="showCustomization = false" :class="{ 'dark-mode': isDarkMode }">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div class="customization-body">
+                  <!-- Basic Info -->
+                  <div class="customization-group-compact">
+                    <label class="custom-label-compact">
+                      <i class="fas fa-signature"></i> Pet Name
+                    </label>
+                    <input type="text" class="custom-input-compact" v-model="petData.name" maxlength="12"
+                      placeholder="Enter name..." @input="autoSavePet">
                   </div>
 
-                  <!-- Customization Options -->
-                  <div class="options-section">
-                    <!-- Basic Info -->
-                    <div class="customization-group">
-                      <label class="custom-label">
-                        <i class="fas fa-signature"></i> Pet Name
-                      </label>
-                      <input type="text" class="custom-input" v-model="petData.name" maxlength="12"
-                        placeholder="Enter a cute name...">
-                    </div>
-
-                    <!-- Animal Type -->
-                    <div class="customization-group">
-                      <label class="custom-label">
-                        <i class="fas fa-paw"></i> Animal Type
-                      </label>
-                      <div class="option-grid">
-                        <div v-for="animal in animalTypes" :key="animal.value" class="option-card" :class="{
+                  <!-- Animal Type -->
+                  <div class="customization-group-compact">
+                    <label class="custom-label-compact">
+                      <i class="fas fa-paw"></i> Animal Type
+                    </label>
+                    <div class="option-grid-compact">
+                      <div v-for="animal in animalTypes.slice(0, 6)" :key="animal.value" 
+                        class="option-card-compact" :class="{
                           'selected': petData.avatar.body === animal.value,
                           'locked': animal.locked && !isUnlocked(animal.unlockLevel)
-                        }" @click="selectAnimal(animal)">
-                          <div class="option-emoji">{{ animal.emoji }}</div>
-                          <div class="option-name">{{ animal.name }}</div>
-                          <div v-if="animal.locked && !isUnlocked(animal.unlockLevel)" class="unlock-badge">
-                            <i class="fas fa-lock"></i> Lv{{ animal.unlockLevel }}
-                          </div>
+                        }" @click="selectAnimalAuto(animal)">
+                        <div class="option-emoji-compact">{{ animal.emoji }}</div>
+                        <div class="option-name-compact">{{ animal.name }}</div>
+                        <div v-if="animal.locked && !isUnlocked(animal.unlockLevel)" class="unlock-badge-compact">
+                          <i class="fas fa-lock"></i>
                         </div>
-                      </div>
-                    </div>
-
-                    <!-- Color Palette -->
-                    <div class="customization-group">
-                      <label class="custom-label">
-                        <i class="fas fa-palette"></i> Color
-                      </label>
-                      <div class="color-grid">
-                        <div v-for="color in colorPalette" :key="color.value" class="color-option" :class="{
-                          'selected': petData.avatar.color === color.value,
-                          'locked': color.locked && !isUnlocked(color.unlockLevel)
-                        }" :style="{ background: color.value }" @click="selectColor(color)">
-                          <i v-if="petData.avatar.color === color.value" class="fas fa-check"></i>
-                          <div v-if="color.locked && !isUnlocked(color.unlockLevel)" class="color-lock">
-                            <i class="fas fa-lock"></i>
-                          </div>
-                          <div v-if="color.locked && !isUnlocked(color.unlockLevel)" class="color-unlock-text">Lv{{
-                            color.unlockLevel }}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Background -->
-                    <div class="customization-group">
-                      <label class="custom-label">
-                        <i class="fas fa-image"></i> Background
-                      </label>
-                      <div class="background-grid">
-                        <div v-for="bg in backgrounds" :key="bg.value" class="background-option" :class="{
-                          'selected': petData.avatar.background === bg.value,
-                          'locked': bg.locked && !isUnlocked(bg.unlockLevel)
-                        }" :style="{ background: bg.value }" @click="selectBackground(bg)">
-                          <span class="bg-label">{{ bg.name }}</span>
-                          <i v-if="petData.avatar.background === bg.value" class="fas fa-check check-icon"></i>
-                          <div v-if="bg.locked && !isUnlocked(bg.unlockLevel)" class="unlock-badge">
-                            <i class="fas fa-lock"></i> Lv{{ bg.unlockLevel }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Accessories -->
-                    <div class="customization-group">
-                      <label class="custom-label">
-                        <i class="fas fa-hat-wizard"></i> Accessories
-                      </label>
-                      <div class="option-grid">
-                        <div v-for="acc in accessories" :key="acc.value" class="option-card" :class="{
-                          'selected': petData.avatar.accessory === acc.value,
-                          'locked': acc.locked && !isUnlocked(acc.unlockLevel)
-                        }" @click="selectAccessory(acc)">
-                          <div class="option-emoji">{{ acc.emoji }}</div>
-                          <div class="option-name">{{ acc.name }}</div>
-                          <div v-if="acc.locked && !isUnlocked(acc.unlockLevel)" class="unlock-badge">
-                            <i class="fas fa-lock"></i> Lv{{ acc.unlockLevel }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Accessory Color (if accessory selected) -->
-                    <div class="customization-group"
-                      v-if="petData.avatar.accessory && petData.avatar.accessory !== 'none'">
-                      <label class="custom-label">
-                        <i class="fas fa-fill-drip"></i> Accessory Color
-                      </label>
-                      <div class="color-grid">
-                        <div v-for="color in accessoryColors" :key="color.value" class="color-option"
-                          :class="{ 'selected': petData.avatar.accessoryColor === color.value }"
-                          :style="{ background: color.value }" @click="petData.avatar.accessoryColor = color.value">
-                          <i v-if="petData.avatar.accessoryColor === color.value" class="fas fa-check"></i>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Save Button -->
-                    <div class="save-button-container">
-                      <button class="btn-save-pet" @click="handleSaveAll" :disabled="isSaving">
-                        <i v-if="!isSaving" class="fas fa-save"></i>
-                        <i v-else class="fas fa-spinner fa-spin"></i>
-                        <span>{{ isSaving ? 'Saving...' : 'Save All Changes' }}</span>
-                      </button>
-                      <div v-if="petMessage" class="pet-message" :class="petMessageType">
-                        {{ petMessage }}
                       </div>
                     </div>
                   </div>
+
+                  <!-- Color Palette -->
+                  <div class="customization-group-compact">
+                    <label class="custom-label-compact">
+                      <i class="fas fa-palette"></i> Color
+                    </label>
+                    <div class="color-grid-compact">
+                      <div v-for="color in colorPalette.slice(0, 8)" :key="color.value" 
+                        class="color-option-compact" :class="{
+                          'selected': petData.avatar.color === color.value,
+                          'locked': color.locked && !isUnlocked(color.unlockLevel)
+                        }" :style="{ background: color.value }" @click="selectColorAuto(color)">
+                        <i v-if="petData.avatar.color === color.value" class="fas fa-check"></i>
+                        <div v-if="color.locked && !isUnlocked(color.unlockLevel)" class="color-lock-compact">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Background -->
+                  <div class="customization-group-compact">
+                    <label class="custom-label-compact">
+                      <i class="fas fa-image"></i> Background
+                    </label>
+                    <div class="background-grid-compact">
+                      <div v-for="bg in backgrounds.slice(0, 4)" :key="bg.value" 
+                        class="background-option-compact" :class="{
+                          'selected': petData.avatar.background === bg.value,
+                          'locked': bg.locked && !isUnlocked(bg.unlockLevel)
+                        }" :style="{ background: bg.value }" @click="selectBackgroundAuto(bg)">
+                        <span class="bg-label-compact">{{ bg.name }}</span>
+                        <i v-if="petData.avatar.background === bg.value" class="fas fa-check check-icon-compact"></i>
+                        <div v-if="bg.locked && !isUnlocked(bg.unlockLevel)" class="unlock-badge-compact">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Accessories -->
+                  <div class="customization-group-compact">
+                    <label class="custom-label-compact">
+                      <i class="fas fa-hat-wizard"></i> Accessory
+                    </label>
+                    <div class="option-grid-compact">
+                      <div v-for="acc in accessories.slice(0, 6)" :key="acc.value" 
+                        class="option-card-compact" :class="{
+                          'selected': petData.avatar.accessory === acc.value,
+                          'locked': acc.locked && !isUnlocked(acc.unlockLevel)
+                        }" @click="selectAccessoryAuto(acc)">
+                        <div class="option-emoji-compact">{{ acc.emoji }}</div>
+                        <div class="option-name-compact">{{ acc.name }}</div>
+                        <div v-if="acc.locked && !isUnlocked(acc.unlockLevel)" class="unlock-badge-compact">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Auto-save indicator -->
+                  <div v-if="autoSaving" class="auto-save-indicator">
+                    <i class="fas fa-sync fa-spin"></i> Saving...
+                  </div>
+                  <div v-else-if="lastSaved" class="auto-save-indicator saved">
+                    <i class="fas fa-check-circle"></i> Saved
+                  </div>
                 </div>
-              </Card>
+              </div>
             </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -437,6 +325,7 @@ export default {
     const petMessage = ref('')
     const petMessageType = ref('info')
     const isSaving = ref(false)
+    const saveSuccess = ref(false)
 
     // User Info
     const username = ref('Guest')
@@ -604,9 +493,8 @@ export default {
           // Update the display count (this is shown in the welcome message)
           rescuedMealsCount.value = totalMeals
           
-          // Update pet level and treats based on meals count
-          // Pass shouldSave parameter from parent function
-          await updatePetFromMeals(totalMeals, shouldSave)
+          // Don't update pet here - let the caller handle it
+          // This prevents overwriting saved data during initialization
           
           // Find top dish (most ordered item)
           const itemCounts = {}
@@ -656,37 +544,19 @@ export default {
       const mealsInCurrentLevel = totalMeals % 10
       const calculatedProgress = (mealsInCurrentLevel / 10) * 100
       
-      // Each order gives 1 treat
-      const calculatedTreats = totalMeals
-      
-      // Update pet data (but don't overwrite customizations)
-      const oldLevel = petData.value.level
-      petData.value.level = calculatedLevel
-      petData.value.progress = calculatedProgress
-      petData.value.treats = calculatedTreats
-      petData.value.mealsToLevelUp = 10 - mealsInCurrentLevel
-      
-      console.log('📊 Pet updated:', {
-        level: calculatedLevel,
-        progress: calculatedProgress,
-        treats: calculatedTreats,
-        mealsToLevelUp: petData.value.mealsToLevelUp
-      })
-      
-      // If level increased, show level up message
-      if (calculatedLevel > oldLevel) {
-        showMessage(`🎉 Level Up! Now Level ${calculatedLevel}!`, 'success')
-      }
-      
-      // Only save to Firebase if explicitly requested (e.g., when new order is added)
-      if (shouldSave) {
-        console.log('💾 Saving pet stats to Firebase...')
-        await savePetData()
+      // Store calculated values for reference, but DON'T overwrite pet data yet
+      // We'll use these as defaults only if no saved data exists
+      return {
+        calculatedLevel,
+        calculatedProgress,
+        calculatedTreats: totalMeals, // Base treats from orders
+        mealsInCurrentLevel,
+        totalMeals
       }
     }
 
     // Fetch pet customization from Firestore
-    const fetchPetData = async (uid) => {
+    const fetchPetData = async (uid, calculatedStats = null) => {
       try {
         console.log('🐾 Fetching pet data from Firebase...')
         const petRef = doc(db, 'users', uid, 'pet', 'customization')
@@ -694,48 +564,58 @@ export default {
         
         if (petSnap.exists()) {
           const savedPet = petSnap.data()
-          console.log('✅ Pet data loaded:', savedPet)
+          console.log('✅ Pet data loaded from Firebase:', savedPet)
           
-          // Store current calculated values (from meals)
-          const currentLevel = petData.value.level
-          const currentProgress = petData.value.progress
-          const currentTreats = petData.value.treats
-          const currentMealsToLevelUp = petData.value.mealsToLevelUp
-          
-          // Update pet data with saved values
+          // Update pet data with saved values - these take FULL PRECEDENCE
           petData.value.name = savedPet.name || petData.value.name
           petData.value.happiness = savedPet.happiness ?? petData.value.happiness
           petData.value.energy = savedPet.energy ?? petData.value.energy
           petData.value.mood = savedPet.mood || petData.value.mood
           petData.value.experience = savedPet.experience ?? petData.value.experience
           
-          // IMPORTANT: Keep calculated values for level/progress/treats (from meals count)
-          // Don't overwrite with potentially stale Firebase data
-          petData.value.level = currentLevel
-          petData.value.progress = currentProgress
-          petData.value.treats = currentTreats
-          petData.value.mealsToLevelUp = currentMealsToLevelUp
+          // Use saved stats (level, progress, treats) - user's actions persist
+          petData.value.level = savedPet.level ?? (calculatedStats?.calculatedLevel || petData.value.level)
+          petData.value.progress = savedPet.progress ?? (calculatedStats?.calculatedProgress || petData.value.progress)
+          petData.value.treats = savedPet.treats ?? (calculatedStats?.calculatedTreats || petData.value.treats)
+          petData.value.mealsToLevelUp = savedPet.mealsToLevelUp ?? (10 - (calculatedStats?.mealsInCurrentLevel || 0))
           
           // Load avatar customizations
           if (savedPet.avatar) {
             petData.value.avatar = { ...petData.value.avatar, ...savedPet.avatar }
           }
           
-          console.log('✅ Pet customizations loaded, stats preserved:', {
+          console.log('✅ Pet data fully loaded (saved data used):', {
             name: petData.value.name,
             level: petData.value.level,
             treats: petData.value.treats,
-            avatar: petData.value.avatar
+            happiness: petData.value.happiness,
+            energy: petData.value.energy
           })
         } else {
-          console.log('📝 No pet data found, using defaults')
-          // Initialize default pet data in Firestore
+          console.log('📝 No saved pet data found, using calculated defaults')
+          
+          // If no saved data, use calculated stats
+          if (calculatedStats) {
+            petData.value.level = calculatedStats.calculatedLevel
+            petData.value.progress = calculatedStats.calculatedProgress
+            petData.value.treats = calculatedStats.calculatedTreats
+            petData.value.mealsToLevelUp = 10 - calculatedStats.mealsInCurrentLevel
+          }
+          
+          // Save initial defaults to Firebase
           await savePetData()
         }
       } catch (error) {
         console.error('❌ Error fetching pet data:', error)
         console.error('Error details:', error.message)
-        console.log('⚠️ Using default pet data')
+        
+        // If error and we have calculated stats, use them
+        if (calculatedStats) {
+          petData.value.level = calculatedStats.calculatedLevel
+          petData.value.progress = calculatedStats.calculatedProgress
+          petData.value.treats = calculatedStats.calculatedTreats
+          petData.value.mealsToLevelUp = 10 - calculatedStats.mealsInCurrentLevel
+        }
       }
     }
 
@@ -743,18 +623,11 @@ export default {
     const savePetData = async () => {
       if (!currentUserId.value) {
         console.warn('⚠️ No user ID, cannot save pet data')
-        return
+        return false
       }
       
       try {
-        console.log('💾 Saving pet data to Firebase...', {
-          name: petData.value.name,
-          level: petData.value.level,
-          avatar: petData.value.avatar
-        })
-        
-        const petRef = doc(db, 'users', currentUserId.value, 'pet', 'customization')
-        await setDoc(petRef, {
+        const dataToSave = {
           name: petData.value.name,
           happiness: petData.value.happiness,
           energy: petData.value.energy,
@@ -766,7 +639,12 @@ export default {
           mealsToLevelUp: petData.value.mealsToLevelUp,
           avatar: petData.value.avatar,
           lastUpdated: new Date()
-        }, { merge: true }) // Use merge to avoid overwriting other fields
+        }
+        
+        console.log('💾 Saving pet data to Firebase...', dataToSave)
+        
+        const petRef = doc(db, 'users', currentUserId.value, 'pet', 'customization')
+        await setDoc(petRef, dataToSave, { merge: true })
         
         console.log('✅ Pet data saved successfully to Firebase')
         return true
@@ -788,13 +666,21 @@ export default {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUserId.value = user.uid
-        await fetchUserData(user.uid)
-        await fetchOrdersData(user.uid) // This updates level/treats/progress
-        await fetchPetData(user.uid) // This loads customizations AFTER stats are calculated
         
-        // Save the calculated stats to Firebase (in case they changed)
-        console.log('💾 Syncing calculated stats to Firebase...')
-        await savePetData()
+        // Fetch user data
+        await fetchUserData(user.uid)
+        
+        // Fetch orders and calculate stats (but don't apply them yet)
+        await fetchOrdersData(user.uid)
+        
+        // Get calculated stats for reference
+        const totalMeals = rescuedMealsCount.value
+        const calculatedStats = await updatePetFromMeals(totalMeals)
+        
+        // Load pet data from Firebase (saved data takes precedence)
+        await fetchPetData(user.uid, calculatedStats)
+        
+        console.log('✅ All data loaded successfully')
         
         // Set up real-time listener for orders
         console.log('👂 Setting up real-time orders listener...')
@@ -802,9 +688,33 @@ export default {
         const ordersQuery = query(ordersRef, where('buyerId', '==', user.uid))
         
         ordersUnsubscribe = onSnapshot(ordersQuery, async (snapshot) => {
-          console.log('🔔 Orders changed! Updating stats and pet...')
-          // Re-fetch and recalculate everything, then save
-          await fetchOrdersData(user.uid, true) // Pass true to save after update
+          console.log('🔔 Orders changed! New order detected...')
+          
+          // Re-fetch orders to get new count
+          await fetchOrdersData(user.uid)
+          
+          // Calculate new stats
+          const newTotalMeals = rescuedMealsCount.value
+          const newCalculatedStats = await updatePetFromMeals(newTotalMeals)
+          
+          // Update level if it increased (from new orders)
+          if (newCalculatedStats.calculatedLevel > petData.value.level) {
+            const oldLevel = petData.value.level
+            petData.value.level = newCalculatedStats.calculatedLevel
+            petData.value.progress = newCalculatedStats.calculatedProgress
+            petData.value.mealsToLevelUp = 10 - newCalculatedStats.mealsInCurrentLevel
+            
+            // Add treats for new order (only the difference)
+            const treatsEarned = newTotalMeals - (petData.value.treats || 0)
+            if (treatsEarned > 0) {
+              petData.value.treats = (petData.value.treats || 0) + treatsEarned
+            }
+            
+            showMessage(`🎉 Level Up! Now Level ${newCalculatedStats.calculatedLevel}!`, 'success')
+            
+            // Save updated stats
+            await savePetData()
+          }
         }, (error) => {
           console.error('❌ Error listening to orders:', error)
         })
@@ -1006,30 +916,191 @@ export default {
       setTimeout(() => { petMessage.value = '' }, 2000)
     }
 
-    // Handle Save All button click
+    // Auto-save functions with debouncing
+    let autoSaveTimeout = null
+    const autoSaving = ref(false)
+    const lastSaved = ref(false)
+
+    const performAutoSave = async () => {
+      if (!currentUserId.value) return
+      
+      try {
+        autoSaving.value = true
+        lastSaved.value = false
+        
+        // Validate before saving
+        if (!petData.value.name || petData.value.name.trim() === '') {
+          petData.value.name = '2Shiok Buddy' // Default name
+        }
+        
+        petData.value.name = petData.value.name.trim()
+        petData.value.lastUpdated = new Date().toISOString()
+        
+        const petRef = doc(db, 'users', currentUserId.value, 'pet', 'customization')
+        await setDoc(petRef, petData.value, { merge: true })
+        
+        console.log('✅ Auto-saved pet customization')
+        
+        autoSaving.value = false
+        lastSaved.value = true
+        
+        // Hide "Saved" indicator after 2 seconds
+        setTimeout(() => {
+          lastSaved.value = false
+        }, 2000)
+      } catch (error) {
+        console.error('Error auto-saving pet:', error)
+        autoSaving.value = false
+      }
+    }
+
+    const autoSavePet = () => {
+      // Clear existing timeout
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout)
+      }
+      
+      // Debounce: save 300ms after user stops typing
+      autoSaveTimeout = setTimeout(() => {
+        performAutoSave()
+      }, 300)
+    }
+
+    const selectAnimalAuto = async (animal) => {
+      if (!animal) return
+      
+      if (animal.locked && !isUnlocked(animal.unlockLevel)) {
+        petMessage.value = `🔒 Unlock ${animal.name} at Level ${animal.unlockLevel}! Keep rescuing meals!`
+        petMessageType.value = 'warning'
+        setTimeout(() => { petMessage.value = '' }, 3000)
+        return
+      }
+      
+      petData.value.avatar.body = animal.value
+      performAutoSave()
+    }
+
+    const selectColorAuto = async (color) => {
+      if (!color) return
+      
+      if (color.locked && !isUnlocked(color.unlockLevel)) {
+        petMessage.value = `🔒 Unlock ${color.name} color at Level ${color.unlockLevel}!`
+        petMessageType.value = 'warning'
+        setTimeout(() => { petMessage.value = '' }, 3000)
+        return
+      }
+      
+      petData.value.avatar.color = color.value
+      performAutoSave()
+    }
+
+    const selectBackgroundAuto = async (bg) => {
+      if (!bg) return
+      
+      if (bg.locked && !isUnlocked(bg.unlockLevel)) {
+        petMessage.value = `🔒 Unlock ${bg.name} background at Level ${bg.unlockLevel}!`
+        petMessageType.value = 'warning'
+        setTimeout(() => { petMessage.value = '' }, 3000)
+        return
+      }
+      
+      petData.value.avatar.background = bg.value
+      performAutoSave()
+    }
+
+    const selectAccessoryAuto = async (acc) => {
+      if (!acc) return
+      
+      if (acc.locked && !isUnlocked(acc.unlockLevel)) {
+        petMessage.value = `🔒 Unlock ${acc.name} at Level ${acc.unlockLevel}!`
+        petMessageType.value = 'warning'
+        setTimeout(() => { petMessage.value = '' }, 3000)
+        return
+      }
+      
+      petData.value.avatar.accessory = acc.value
+      performAutoSave()
+    }
+
+    // Handle Save All button click with validation
     const handleSaveAll = async () => {
       if (isSaving.value) return
       
+      // Validation
+      const errors = []
+      
+      // Validate pet name
+      if (!petData.value.name || petData.value.name.trim() === '') {
+        errors.push('Pet name cannot be empty')
+      } else if (petData.value.name.trim().length < 2) {
+        errors.push('Pet name must be at least 2 characters')
+      } else if (petData.value.name.trim().length > 12) {
+        errors.push('Pet name must be 12 characters or less')
+      }
+      
+      // Validate pet name doesn't contain special characters
+      const nameRegex = /^[a-zA-Z0-9\s\-_]+$/
+      if (petData.value.name && !nameRegex.test(petData.value.name.trim())) {
+        errors.push('Pet name can only contain letters, numbers, spaces, hyphens, and underscores')
+      }
+      
+      // Validate customization selections
+      if (!petData.value.avatar.body) {
+        errors.push('Please select an animal type')
+      }
+      
+      if (!petData.value.avatar.color) {
+        errors.push('Please select a color')
+      }
+      
+      if (!petData.value.avatar.background) {
+        errors.push('Please select a background')
+      }
+      
+      // Show validation errors if any
+      if (errors.length > 0) {
+        petMessage.value = '⚠️ ' + errors.join('. ')
+        petMessageType.value = 'error'
+        setTimeout(() => { petMessage.value = '' }, 5000)
+        return
+      }
+      
+      // Trim pet name
+      petData.value.name = petData.value.name.trim()
+      
       isSaving.value = true
-      petMessage.value = ''
+      petMessage.value = '💾 Saving changes...'
+      petMessageType.value = 'info'
       
       try {
         const success = await savePetData()
         
         if (success) {
-          petMessage.value = '✅ All changes saved successfully!'
+          // Show success state
+          saveSuccess.value = true
+          petMessage.value = ''
           petMessageType.value = 'success'
+          
+          // Add confetti animation effect
+          petAnimation.value = 'excited'
+          setTimeout(() => { petAnimation.value = '' }, 600)
+          
+          // Reset success state after 2 seconds
+          setTimeout(() => {
+            saveSuccess.value = false
+          }, 2000)
         } else {
           petMessage.value = '❌ Failed to save changes. Please try again.'
           petMessageType.value = 'error'
+          setTimeout(() => { petMessage.value = '' }, 4000)
         }
       } catch (error) {
         console.error('❌ Error in handleSaveAll:', error)
         petMessage.value = '❌ An error occurred. Please try again.'
         petMessageType.value = 'error'
+        setTimeout(() => { petMessage.value = '' }, 4000)
       } finally {
         isSaving.value = false
-        setTimeout(() => { petMessage.value = '' }, 3000)
       }
     }
 
@@ -1264,7 +1335,8 @@ export default {
     })
 
     return {
-      isDarkMode, showCustomization, petAnimation, petMessage, petMessageType, isSaving,
+      isDarkMode, showCustomization, petAnimation, petMessage, petMessageType, isSaving, saveSuccess,
+      autoSaving, lastSaved,
       username, rescuedMealsCount, stats, topDish, stallHighlight, smartInsight,
       petData, timeFilters, orderFilters,
       foodRescuedChartData, savingsComparisonChartData,
@@ -1273,6 +1345,8 @@ export default {
       orderTopDish,
       animalTypes, colorPalette, backgrounds, accessories, accessoryColors,
       isUnlocked, selectAnimal, selectColor, selectBackground, selectAccessory,
+      selectAnimalAuto, selectColorAuto, selectBackgroundAuto, selectAccessoryAuto,
+      autoSavePet,
       handleSaveAll,
       currentLevelName
     }
@@ -2038,7 +2112,7 @@ export default {
 /* Customization Panel */
 .customization-wrapper {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 1fr 320px;
   gap: 2rem;
   padding: 1rem 0;
   align-items: start;
@@ -2048,8 +2122,13 @@ export default {
   position: sticky;
   top: 2rem;
   height: fit-content;
+  order: 2; /* Preview on the right */
   max-height: calc(100vh - 4rem);
   overflow: visible;
+}
+
+.options-section {
+  order: 1; /* Options on the left */
 }
 
 .preview-card {
@@ -2508,6 +2587,22 @@ export default {
   background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
 }
 
+.btn-save-pet.btn-save-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  cursor: default;
+  animation: successPulse 0.6s ease;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .btn-save-pet i {
   font-size: 1.25rem;
 }
@@ -2524,12 +2619,441 @@ export default {
 .save-button-container .pet-message {
   margin-top: 1rem;
   margin-bottom: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .pet-message.info {
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   color: #075985;
   border: 2px solid #38bdf8;
+}
+
+.pet-message.warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 2px solid #fbbf24;
+}
+
+.pet-message.success {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #065f46;
+  border: 2px solid #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* ====== COMPACT CUSTOMIZATION STYLES ====== */
+
+/* Transition animations */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+.customization-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  height: fit-content;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #e5e7eb;
+}
+
+.customization-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.customization-card::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.customization-card::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+}
+
+.dark-theme .customization-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.customization-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.dark-theme .customization-header {
+  border-bottom-color: #334155;
+}
+
+.btn-close-panel {
+  background: #f3f4f6;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.btn-close-panel:hover {
+  background: #e5e7eb;
+  color: #059669;
+  transform: rotate(90deg);
+}
+
+.btn-close-panel.dark-mode {
+  background: #334155;
+  color: #94a3b8;
+}
+
+.btn-close-panel.dark-mode:hover {
+  background: #475569;
+  color: #10b981;
+}
+
+.customization-card h6 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dark-theme .customization-card h6 {
+  color: #10b981;
+}
+
+.customization-group-compact {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.customization-group-compact:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.dark-theme .customization-group-compact {
+  border-bottom-color: #334155;
+}
+
+.custom-label-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #059669;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.dark-theme .custom-label-compact {
+  color: #10b981;
+}
+
+.custom-input-compact {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.custom-input-compact:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.dark-theme .custom-input-compact {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.option-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.option-card-compact {
+  background: linear-gradient(135deg, #f8fdf9 0%, #f0fdf4 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  position: relative;
+  text-align: center;
+}
+
+.option-card-compact:hover:not(.locked) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+.option-card-compact.selected {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.option-card-compact.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dark-theme .option-card-compact {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark-theme .option-card-compact.selected {
+  background: #0f172a;
+  border-color: #10b981;
+}
+
+.option-emoji-compact {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.option-name-compact {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.dark-theme .option-name-compact {
+  color: #10b981;
+}
+
+.unlock-badge-compact {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.color-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.color-option-compact {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: white;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.color-option-compact:hover:not(.locked) {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.color-option-compact.selected {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.color-option-compact.locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.color-lock-compact {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+
+.background-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.background-option-compact {
+  height: 60px;
+  border-radius: 10px;
+  border: 3px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.background-option-compact:hover:not(.locked) {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
+}
+
+.background-option-compact.selected {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.background-option-compact.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bg-label-compact {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  color: #059669;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  z-index: 1;
+}
+
+.check-icon-compact {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #10b981;
+  font-size: 1rem;
+  background: white;
+  border-radius: 50%;
+  padding: 0.15rem;
+}
+
+.auto-save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  color: #075985;
+  border: 2px solid #38bdf8;
+  animation: fadeIn 0.3s ease;
+}
+
+.auto-save-indicator.saved {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.auto-save-indicator i {
+  font-size: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pet-message.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 2px solid #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 @keyframes float {
@@ -2555,9 +3079,11 @@ export default {
     position: relative;
     top: 0;
     max-height: none;
+    order: 1; /* Preview on top for mobile */
   }
 
   .options-section {
+    order: 2; /* Options below for mobile */
     max-height: none;
     overflow-y: visible;
     padding-right: 0;

@@ -147,6 +147,14 @@
                         }">
                           ({{ hawkerReviewCount }} reviews)
                         </span>
+                        <!-- See reviews link navigates to the buyer stall page and anchors to reviews -->
+                        <router-link
+                          :to="{ path: `/buyer-view-stall/${hawkerOwnerId || currentHawkerId}`, hash: '#reviews' }"
+                          class="see-reviews-link"
+                          style="margin-left:0.5rem; font-size:0.813rem; color: #059669; font-weight:600; text-decoration:none;"
+                        >
+                          See reviews
+                        </router-link>
                       </div>
                     </div>
                   </div>
@@ -316,12 +324,7 @@
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-            <div class="text-center">
-              <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading chart data...</p>
-            </div>
+            <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
         </div>
         <div class="col-12 col-md-6 col-lg-6">
@@ -334,12 +337,7 @@
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-            <div class="text-center">
-              <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading chart data...</p>
-            </div>
+            <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
         </div>
       </div>
@@ -355,12 +353,7 @@
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-            <div class="text-center">
-              <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading chart data...</p>
-            </div>
+            <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
         </div>
         <div class="col-12 col-md-6 col-lg-6">
@@ -372,12 +365,7 @@
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-            <div class="text-center">
-              <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading chart data...</p>
-            </div>
+            <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
         </div>
       </div>
@@ -500,19 +488,21 @@
 import ChartCard from '@/components/dashboard/ChartCard.vue'
 import CalendarCard from '@/components/dashboard/CalendarCard.vue'
 import TodoList from '@/components/dashboard/TodoList.vue'
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, orderBy, doc, getDoc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 
 export default {
   name: 'HawkerAnalytics',
-  components: { ChartCard, CalendarCard, TodoList },
+  components: { ChartCard, CalendarCard, TodoList, LoadingSpinner },
   data() {
     return {
       isDarkTheme: false,
       globalFilter: 'day',
       currentHawkerId: null,
       hawkerListingId: null, // Store the actual hawker listing document ID
+      hawkerOwnerId: null, // userId owner of the hawker listing (used for routing to buyer-view-stall)
       allOrders: [],
       loading: true,
       
@@ -866,6 +856,8 @@ export default {
         
         // Store the hawker listing ID for later use
         this.hawkerListingId = hawkerListingId
+  // Store the hawker owner's userId (used when navigating to buyer-view-stall/:userId)
+  this.hawkerOwnerId = hawkerData.userId || null
         
         console.log('📦 Hawker listing found:', hawkerListingId)
         console.log('📦 Hawker data:', hawkerData)

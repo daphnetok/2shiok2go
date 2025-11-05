@@ -93,7 +93,12 @@
         <div class="listing-card" v-for="listing of activeListings" :key="listing.id">
           <!-- Image Section -->
           <div class="listing-image-container">
-            <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+            <ImageWithLoader 
+              :src="listing.imageUrl" 
+              :alt="listing.itemName" 
+              image-class="listing-image"
+              error-icon="fas fa-utensils"
+            />
 
             <!-- Discount start time -->
             <div v-if="listing.discountTime" class="discount-time-badge">
@@ -167,7 +172,12 @@
         <div class="listing-card inactive" v-for="listing in inactiveListings" :key="listing.id">
           <!-- Image Section -->
           <div class="listing-image-container">
-            <img :src="listing.imageUrl" :alt="listing.itemName" class="listing-image">
+            <ImageWithLoader 
+              :src="listing.imageUrl" 
+              :alt="listing.itemName" 
+              image-class="listing-image"
+              error-icon="fas fa-utensils"
+            />
 
             <!-- Discount start time -->
             <div v-if="listing.discountTime" class="discount-time-badge">
@@ -243,11 +253,13 @@ import {
 } from '@/components/hawker/useSharedListings';
 
 import EditModal from '@/components/hawker/editModal/editModal.vue';
+import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
   name: "HawkerListings",
   components: {
-    EditModal
+    EditModal,
+    ImageWithLoader
   },
   setup() {
     onMounted(() => {

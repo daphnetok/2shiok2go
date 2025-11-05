@@ -11,12 +11,14 @@ import {
   userListings
 } from '@/components/hawker/useSharedListings';
 import AIFoodDescription from './AIFoodDescription.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
 import { getDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'vue-router';
 
 export default {
+  components: { AIFoodDescription, LoadingSpinner },
   setup() {
     const form = reactive({
       itemName: "",
