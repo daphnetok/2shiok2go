@@ -10,8 +10,7 @@
 a,
 .green {
   text-decoration: none;
-  /* color: hsla(160, 100%, 37%, 1); */
-  color: #ffff;
+  color: #059669;
   transition: 0.4s;
   padding: 3px;
 }
@@ -41,7 +40,7 @@ a,
   color: rgb(71, 153, 71);
 }
 .icon-green {
-  color: rgb(71, 153, 71);
+  color: #059669;
   background-color: #F4F7F2;
   border-radius: 20%;
   padding: 7px;
@@ -53,7 +52,7 @@ a,
   color: #F4F7F2;
 }
 .icon-red {
-  color: rgb(71, 153, 71);
+  color: rgb(213, 63, 63);
   background-color: #F4F7F2;
   border-radius: 20%;
   padding: 7px;
@@ -64,17 +63,17 @@ a,
   color: #F4F7F2;
 }
 .btn-green{
-  background-color: rgb(71, 153, 71);
+  background-color: #059669;
   color: white;
   font-weight: 500;
 }
 .btn-green:hover{
-  background-color: rgb(59, 126, 59);
+  background-color: #047857;
   color: white;
   font-weight: 500;
 }
 input:checked.toggle-slider { 
-  background-color: rgb(59, 126, 59);
+  background-color: #059669;
   border: none;
 }
 .hide {
@@ -260,20 +259,6 @@ input:checked.toggle-slider {
   .btn-delete,
   .btn-confirm {
     width: 100%;
+    margin: 0px
   }
-}
-
-/* Back Button */
-.back-btn {
-  background: white;
-  border: 2px solid #e0e0e0;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #666;
 }

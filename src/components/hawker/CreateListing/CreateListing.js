@@ -118,7 +118,7 @@ export default {
       
       await createListing(listingData);
       await applyDiscountTime(); // Apply discount time to selected listings right after creating
-      showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
+      showAlert('redirect', 'What do you want to do next?');
       resetForm();
     } catch (error) {
       console.error("Error creating listing: ", error);
@@ -155,9 +155,8 @@ export default {
       }
     });
 
-    const goToHome = () => {
+    const close = () => {
       this.closeAlert();
-      this.$router.push('/hawker-dashboard');
     };
     // handleBackdropClick = () => {
     //   // Only close on backdrop click for success/error, not confirmation
@@ -268,7 +267,7 @@ export default {
       showConfirmation,
       confirmationConfirm,
       confirmationCancel,
-      goToHome,
+      close,
       createNewListing,
       currentUser,
       userRole,
