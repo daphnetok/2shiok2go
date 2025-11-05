@@ -166,20 +166,15 @@
               </div>
 
               <div class="order-footer">
-                <button v-if="order.status === 'completed'" class="btn btn-outline-success btn-sm" style="border-radius: 8px;">
+                <!-- Write Review Button: Shows for completed orders, or uncomment below to show for all orders during testing -->
+                <button v-if="order.status === 'completed' || order.status === 'pending' || order.status === 'accepted'" 
+                        class="btn btn-outline-success btn-sm" 
+                        style="border-radius: 8px;"
+                        @click="writeReview(order.orderID || order.id)">
                   <i class="fas fa-star me-2"></i>Write Review
                 </button>
-                <button v-if="order.status === 'reserved' || order.status === 'accepted'" 
-                        class="btn btn-outline-danger btn-sm" 
-                        style="border-radius: 8px;"
-                        @click="cancelOrder(order.id)">
-                  <i class="fas fa-times me-2"></i>Cancel Order
-                </button>
-                <button class="btn btn-outline-success btn-sm" 
-                        style="border-radius: 8px;"
-                        @click="contactSupport(order.id)">
-                  <i class="fas fa-headset me-2"></i>Contact Us
-                </button>
+                <!-- For production, use only: v-if="order.status === 'completed'" -->
+                
                 <button class="btn btn-outline-primary btn-sm" 
                         style="border-radius: 8px;"
                         @click="viewOrderDetails(order.id)">
@@ -278,7 +273,15 @@ export default {
           console.log('Calculated total:', calculateTotal(fetchedOrders[0]))
         }
         
-        orders.value = fetchedOrders
+        // Sort by most recent first (newest to oldest) by default
+        const sortedOrders = [...fetchedOrders].sort((a, b) => {
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
+          return dateB - dateA // Most recent first
+        })
+        
+        orders.value = sortedOrders
+        console.log('Orders sorted by most recent:', sortedOrders.length)
       } catch (error) {
         console.error('Error fetching orders:', error)
       } finally {
@@ -369,6 +372,7 @@ export default {
     // Get status class
     const getStatusClass = (status) => {
       const classes = {
+        pending: 'status-reserved',
         reserved: 'status-reserved',
         accepted: 'status-accepted',
         completed: 'status-completed',
@@ -380,6 +384,7 @@ export default {
     // Get status icon
     const getStatusIcon = (status) => {
       const icons = {
+        pending: 'fas fa-clock',
         reserved: 'fas fa-clock',
         accepted: 'fas fa-check-circle',
         completed: 'fas fa-check-double',
@@ -394,6 +399,15 @@ export default {
       document.body.classList.toggle('dark-mode', isDarkMode.value)
       document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
       localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
+    }
+
+    // Write review - navigate to review page with order ID
+    const writeReview = (orderId) => {
+      console.log('Navigating to review page with orderId:', orderId)
+      router.push({ 
+        path: '/reviews', 
+        query: { orderId: orderId }
+      })
     }
 
     // View order details - navigate to receipt page
@@ -441,6 +455,7 @@ export default {
       filteredOrders,
       toggleTheme,
       cancelOrder,
+      writeReview,
       viewOrderDetails,
       contactSupport,
       formatDate,
