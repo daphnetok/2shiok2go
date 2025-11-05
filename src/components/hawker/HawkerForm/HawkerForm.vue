@@ -66,10 +66,9 @@
                     v-model="form.closingTime"
                     name="closingTime"
                     required
-                    />
-                </div> <!-- This closing div was missing -->
-            </div> <!-- This closing div was missing as well -->
-
+                />
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Price Range</label>
                 <div class="price-range-options">
