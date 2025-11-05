@@ -19,6 +19,7 @@ import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
 import ContactSupport from '../views/ContactSupport.vue'
+import LocationForm from '../components/buyer/LocationForm/LocationMap.vue';
 
 const routes = [
   { path: '/', component: Home },
@@ -59,6 +60,7 @@ const routes = [
     component: ContactSupport,
     props: route => ({ orderId: route.query.orderId })
   },
+  { path: '/add-location', component: LocationForm }
 ]
 
 const router = createRouter({

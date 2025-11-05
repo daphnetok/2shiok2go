@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-4">
+  <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
      <!-- Backdrop Overlay -->
   <transition name="backdrop-fade">
     <div 
@@ -60,7 +60,7 @@
               <span>Cancel</span>
             </button>
             <button 
-              v-if="alert.actionType === 'Delete'" 
+              v-if="alert.actionType === '`Delete`'" 
               class="btn-danger" 
               @click="confirmationConfirm"
             >
@@ -79,12 +79,14 @@
 
           <!-- Redirect Buttons -->
           <div v-else-if="alert.type === 'redirect'" class="button-group-vertical">
-            <button class="btn-primary-large" @click="goToHome">
-              <i class="fas fa-th-large"></i>
-              <span>View All My Listings</span>
-              <i class="fas fa-arrow-right"></i>
-            </button>
-            <button class="btn-secondary-outline" @click="createNewListing">
+            <router-link to="/hawker-dashboard">
+              <button class="btn-primary-large w-100 m-0" @click="closeAlert">
+                <i class="fas fa-th-large"></i>
+                <span>View All My Listings</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </router-link>
+            <button class="btn-secondary-outline w-100 m-0" @click="closeAlert">
               <i class="fas fa-plus"></i>
               <span>Create Another Listing</span>
             </button>
@@ -105,8 +107,8 @@
   </transition>
 
 
-    <div class="top-header mx-3">
-      <button @click="goBack" class="back-btn">
+    <div class="top-header">
+      <button @click="goBack" class="create-listing back-btn">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
       <h2 class="m-0">Create A New Listing</h2>
@@ -132,13 +134,13 @@
     </div>
 
     <!-- Listing Form - Only for Hawkers -->
-    <div v-else-if="isHawker">
+    <div v-else-if="isHawker" class="form-bg">
       <form id="form" @submit.prevent="onSubmit">
-        <div class="row mx-3 py-4">
+        <div class="mx-5 py-4">
 
         <!-- Image upload-->
          <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-4 p-0 p-md-5">
 
               <div id="img-container" class="container mb-3" v-show="selectedFile"> 
                 <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
@@ -148,10 +150,10 @@
                 </span>
               </div>
             
-              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2" style="width:90%">
+              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2 w-100" style="overflow:auto;">
                 <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg" />
-                  <span v-if="!previewSelectedFileSRC" class="green"><b>Upload Photo</b></span>
-                  <span v-else class="green"><b>Change Photo</b></span>
+                  <span v-if="!previewSelectedFileSRC"><b>Upload Photo</b></span>
+                  <span v-else><b>Change Photo</b></span>
                     <br> by clicking here to browse or drag and drop here </label>
                 <input type="file" accept="image/jpeg, image/png, image/jpg" 
                   @change="onFileSelected" ref="fileInput">
@@ -159,11 +161,13 @@
 
             </div>
               
-            <div class="col-md-8 px-md-5">
+            <div class="col-md-8 p-0">
               <!-- Item Name field -->
               <label class="form-label">Item Name</label>
-              <input type="text" class="form-control mb-4" required 
-                  placeholder="Type food name here" v-model="form.itemName" name="itemName">
+              <div>
+                <input type="text" class="form-control mb-4" required 
+                    placeholder="Type food name here" v-model="form.itemName" name="itemName">
+              </div>
 
               <!-- AI Food Description Component -->
               <AIFoodDescription 
@@ -175,13 +179,13 @@
        
 
         <!-- Price & Discount fields-->
-        <div class="row mb-3 px-4">
-          <div class="price-input-container col">
+        <div class="row mb-3 px-md-5">
+          <div class="price-input-container col-md-6 p-0 p-md-2">
             <label class="form-label">Original Price</label>
             <input type="number" class="form-control mb-3" style="padding-left:30px" required 
                 step="0.01" v-model.number="form.itemPrice" name="itemPrice">
           </div>
-          <div class="col">
+          <div class="col-md-6 p-0 p-md-2">
             <label class="form-label">Discount (%)</label>
             <input type="number" class="form-control mb-3" required 
                 step="0.01" v-model.number="form.discount" name="discount">
@@ -192,9 +196,9 @@
         </div>
           
 
-          <div class="row mb-3 px-4">
+          <div class="row mb-3 px-md-5">
             <!-- Time of discount -->
-            <div class="col-md-6">
+            <div class="col-md-6 p-0 p-md-2">
               <label class="form-label">Set Discount Start Time</label>
               <input
                 type="time"
@@ -204,7 +208,7 @@
               >
             </div>
             <!-- This dropdown will appear only if hawker has listings -->
-            <div class="col-md-6" v-if="userListings">
+            <div class="col-md-6 p-0 p-md-2" v-if="userListings">
                 <label class="form-label">Apply Discount Start Time To</label>
 
                 <div class="border rounded p-3 bg-white text-dark">
@@ -243,18 +247,18 @@
           </div>
 
         <!-- Quantity field -->
-         <div class="row mb-5 px-4">
-           <div class="col-md-6">
-             <label class="form-label">Quantity</label>
+         <div class="row mb-3 px-md-5">
+           <label class="form-label">Quantity</label>
+           <div class="col-md-6 p-0 p-md-2">
              <input type="number" class="form-control" required 
                v-model.number="form.itemQty" name="itemQty">
           </div>
          </div>
 
         <!-- Allergen types checkboxes-->
-         <div class="row mb-3 px-4">
+         <div class="row mb-3 px-md-5 p-0 p-md-2">
            <label class="form-label">Allergens</label>
-           <div class="border rounded p-3 bg-white" style="margin-left:10px; width:451px">
+           <div class="border rounded p-3 bg-white col-md-6" style="margin-left:10px">
              <input type="checkbox" value="Eggs" v-model="form.allergens">
                <label class="text-dark">Eggs</label>
              <br>
@@ -277,9 +281,9 @@
          </div>
 
         <!-- Tags -->
-         <div class="row mb-3 px-4">
+         <div class="row mb-3 px-md-5 p-0 p-md-2">
            <label class="form-label">Tags</label>
-           <div class="mb-5 border rounded p-3 bg-white" style="margin-left:10px; width:451px">
+           <div class="mb-5 border rounded p-3 bg-white col-md-6" style="margin-left:10px">
              <input type="checkbox" value="Halal" v-model="form.tags" >
                <label class="text-dark">Halal</label>
              <br>
@@ -296,7 +300,7 @@
          </div>
 
         <!-- Make Active Toggle Switch -->
-         <div class="row mb-3 px-4 " style="margin-left:10px">
+         <div class="row mb-3 px-md-5 p-0 p-md-2" style="margin-left:10px">
            <div class="form-check form-switch mb-3">
              <input v-model="form.makeActive" class="form-check-input" 
                type="checkbox" value="toList" role="switch">
@@ -316,9 +320,11 @@
 
         <br>
         <br>
-        <button class="form-control btn btn-success mb-3" type="submit" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Uploading...' : 'Confirm' }}
-        </button>
+        <div class="row p-0 p-md-2">
+          <button class="btn-outline-primary btn mb-3" type="submit" :disabled="isSubmitting">
+            {{ isSubmitting ? 'Uploading...' : 'Confirm' }}
+          </button>
+        </div>
         <p v-if="errorMsg" class="fw-bold text-danger">
           {{ errorMsg }}
         </p>
@@ -333,7 +339,8 @@
 </template>
 
 <script src="./CreateListing.js">
-import HawkerForm from '../HawkerForm/HawkerForm.js';
+import { closeAlert } from '../useSharedListings.js';
+
 
 
 export default {
@@ -341,4 +348,7 @@ export default {
 }
 </script>
 
-<style src="/src/assets/css/CreateListing.css"></style>
+<style scoped>
+@import '/src/assets/css/CreateListing.css';
+@import '/src/assets/css/dashboard-theme.css';
+</style>

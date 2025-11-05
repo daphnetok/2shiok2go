@@ -222,9 +222,8 @@
 /* Filter Dropdown */
 .filter-dropdown {
   position: relative;
-  margin: auto;
+  margin: 0px;
   display: flex;
-  margin:0px;
 }
 
 .filter-btn {
