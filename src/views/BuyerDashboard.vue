@@ -70,11 +70,26 @@
             </div>
             <div class="col-lg-4">
               <div class="stat-card stat-card-warning h-100">
-                <div class="stat-icon">🔥</div>
+                <div class="stat-icon">🌍</div>
                 <div class="stat-content">
-                  <h3 class="stat-value">{{ stats.orderStreak }} {{ stats.orderStreak === 1 ? 'day' : 'days' }}</h3>
-                  <p class="stat-label">Order Streak</p>
-                  <p class="stat-detail">🎯 Keep it going!</p>
+                  <h3 class="stat-value">{{ stats.carbonSaved }}</h3>
+                  <p class="stat-label">Carbon Saved</p>
+                  <p class="stat-detail">🎯 {{ stats.achievement }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Achievement Banner -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="achievement-banner">
+                <div class="achievement-content">
+                  <span class="achievement-icon">🎯</span>
+                  <div>
+                    <h5 class="mb-1 fw-bold">Achievement: "{{ stats.achievement }}"</h5>
+                    <p class="mb-0 text-muted">🥳 Keep saving meals to reach Lv. 3!</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -332,83 +347,6 @@ export default {
       }
     }
 
-    // Calculate order streak (consecutive days with orders)
-    const calculateOrderStreak = (orders) => {
-      console.log('🔥 calculateOrderStreak called with', orders?.length, 'orders')
-      
-      if (!orders || orders.length === 0) {
-        console.log('❌ No orders found, returning 0')
-        return 0
-      }
-
-      // Helper function to get local date string (YYYY-MM-DD) without timezone issues
-      const getLocalDateStr = (date) => {
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        return `${year}-${month}-${day}`
-      }
-
-      // Get unique order dates (YYYY-MM-DD format using LOCAL time)
-      const orderDates = new Set()
-      orders.forEach(order => {
-        const orderDate = order.timestamp?.toDate ? order.timestamp.toDate() : new Date(order.timestamp || order.createdAt)
-        const dateStr = getLocalDateStr(orderDate)
-        orderDates.add(dateStr)
-        console.log('  📅 Order date:', dateStr, '| Raw timestamp:', order.timestamp)
-      })
-
-      // Sort dates in descending order (most recent first)
-      const sortedDates = Array.from(orderDates).sort((a, b) => new Date(b) - new Date(a))
-      
-      console.log('📊 Unique order dates (sorted):', sortedDates)
-      
-      if (sortedDates.length === 0) {
-        console.log('❌ No valid dates, returning 0')
-        return 0
-      }
-
-      // Check if the most recent order is today or yesterday (using LOCAL time)
-      const today = new Date()
-      const todayStr = getLocalDateStr(today)
-      
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayStr = getLocalDateStr(yesterday)
-      
-      const mostRecentDate = sortedDates[0]
-      
-      console.log('📆 Today:', todayStr, '| Yesterday:', yesterdayStr, '| Most recent order:', mostRecentDate)
-      
-      // If the most recent order is not today or yesterday, streak is broken
-      if (mostRecentDate !== todayStr && mostRecentDate !== yesterdayStr) {
-        console.log('❌ Streak broken - most recent order is not today or yesterday')
-        return 0
-      }
-
-      // Count consecutive days
-      let streak = 1
-      let currentDate = new Date(mostRecentDate + 'T00:00:00')
-      
-      for (let i = 1; i < sortedDates.length; i++) {
-        const prevDate = new Date(currentDate)
-        prevDate.setDate(prevDate.getDate() - 1)
-        const expectedPrevDateStr = getLocalDateStr(prevDate)
-        
-        if (sortedDates[i] === expectedPrevDateStr) {
-          streak++
-          currentDate = new Date(sortedDates[i] + 'T00:00:00')
-          console.log('  ✅ Consecutive day found:', sortedDates[i], '| Streak:', streak)
-        } else {
-          console.log('  ❌ Gap found - Expected:', expectedPrevDateStr, 'Got:', sortedDates[i])
-          break // Streak broken
-        }
-      }
-      
-      console.log('🔥 Final order streak:', streak, 'days')
-      return streak
-    }
-
     // Fetch orders from Firestore and calculate stats
     const fetchOrdersData = async (uid, shouldSave = false) => {
       try {
@@ -551,9 +489,6 @@ export default {
           }
           
           stats.value.achievement = getAchievementLevel(totalMeals)
-          
-          // Calculate order streak
-          stats.value.orderStreak = calculateOrderStreak(orders)
           
           // Update the display count (this is shown in the welcome message)
           rescuedMealsCount.value = totalMeals
@@ -762,13 +697,6 @@ export default {
           const newTotalMeals = rescuedMealsCount.value
           const newCalculatedStats = await updatePetFromMeals(newTotalMeals)
           
-          // Always update treats when orders change (each meal = 1 treat)
-          const treatsEarned = newTotalMeals - (petData.value.treats || 0)
-          if (treatsEarned > 0) {
-            petData.value.treats = newTotalMeals // Set treats to total meals
-            console.log(`🍪 Treats updated! +${treatsEarned} treats earned. Total: ${petData.value.treats}`)
-          }
-          
           // Update level if it increased (from new orders)
           if (newCalculatedStats.calculatedLevel > petData.value.level) {
             const oldLevel = petData.value.level
@@ -776,14 +704,17 @@ export default {
             petData.value.progress = newCalculatedStats.calculatedProgress
             petData.value.mealsToLevelUp = 10 - newCalculatedStats.mealsInCurrentLevel
             
+            // Add treats for new order (only the difference)
+            const treatsEarned = newTotalMeals - (petData.value.treats || 0)
+            if (treatsEarned > 0) {
+              petData.value.treats = (petData.value.treats || 0) + treatsEarned
+            }
+            
             showMessage(`🎉 Level Up! Now Level ${newCalculatedStats.calculatedLevel}!`, 'success')
-          } else if (treatsEarned > 0) {
-            // Show message for treats earned (when not leveling up)
-            showMessage(`� +${treatsEarned} treat${treatsEarned > 1 ? 's' : ''} earned!`, 'success')
+            
+            // Save updated stats
+            await savePetData()
           }
-          
-          // Always save updated pet data when orders change
-          await savePetData()
         }, (error) => {
           console.error('❌ Error listening to orders:', error)
         })
@@ -813,7 +744,7 @@ export default {
       avgDiscount: 0,
       foodRescued: '0 kg',
       mealsCount: 0,
-      orderStreak: 0,
+      carbonSaved: '0 g CO₂',
       achievement: '🌏 Eco Starter'
     })
 

@@ -1,4 +1,4 @@
-import { reactive, ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue';
+import { reactive, ref, onBeforeUnmount, computed, onMounted, watch } from 'vue';
 import { createListing, updateListing } from '/firebase/firestore';
 import { uploadImage } from '/firebase/storage';
 import { 
@@ -8,13 +8,15 @@ import {
   showConfirmation, 
   confirmationConfirm, 
   confirmationCancel ,
-  userListings
+  userListings,
+  activeListings,
+  inactiveListings,
 } from '@/components/hawker/useSharedListings';
 import AIFoodDescription from './AIFoodDescription.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../../../firebase/config';
-import { getDoc, doc } from 'firebase/firestore';
+import { getDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -47,7 +49,10 @@ export default {
     const selectedListing = ref("all");
     const selectedListings = ref([]);
     const selectAll = ref(false);
+    const selectAllActive = ref(false);
+    const selectAllInactive = ref(false);
     const router = useRouter();
+    const itemNameError = ref("");
 
     const discountedPrice = computed(() => {
       if(!form.itemPrice || !form.discount) return '';
@@ -86,13 +91,16 @@ export default {
       errors.push("Quantity cannot be less than 0.");
     }
     if (form.discount > 100 || form.discount < 0) {
-      errors.push("Discount must be in the range of 1 to 99.");
+      errors.push("Discount must be in the range of 1 to 100.");
     }
     if (!currentUser.value) {
       errors.push("You must be logged in to create a listing.");
     }
     if (!currentUser.value?.displayName) {
       errors.push("Your account doesn't have a display name set.");
+    }
+    if (itemNameError.value) {
+      errors.push(itemNameError.value);
     }
 
     if (errors.length > 0) {
@@ -120,7 +128,7 @@ export default {
       
       await createListing(listingData);
       await applyDiscountTime(); // Apply discount time to selected listings right after creating
-      showAlert('redirect', '✓ Listing created successfully! \n What do you want to do next?');
+      showAlert('redirect', 'What do you want to do next?');
       resetForm();
     } catch (error) {
       console.error("Error creating listing: ", error);
@@ -157,9 +165,8 @@ export default {
       }
     });
 
-    const goToHome = () => {
+    const close = () => {
       this.closeAlert();
-      this.$router.push('/hawker-dashboard');
     };
     // handleBackdropClick = () => {
     //   // Only close on backdrop click for success/error, not confirmation
@@ -186,6 +193,34 @@ export default {
         return null;
       }
     };
+
+    watch(
+      () => form.itemName,
+      async (newName) => {
+        itemNameError.value = ""; // clear previous error
+
+        if (!newName || !currentUser.value) return;
+
+        const trimmedName = newName.trim();
+        if (!trimmedName) return;
+
+        try {
+          const listingsRef = collection(db, "itemListings");
+          const q = query(
+            listingsRef,
+            where("userId", "==", currentUser.value.uid),
+            where("itemName", "==", trimmedName)
+          );
+          const snapshot = await getDocs(q);
+
+          if (!snapshot.empty) {
+            itemNameError.value = "This food item name already exists. Please choose a different name.";
+          }
+        } catch (error) {
+          console.error("Error checking duplicate name:", error);
+        }
+      }
+    );
 
     onMounted(() => {
       onAuthStateChanged(auth, async (user) => {
@@ -236,17 +271,56 @@ export default {
       }
     };
 
+    // Select / Deselect all listings
     const toggleSelectAll = () => {
-      // Get all checkbox IDs from userListings
-      const allIds = userListings.value.map((l) => l.id);
-
-      // If selectAll is true, mark all as checked
+      const allIds = userListings.value.map(l => l.id);
       if (selectAll.value) {
-        selectedListings.value = [...allIds];  // “checkbox.checked = true”
+        selectedListings.value = [...allIds];
       } else {
-        selectedListings.value = [];           // uncheck all
+        selectedListings.value = [];
       }
     };
+
+    // Select / Deselect all active listings
+    const toggleSelectAllActive = () => {
+      const activeIds = activeListings.value.map(l => l.id);
+      if (selectAllActive.value) {
+        // Add any missing active listings to selection
+        selectedListings.value = Array.from(new Set([...selectedListings.value, ...activeIds]));
+      } else {
+        // Remove all active listings from selection
+        selectedListings.value = selectedListings.value.filter(id => !activeIds.includes(id));
+      }
+    };
+
+    // Select / Deselect all inactive listings
+    const toggleSelectAllInactive = () => {
+      const inactiveIds = inactiveListings.value.map(l => l.id);
+      if (selectAllInactive.value) {
+        selectedListings.value = Array.from(new Set([...selectedListings.value, ...inactiveIds]));
+      } else {
+        selectedListings.value = selectedListings.value.filter(id => !inactiveIds.includes(id));
+      }
+    };
+
+
+    // --- WATCHERS FOR AUTO-DESELECT LOGIC ---
+    // Watch selected listings
+    watch(selectedListings, (newSelected) => {
+      const allIds = userListings.value.map(l => l.id);
+      const activeIds = activeListings.value.map(l => l.id);
+      const inactiveIds = inactiveListings.value.map(l => l.id);
+
+      // Update "Select All My Listings"
+      selectAll.value = newSelected.length === allIds.length;
+
+      // Update "Select All Active Listings"
+      selectAllActive.value = activeIds.length > 0 && activeIds.every(id => newSelected.includes(id));
+
+      // Update "Select All Inactive Listings"
+      selectAllInactive.value = inactiveIds.length > 0 && inactiveIds.every(id => newSelected.includes(id));
+    });
+
 
     const goBack = () => {
       router.go(-1);
@@ -270,7 +344,7 @@ export default {
       showConfirmation,
       confirmationConfirm,
       confirmationCancel,
-      goToHome,
+      close,
       createNewListing,
       currentUser,
       userRole,
@@ -281,9 +355,16 @@ export default {
       applyDiscountTime,
       toggleSelectAll,
       userListings,
+      activeListings,
+      inactiveListings,
       selectedListings,
       selectAll,
-      goBack
+      toggleSelectAllActive,
+      toggleSelectAllInactive,
+      selectAllActive,
+      selectAllInactive,
+      goBack,
+      itemNameError
     };
   },
   components : {AIFoodDescription}

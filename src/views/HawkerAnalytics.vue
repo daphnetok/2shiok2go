@@ -858,24 +858,6 @@ export default {
         this.hawkerListingId = hawkerListingId
   // Store the hawker owner's userId (used when navigating to buyer-view-stall/:userId)
   this.hawkerOwnerId = hawkerData.userId || null
-q)
-        
-        if (querySnapshot.empty) {
-          console.warn('⚠️ No hawker listing found for this user')
-          this.hawkerName = 'Hawker'
-          this.hawkerOpeningHours = 'Hours not available'
-          this.hawkerRating = 0
-          this.hawkerReviewCount = 0
-          return
-        }
-        
-        // Get the first (should be only) hawker listing for this user
-        const hawkerDoc = querySnapshot.docs[0]
-        const hawkerListingId = hawkerDoc.id
-        const hawkerData = hawkerDoc.data()
-        
-        // Store the hawker listing ID for later use
-        this.hawkerListingId = hawkerListingId
         
         console.log('📦 Hawker listing found:', hawkerListingId)
         console.log('📦 Hawker data:', hawkerData)

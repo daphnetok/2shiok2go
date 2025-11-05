@@ -3,10 +3,10 @@ import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
+import { getUserLocation, calculateDistance } from '@/assets/composables/useGeolocation';
 
 export default {
   name: "StallListings",
@@ -35,6 +35,22 @@ export default {
     }
 ,
 
+    isStallOpen() {
+      if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
+        return true; // Default to open if no time specified
+      }
+      
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      const [openHour, openMin] = this.hawker.openingTime.split(':').map(Number);
+      const [closeHour, closeMin] = this.hawker.closingTime.split(':').map(Number);
+      
+      const openingTimeInMinutes = openHour * 60 + openMin;
+      const closingTimeInMinutes = closeHour * 60 + closeMin;
+      
+      return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
+    },
   },
   setup(props, { emit }) {
     const route = useRoute();
@@ -153,16 +169,44 @@ export default {
       
       if (route.params.userId) {
         try {
+          // Get user location for distance calculation
+          let userCoords = null;
+          try {
+            userCoords = await getUserLocation();
+            console.log('User location obtained:', userCoords);
+          } catch (locationError) {
+            console.warn('Could not get user location:', locationError);
+            // Continue without location - distance will be 'N/A'
+          }
+
           const hawkersRef = collection(db, 'hawkerListings');
           const q = query(hawkersRef, where('userId', '==', route.params.userId));
           const querySnapshot = await getDocs(q);
           
           if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
+            const data = docSnap.data();
             hawker.value = {
               id: docSnap.id,
-              ...docSnap.data()
+              ...data
             };
+
+            // Calculate distance if we have both user and hawker coordinates
+            if (userCoords && userCoords.latitude && userCoords.longitude && 
+                data.address?.latitude && data.address?.longitude) {
+              const distance = calculateDistance(
+                userCoords.latitude,
+                userCoords.longitude,
+                data.address.latitude,
+                data.address.longitude
+              );
+              // Apply same ROAD_FACTOR as ListingGrid (1.1x multiplier)
+              hawker.value.distance = parseFloat((distance * 1.1).toFixed(1));
+              console.log('Distance calculated:', hawker.value.distance);
+            } else {
+              hawker.value.distance = 'N/A';
+              console.log('Distance set to N/A - missing coordinates');
+            }
 
             if (hawker.value.favouritedUser && hawker.value.favouritedUser.includes(userId.value)) {
               isLiked.value = true;
@@ -252,11 +296,12 @@ export default {
             discountTime: data.discountTime,
             imageUrl: data.imageUrl,
             description: data.description || '',
+            tags: data.tags || [],
+            allergens: data.allergens || [],
             count: savedData.qty,
             notes: savedData.notes,
             hover: false
           };
-          
           // Add to selectedItems if count > 0
           if (savedData.qty > 0) {
             selectedItems.value.push({ ...item });
