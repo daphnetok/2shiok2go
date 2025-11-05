@@ -12,7 +12,7 @@
           </li>
           <li class="tab-item" style="padding:0">
             <router-link to="/orders-table" class="tab-link">
-              <i class="fas fa-list"></i>
+              <i class="fas fa-clipboard-list"></i>
               <span>Orders Management</span>
             </router-link>
           </li>
@@ -25,7 +25,7 @@
           <li class="tab-item" style="padding:0">
             <router-link to="/edit-form" class="tab-link">
               <i class="fas fa-file-edit"></i>
-              <span>Edit My Form</span>
+              <span>Edit Stall Info</span>
             </router-link>
           </li>
         </ul>

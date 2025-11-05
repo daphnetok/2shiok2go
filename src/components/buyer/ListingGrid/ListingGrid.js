@@ -8,7 +8,6 @@ import { useGeolocation, reverseGeocode } from '@/assets/composables/useGeolocat
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db } from '/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default {
   name: 'ListingGrid',
