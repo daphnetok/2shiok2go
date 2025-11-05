@@ -66,6 +66,7 @@
                     name="closingTime"
                     required
                 />
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Price Range</label>
