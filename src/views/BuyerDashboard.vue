@@ -356,7 +356,7 @@ export default {
         // Try with orderBy first (requires index)
         let ordersSnapshot
         try {
-          const q = query(ordersRef, where('buyerId', '==', uid), orderBy('timestamp', 'desc'))
+          const q = query(ordersRef, where('userId', '==', uid), orderBy('timestamp', 'desc'))
           ordersSnapshot = await getDocs(q)
         } catch (indexError) {
           if (indexError.code === 'failed-precondition' || indexError.code === 9) {
@@ -366,7 +366,7 @@ export default {
               console.warn('🔗 Create index at:', indexUrl)
             }
             // Fallback: query without orderBy
-            const simpleQuery = query(ordersRef, where('buyerId', '==', uid))
+            const simpleQuery = query(ordersRef, where('userId', '==', uid))
             ordersSnapshot = await getDocs(simpleQuery)
           } else {
             throw indexError
@@ -685,7 +685,7 @@ export default {
         // Set up real-time listener for orders
         console.log('👂 Setting up real-time orders listener...')
         const ordersRef = collection(db, 'orders')
-        const ordersQuery = query(ordersRef, where('buyerId', '==', user.uid))
+        const ordersQuery = query(ordersRef, where('userId', '==', user.uid))
         
         ordersUnsubscribe = onSnapshot(ordersQuery, async (snapshot) => {
           console.log('🔔 Orders changed! New order detected...')
