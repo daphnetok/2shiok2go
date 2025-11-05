@@ -41,15 +41,19 @@
       <!-- Content Section -->
       <div class="content-section">
         <p class="text-muted">Edit your hawker stall information here.</p>
-        <!-- HawkerForm component can be added here later -->
+        <HawkerStallForm/>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue'
 export default {
-  name: 'EditForm'
+  name: 'EditForm',
+  components: {
+    HawkerStallForm
+  }
 }
 </script>
 
