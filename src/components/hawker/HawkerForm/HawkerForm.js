@@ -44,6 +44,7 @@ export default {
     const selectedFile = ref(null);
     const previewSelectedFileSRC = ref('');
     const fileInput = ref(null);
+    const showToast = ref(false);
 
     // prepopulate form when hawkerData prop changes
     watch (() => props.hawkerData, async (data) => {
@@ -128,6 +129,7 @@ export default {
           // Update existing hawker
           await updateHawker(props.hawkerData.id, hawkerDataToSave);
           successMsg.value = 'Hawker stall updated successfully!';
+          showToast.value = true;
           emit('stallUpdated');
         } else {
           // Create new hawker
@@ -161,6 +163,11 @@ export default {
       }
     };
 
+    const closeToast = () => {
+      showToast.value = false;
+      successMsg.value = false;
+    }
+
     onBeforeUnmount(() => {
       if(previewSelectedFileSRC.value) {
         URL.revokeObjectURL(previewSelectedFileSRC.value);
@@ -178,7 +185,9 @@ export default {
       onAddressSelected,
       handleSubmit,
       onFileSelected,
-      removeFile
+      removeFile,
+      showToast,
+      closeToast
     };
   }
 };

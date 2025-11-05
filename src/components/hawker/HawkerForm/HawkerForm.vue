@@ -3,9 +3,15 @@
         <div v-if="errorMsg" class="alert alert-danger">
             {{ errorMsg }}
         </div>
-        <div v-if="successMsg" class="alert alert-success">
-            {{ successMsg }}
+        
+        <!-- Toast Notification -->
+         <div v-if="showToast" class="toast-notification ">
+            <div class="toast-content">
+                <p class="toast-message">{{ successMsg }}</p>
+                <button class="btn btn-ok" @click="closeToast">OK</button>
+            </div>
         </div>
+
         <form @submit.prevent="handleSubmit">
             <div class="form-group">
                 <label class="form-label">Stall Image</label>
