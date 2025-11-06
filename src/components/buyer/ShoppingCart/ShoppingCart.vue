@@ -148,7 +148,7 @@
               <span><b>Total Available for Purchase</b></span>
               <span class="available-payable">${{ safeToFixed(availableTotal) }}</span>
             </div>
-            <div class="payment-row saved-message">
+            <div v-if="safeCalculateDiscount() >= 0" class="payment-row saved-message">
               <span class="normal">
                 🎉 Congratulations! You saved 
                 <span class="highlight">${{ safeToFixed(safeCalculateDiscount()) }}</span>

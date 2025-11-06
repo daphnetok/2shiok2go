@@ -156,6 +156,8 @@ const handleStallUpdated = () => {
   border-radius: 20px;
   padding: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  max-width: 1000px; /* improve readability on wide screens */
+  margin: 0 auto; /* center the card */
 }
 
 .text-muted {

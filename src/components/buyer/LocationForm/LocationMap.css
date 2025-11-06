@@ -19,6 +19,9 @@
   background: transparent;
   z-index: 45;
   cursor: pointer;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 /* Exit Button */
