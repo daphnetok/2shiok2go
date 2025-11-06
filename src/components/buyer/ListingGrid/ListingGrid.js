@@ -22,6 +22,10 @@ export default {
       type: String,
       default: null
     },
+    priceMax: {
+      type: Number,
+      default: 4
+    },
     dietary: {
       type: Array,
       default: () => []
@@ -335,18 +339,18 @@ export default {
       // Filter out hawkers with no active items
       list = list.filter(h => hasActiveItems(h));
 
-      // Filter by price range - check hawker's priceRange field
-      if (props.priceMax && props.priceMax < 20) {
-        console.log('💰 Price filter active: max price =', props.priceMax);
+      // Filter by price range (1-4) - Position 4 shows all, positions 1-3 filter
+      if (props.priceMax && props.priceMax < 4) {
+        console.log(`💰 Price filter active: showing priceRange 1-${props.priceMax}`);
         list = list.filter(hawker => {
-          // Get priceRange from hawker document (stored as string in Firebase)
-          const hawkerPriceRange = parseFloat(hawker.priceRange) || 0;
-          const matches = hawkerPriceRange <= props.priceMax;
+          // Get priceRange from hawker document (stored as 1, 2, 3, or 4)
+          const hawkerPriceRange = parseInt(hawker.priceRange) || 0;
+          const matches = hawkerPriceRange > 0 && hawkerPriceRange <= props.priceMax;
           
           if (!matches) {
             console.log(`❌ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} exceeds max ${props.priceMax}`);
           } else {
-            console.log(`✅ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} within max ${props.priceMax}`);
+            console.log(`✅ Hawker "${hawker.name || hawker.hawkerName}" priceRange=${hawkerPriceRange} within range 1-${props.priceMax}`);
           }
           
           return matches;
@@ -381,24 +385,27 @@ export default {
       // Sort by price if priceOrder is set
       if (props.priceOrder) {
         list.sort((a, b) => {
-          // Get minimum price for each hawker
-          const getMinPrice = (hawker) => {
-            if (!hawker.userId) return Infinity;
-            
-            const hawkerItems = itemListings.value.filter(item => {
-              return item.userId === hawker.userId && item.makeActive;
-            });
-            
-            if (hawkerItems.length === 0) return Infinity;
-            
-            const prices = hawkerItems.map(item => item.discountedPrice || item.itemPrice || 0);
-            return Math.min(...prices);
-          };
+          // PRIMARY SORT: Group by priceRange category (1=$, 2=$$, 3=$$$, 4=$$$$)
+          const priceRangeA = parseInt(a.priceRange) || 999;
+          const priceRangeB = parseInt(b.priceRange) || 999;
           
-          const priceA = getMinPrice(a);
-          const priceB = getMinPrice(b);
+          if (priceRangeA !== priceRangeB) {
+            // When priceOrder is 'asc', show $ first (1 < 2 < 3 < 4)
+            // When priceOrder is 'desc', show $$$$ first (4 > 3 > 2 > 1)
+            return props.priceOrder === 'asc' 
+              ? priceRangeA - priceRangeB 
+              : priceRangeB - priceRangeA;
+          }
           
-          return props.priceOrder === 'asc' ? priceA - priceB : priceB - priceA;
+          // SECONDARY SORT: Within same priceRange, sort by distance (closest first)
+          const da = getDistance(a);
+          const db = getDistance(b);
+          
+          if (da === 'N/A' && db === 'N/A') return 0;
+          if (da === 'N/A') return 1;
+          if (db === 'N/A') return -1;
+          
+          return da - db;
         });
       } else {
         // Default sort by distance
