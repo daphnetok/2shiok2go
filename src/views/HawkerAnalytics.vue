@@ -2,7 +2,34 @@
   <div class="hawker-analytics" :class="{ 'dark-theme': isDarkTheme }" style="min-height: 100vh; transition: all 0.3s ease;">
     <!-- Navigation Tabs -->
     <div class="container-fluid px-3 px-md-4">
-      <HawkerNavTabs/>
+      <nav class="tabs-nav">
+        <ul class="tabs-list">
+          <li class="tab-item" style="padding:0">
+            <router-link to="/hawker-dashboard" class="tab-link">
+              <i class="fas fa-home"></i>
+              <span>My Listings</span>
+            </router-link>
+          </li>
+          <li class="tab-item" style="padding:0">
+            <router-link to="/orders-table" class="tab-link">
+              <i class="fas fa-clipboard-list"></i>
+              <span>Orders Management</span>
+            </router-link>
+          </li>
+          <li class="tab-item active" style="padding:0">
+            <a href="#" class="tab-link">
+              <i class="fas fa-chart-simple"></i>
+              <span>Analytics</span>
+            </a>
+          </li>
+          <li class="tab-item" style="padding:0">
+            <router-link to="/edit-form" class="tab-link">
+              <i class="fas fa-file-edit"></i>
+              <span>Edit Stall Info</span>
+            </router-link>
+          </li>
+        </ul>
+      </nav>
     </div>
 
     <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
@@ -471,11 +498,10 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, orderBy, doc, getDoc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
-import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue'
 
 export default {
   name: 'HawkerAnalytics',
-  components: { ChartCard, CalendarCard, TodoList, LoadingSpinner, HawkerNavTabs },
+  components: { ChartCard, CalendarCard, TodoList, LoadingSpinner },
   data() {
     return {
       isDarkTheme: false,
@@ -530,7 +556,7 @@ export default {
         return true
       })
       
-      console.log(`📊 Filter: ${this.globalFilter}, Total Orders: ${this.allOrders.length}, Filtered: ${filtered.length}`)
+      
       return filtered
     },
 
@@ -551,7 +577,6 @@ export default {
       
       const totalSales = orders.reduce((sum, order) => {
         if (!order.items || !Array.isArray(order.items)) {
-          console.warn('Order has no items array:', order)
           return sum
         }
         const orderTotal = order.items.reduce((itemSum, item) => {
@@ -564,7 +589,7 @@ export default {
       
       const totalOrders = orders.length
       
-      console.log(`💰 Total Sales (${this.globalFilter}): $${totalSales.toFixed(2)}, Orders: ${totalOrders}`)
+      
       
       // Calculate peak hour
       const hourCounts = {}
@@ -665,7 +690,7 @@ export default {
       
       orders.forEach((order, index) => {
         if (!order.items || !Array.isArray(order.items)) {
-          console.warn('Order has no items:', order)
+          
           return
         }
         
@@ -709,7 +734,7 @@ export default {
         }
       })
       
-      console.log('Sales by period:', periods)
+      
       
       return {
         labels: labels.length > 0 ? labels : ['No Data'],
@@ -744,7 +769,7 @@ export default {
         }
       })
       
-      console.log('Peak hours data:', hourCounts)
+      
       
       return {
         labels: hours.map(h => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`),
@@ -808,10 +833,8 @@ export default {
     // Fetch hawker profile information
     async fetchHawkerProfile() {
       try {
-        console.log('📋 Fetching hawker profile for user:', this.currentHawkerId)
         
         if (!this.currentHawkerId) {
-          console.error('❌ No current hawker ID')
           return
         }
         
@@ -821,7 +844,6 @@ export default {
         const querySnapshot = await getDocs(q)
         
         if (querySnapshot.empty) {
-          console.warn('⚠️ No hawker listing found for this user')
           this.hawkerName = 'Hawker'
           this.hawkerOpeningHours = 'Hours not available'
           this.hawkerRating = 0
@@ -839,8 +861,7 @@ export default {
   // Store the hawker owner's userId (used when navigating to buyer-view-stall/:userId)
   this.hawkerOwnerId = hawkerData.userId || null
         
-        console.log('📦 Hawker listing found:', hawkerListingId)
-        console.log('📦 Hawker data:', hawkerData)
+        
         
         // Use hawkerName from hawkerListings collection
         this.hawkerName = hawkerData.hawkerName || hawkerData.name || hawkerData.stallName || 'Hawker'
@@ -858,14 +879,14 @@ export default {
           this.hawkerOpeningHours = 'Hours not specified'
         }
         
-        console.log('✅ Hawker profile loaded:', this.hawkerName, '|', this.hawkerOpeningHours)
+        
         
         // Fetch todos and calendar events from Firebase
         await this.fetchTodos()
         await this.fetchCalendarEvents()
         
         // Fetch reviews from the hawkerListings document (not subcollection)
-        console.log('🔍 Fetching reviews from hawker document...')
+        
         try {
           if (hawkerData.reviews) {
             const reviews = hawkerData.reviews
@@ -874,7 +895,7 @@ export default {
             if (reviews.stallRating !== undefined && reviews.stallRating !== null) {
               this.hawkerRating = reviews.stallRating
               this.hawkerReviewCount = reviews.userRatings ? reviews.userRatings.length : 0
-              console.log(`✅ Reviews loaded: ${this.hawkerReviewCount} reviews, avg rating: ${this.hawkerRating.toFixed(1)}`)
+              
             } else if (reviews.userRatings && reviews.userRatings.length > 0) {
               // Calculate rating from userRatings array
               const totalRating = reviews.userRatings.reduce((sum, review) => {
@@ -882,25 +903,23 @@ export default {
               }, 0)
               this.hawkerRating = totalRating / reviews.userRatings.length
               this.hawkerReviewCount = reviews.userRatings.length
-              console.log(`✅ Reviews calculated: ${this.hawkerReviewCount} reviews, avg rating: ${this.hawkerRating.toFixed(1)}`)
+              
             } else {
               this.hawkerRating = 0
               this.hawkerReviewCount = 0
-              console.log('⚠️ No reviews found')
+              
             }
           } else {
-            console.log('⚠️ No reviews object in hawker document')
+            
             this.hawkerRating = 0
             this.hawkerReviewCount = 0
           }
         } catch (reviewError) {
-          console.error('❌ Error fetching reviews:', reviewError)
+          
           this.hawkerRating = 0
           this.hawkerReviewCount = 0
         }
       } catch (error) {
-        console.error('❌ Error fetching hawker profile:', error)
-        console.error('Error details:', error.message)
         this.hawkerName = 'Hawker'
         this.hawkerOpeningHours = 'Not available'
       }
@@ -911,7 +930,6 @@ export default {
       // Try timestamp first (your actual field), then createdAt, then date
       const timestamp = order.timestamp || order.createdAt || order.date
       if (!timestamp) {
-        console.warn('Order has no timestamp:', order)
         return new Date()
       }
       
@@ -943,17 +961,14 @@ export default {
     async fetchHawkerOrders() {
       try {
         this.loading = true
-        console.log('🔍 Starting to fetch orders...')
-        console.log('Current Hawker ID:', this.currentHawkerId)
         
         if (!this.currentHawkerId) {
-          console.error('❌ No hawker ID available')
           this.loading = false
           return
         }
         
         const ordersRef = collection(db, 'orders')
-        console.log('📦 Orders collection reference created')
+        
         
         // Try with orderBy first (requires index)
         let querySnapshot
@@ -963,13 +978,9 @@ export default {
             where('hawkerId', '==', this.currentHawkerId),
             orderBy('timestamp', 'desc')
           )
-          console.log('🔎 Query created with filters:', {
-            hawkerId: this.currentHawkerId,
-            orderBy: 'timestamp desc'
-          })
+          
           
           querySnapshot = await getDocs(q)
-          console.log('📊 Query executed, documents found:', querySnapshot.size)
           
           this.allOrders = querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -977,12 +988,7 @@ export default {
           }))
         } catch (indexError) {
           if (indexError.code === 'failed-precondition' || indexError.code === 9) {
-            console.warn('⚠️ Index not found, using simple query without orderBy')
             const indexUrl = indexError.message.match(/https:\/\/[^\s]+/)?.[0]
-            if (indexUrl) {
-              console.warn('🔗 Create index at:', indexUrl)
-            }
-            console.warn('💡 Or use the firestore.indexes.json file and deploy: firebase deploy --only firestore:indexes')
             
             // Fallback: query without orderBy
             const simpleQuery = query(
@@ -990,7 +996,6 @@ export default {
               where('hawkerId', '==', this.currentHawkerId)
             )
             querySnapshot = await getDocs(simpleQuery)
-            console.log('📊 Simple query executed, documents found:', querySnapshot.size)
             
             this.allOrders = querySnapshot.docs.map(doc => ({
               id: doc.id,
@@ -1008,20 +1013,11 @@ export default {
           }
         }
         
-        console.log('✅ Loaded orders:', this.allOrders.length)
-        if (this.allOrders.length > 0) {
-          console.log('📄 Sample order:', this.allOrders[0])
-        } else {
-          console.log('⚠️ No orders found for this hawker')
-        }
+        
       } catch (error) {
-        console.error('❌ Error fetching orders:', error)
-        console.error('Error code:', error.code)
-        console.error('Error message:', error.message)
         this.allOrders = []
       } finally {
         this.loading = false
-        console.log('🏁 Fetch complete. Loading state:', this.loading)
       }
     },
 
@@ -1043,7 +1039,6 @@ export default {
       if (!this.hawkerListingId) return
       
       try {
-        console.log('📝 Fetching todos from Firebase...')
         const todosRef = collection(db, 'hawkerListings', this.hawkerListingId, 'toDoList')
         const todosSnapshot = await getDocs(todosRef)
         
@@ -1052,10 +1047,7 @@ export default {
           text: doc.data().toDoItem || '',
           done: doc.data().completed || false
         }))
-        
-        console.log('✅ Todos loaded:', this.todoList.length)
       } catch (error) {
-        console.error('❌ Error fetching todos:', error)
       }
     },
     
@@ -1071,9 +1063,7 @@ export default {
         })
         
         this.todoList.push({ id: docRef.id, text, done: false })
-        console.log('✅ Todo added to Firebase')
       } catch (error) {
-        console.error('❌ Error adding todo:', error)
       }
     },
     
@@ -1088,9 +1078,7 @@ export default {
         })
         
         this.todoList[idx].done = !this.todoList[idx].done
-        console.log('✅ Todo updated in Firebase')
       } catch (error) {
-        console.error('❌ Error updating todo:', error)
       }
     },
     
@@ -1103,9 +1091,7 @@ export default {
         await deleteDoc(todoRef)
         
         this.todoList.splice(idx, 1)
-        console.log('✅ Todo deleted from Firebase')
       } catch (error) {
-        console.error('❌ Error deleting todo:', error)
       }
     },
     
@@ -1126,13 +1112,11 @@ export default {
         await Promise.all(deletePromises)
         
         this.todoList = []
-        console.log('✅ All todos cleared from Firebase')
         
         // Hide the modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('clearTodosModal'))
         modal.hide()
       } catch (error) {
-        console.error('❌ Error clearing todos:', error)
         alert('Failed to clear todos. Please try again.')
       }
     },
@@ -1142,23 +1126,18 @@ export default {
       if (!this.hawkerListingId) return
       
       try {
-        console.log('📅 Fetching calendar events from Firebase...')
         const eventsRef = collection(db, 'hawkerListings', this.hawkerListingId, 'calendarEvents')
         const eventsSnapshot = await getDocs(eventsRef)
         
         this.customEvents = eventsSnapshot.docs.map(doc => {
           const data = doc.data()
-          console.log('📅 Event doc:', doc.id, 'data:', data)
           return {
             id: doc.id,
             title: data.title || '',
             date: data.date || ''
           }
         })
-        
-        console.log('✅ Calendar events loaded:', this.customEvents.length, 'events:', this.customEvents)
       } catch (error) {
-        console.error('❌ Error fetching calendar events:', error)
       }
     },
     
@@ -1185,9 +1164,7 @@ export default {
         })
         
         bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide()
-        console.log('✅ Event added to Firebase')
       } catch (error) {
-        console.error('❌ Error adding event:', error)
       }
     },
     
@@ -1199,9 +1176,7 @@ export default {
         await deleteDoc(eventRef)
         
         this.customEvents = this.customEvents.filter(e => e.id !== id)
-        console.log('✅ Event removed from Firebase')
       } catch (error) {
-        console.error('❌ Error removing event:', error)
       }
     },
     
@@ -1222,19 +1197,16 @@ export default {
         await Promise.all(deletePromises)
         
         this.customEvents = []
-        console.log('✅ All events cleared from Firebase')
         
         // Hide the modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('clearEventsModal'))
         modal.hide()
       } catch (error) {
-        console.error('❌ Error clearing events:', error)
         alert('Failed to clear events. Please try again.')
       }
     }
   },
   mounted() {
-    console.log('🎬 HawkerAnalytics component mounted')
     
     // Load theme preference
     const savedTheme = localStorage.getItem('hawker-theme')
@@ -1245,21 +1217,13 @@ export default {
     }
 
     // Get current hawker and fetch orders
-    console.log('🔐 Setting up authentication listener...')
     const auth = getAuth()
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log('✅ User authenticated:', {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName
-        })
         this.currentHawkerId = user.uid
-        console.log('👤 Current Hawker ID set to:', this.currentHawkerId)
         this.fetchHawkerProfile()
         this.fetchHawkerOrders()
       } else {
-        console.error('❌ No authenticated user')
         this.loading = false
       }
     })

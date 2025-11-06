@@ -51,9 +51,10 @@
                     <label class="filter-label">Status:</label>
                     <select v-model="filterStatus" class="filter-select" :class="{ 'dark-select': isDarkMode }">
                       <option value="all">All Orders</option>
-                      <option value="in-progress">In Progress</option>
                       <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="preparing">Preparing</option>
+                      <option value="ready">Ready</option>
+                      <option value="pending">Pending</option>
                     </select>
                   </div>
                   <div class="filter-group">
@@ -92,8 +93,8 @@
             <div v-for="order in filteredOrders" :key="order.id" class="order-card" :class="{ 'dark-mode-card': isDarkMode }">
               <div class="order-header">
                 <div class="order-info">
-                  <h5 class="order-id mb-1">Order #{{ order.id.substring(0, 8).toUpperCase() }}</h5>
-                  <p class="order-date mb-0 text-muted">{{ formatDate(order.createdAt) }}</p>
+                  <h5 class="order-id mb-1">Order #{{ order.orderID || order.id.substring(0, 8).toUpperCase() }}</h5>
+                  <p class="order-date mb-0 text-muted">{{ formatDate(order.timestamp || order.createdAt || order.time) }}</p>
                 </div>
                 <span class="order-status" :class="getStatusClass(order.status)">
                   <i :class="getStatusIcon(order.status)" class="me-1"></i>
@@ -117,13 +118,13 @@
                       <div v-else class="item-image-placeholder">
                         <i class="fas fa-utensils"></i>
                       </div>
-                      <div class="item-info">
-                        <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
-                        <div class="item-details">
-                          <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
-                          <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                        <div class="item-info">
+                          <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
+                          <div class="item-details">
+                            <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
+                            <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -175,11 +176,7 @@
                         @click="cancelOrder(order.id)">
                   <i class="fas fa-times me-2"></i>Cancel Order
                 </button>
-                <button class="btn btn-outline-success btn-sm" 
-                        style="border-radius: 8px;"
-                        @click="contactSupport(order.id)">
-                  <i class="fas fa-headset me-2"></i>Contact Us
-                </button>
+                <!-- Contact Us button removed per request -->
                 <button class="btn btn-outline-primary btn-sm" 
                         style="border-radius: 8px;"
                         @click="viewOrderDetails(order.id)">
@@ -198,6 +195,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../../firebase/config'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
@@ -213,6 +212,7 @@ export default {
     const filterStatus = ref('all')
     const sortBy = ref('newest')
     const currentUserId = ref(null)
+    const currentUserUid = ref(null)
 
     const auth = getAuth()
 
@@ -220,16 +220,9 @@ export default {
     const filteredOrders = computed(() => {
       let filtered = orders.value
 
-      // Filter by status
+      // Filter by status (exact string match to Firestore values)
       if (filterStatus.value !== 'all') {
-        if (filterStatus.value === 'in-progress') {
-          // In-progress includes reserved and accepted orders
-          filtered = filtered.filter(order => 
-            order.status === 'reserved' || order.status === 'accepted'
-          )
-        } else {
-          filtered = filtered.filter(order => order.status === filterStatus.value)
-        }
+        filtered = filtered.filter(order => order.status === filterStatus.value)
       }
 
       // Sort
@@ -237,23 +230,23 @@ export default {
       switch (sortBy.value) {
         case 'newest':
           sorted.sort((a, b) => {
-            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
             return dateB - dateA
           })
           break
         case 'oldest':
           sorted.sort((a, b) => {
-            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
             return dateA - dateB
           })
           break
         case 'amount-high':
-          sorted.sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0))
+          sorted.sort((a, b) => (b.totalAmount || b.orderTotal || 0) - (a.totalAmount || a.orderTotal || 0))
           break
         case 'amount-low':
-          sorted.sort((a, b) => (a.totalAmount || 0) - (b.totalAmount || 0))
+          sorted.sort((a, b) => (a.totalAmount || a.orderTotal || 0) - (b.totalAmount || b.orderTotal || 0))
           break
       }
 
@@ -262,31 +255,48 @@ export default {
 
     // Fetch orders
     const fetchOrders = async () => {
-      if (!currentUserId.value) return
+      if (!currentUserUid.value) return
 
       try {
         loading.value = true
-        const fetchedOrders = await getOrdersByUser(currentUserId.value, 'buyer')
-        console.log('Fetched orders:', fetchedOrders)
         
-        // Log first order to see data structure
-        if (fetchedOrders.length > 0) {
-          console.log('Sample order:', fetchedOrders[0])
-          console.log('Sample order items:', fetchedOrders[0].items)
-          console.log('Calculated subtotal:', calculateSubtotal(fetchedOrders[0].items))
-          console.log('Discount:', fetchedOrders[0].discount)
-          console.log('Calculated total:', calculateTotal(fetchedOrders[0]))
+        // Fetch user data from users collection to verify userId
+        const userDocRef = doc(db, 'users', currentUserUid.value)
+        const userDocSnap = await getDoc(userDocRef)
+        
+        if (!userDocSnap.exists()) {
+          orders.value = []
+          return
         }
         
-        orders.value = fetchedOrders
+        const userData = userDocSnap.data()
+        
+        
+        // Fetch orders by the userId stored in users collection
+        const userId = userData.userId || currentUserUid.value
+  const fetchedOrders = await getOrdersByUser(userId, 'buyer')
+        
+        // Filter orders to ensure userId matches
+        const verifiedOrders = fetchedOrders.filter(order => {
+          const orderMatches = order.userId === userId
+          if (!orderMatches) {
+            // order does not belong to this user; ignore
+          }
+          return orderMatches
+        })
+        
+        
+        
+        // Log first order to see data structure
+        
+        
+        orders.value = verifiedOrders
       } catch (error) {
-        console.error('Error fetching orders:', error)
+        // Error fetching orders
       } finally {
         loading.value = false
       }
-    }
-
-    // Cancel order
+    }    // Cancel order
     const cancelOrder = async (orderId) => {
       if (!confirm('Are you sure you want to cancel this order?')) return
 
@@ -294,7 +304,6 @@ export default {
         await cancelOrderService(orderId)
         await fetchOrders() // Refresh the list
       } catch (error) {
-        console.error('Error cancelling order:', error)
         alert('Failed to cancel order. Please try again.')
       }
     }
@@ -302,14 +311,36 @@ export default {
     // Format date
     const formatDate = (date) => {
       if (!date) return 'N/A'
-      const d = date.toDate ? date.toDate() : new Date(date)
-      return d.toLocaleString('en-SG', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      
+      try {
+        // Handle Firestore Timestamp object
+        if (date.toDate && typeof date.toDate === 'function') {
+          const d = date.toDate()
+          return d.toLocaleString('en-SG', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+        
+        // Handle regular Date object or date string
+        const d = new Date(date)
+        if (isNaN(d.getTime())) {
+          return 'N/A'
+        }
+        
+        return d.toLocaleString('en-SG', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } catch (error) {
+        return 'N/A'
+      }
     }
 
     // Format price
@@ -423,9 +454,11 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           currentUserId.value = user.uid
+          currentUserUid.value = user.uid
           fetchOrders()
         } else {
           currentUserId.value = null
+          currentUserUid.value = null
           orders.value = []
           loading.value = false
         }
@@ -739,10 +772,13 @@ export default {
 .order-id {
   font-weight: 700;
   color: #059669;
-  font-size: 0.95rem;
+  /* Increased for better readability for older users. Use relative units so accessibility scaling works. */
+  font-size: 1.25rem;
   margin-bottom: 0.25rem;
+  /* Allow wrapping without overflowing the card */
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .dark-theme .order-id {
@@ -750,10 +786,11 @@ export default {
 }
 
 .order-date {
-  font-size: 0.8rem;
+  /* Slightly larger and more readable date */
+  font-size: 0.95rem;
   color: #6b7280;
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .dark-theme .order-date {
@@ -866,21 +903,28 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  /* Ensure consistent inner padding so item names are visually centered within item cards */
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 .item-name {
   font-weight: 600;
-  font-size: 0.8rem;
+  /* Make item names easier to read; allow up to 3 lines but never overflow container */
+  font-size: 1rem;
   color: #111827;
   margin-bottom: 0.125rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   white-space: normal;
-  line-height: 1.3;
+  line-height: 1.25;
+  /* center the caption under the image without affecting details alignment */
+  text-align: center;
+  margin: auto;
 }
 
 .dark-mode-card .item-name {
@@ -945,9 +989,10 @@ export default {
   color: #374151;
   flex: 1;
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   min-width: 0;
-  font-size: 0.85rem;
+  /* Slightly larger for readability */
+  font-size: 0.95rem;
 }
 
 .dark-theme .detail-value {
@@ -988,6 +1033,7 @@ export default {
 .summary-value {
   font-weight: 600;
   color: #374151;
+  font-size: 1rem;
 }
 
 .dark-theme .summary-value {

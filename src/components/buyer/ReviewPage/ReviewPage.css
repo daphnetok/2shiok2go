@@ -149,8 +149,8 @@
 .media-btn {
   flex: 1;
   padding: 1.5rem 1rem;
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: #10b981;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -159,21 +159,23 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #333;
+  color: white;
+  font-weight: 500;
 }
 
 .media-btn:hover {
-  border-color: #27ae60;
-  background: #f0f9f4;
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .media-btn i {
   font-size: 1.5rem;
-  color: #666;
+  color: white;
 }
 
 .media-btn:hover i {
-  color: #27ae60;
+  color: white;
 }
 
 /* Media Preview (Photos and Videos) */
@@ -430,11 +432,11 @@
 }
 
 .submit-btn {
-  background: #27ae60;
+  background: #10b981;
   color: white;
   border: none;
   padding: 1rem 3rem;
-  border-radius: 25px;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -443,14 +445,15 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #229954;
+  background: #059669;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .submit-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  background: #9ca3af;
 }
 
 /* Responsive Design */

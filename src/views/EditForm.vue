@@ -1,9 +1,36 @@
 <template>
-  <div class="hawker-dashboard-container">
+  <div class="nav-container">
     <div>
       <div class="container-fluid px-3 px-md-4">
         <!-- Navigation Tabs -->
-        <HawkerNavTabs/>
+        <nav class="tabs-nav">
+          <ul class="tabs-list">
+            <li class="tab-item" style="padding:0">
+              <router-link to="/hawker-dashboard" class="tab-link">
+                <i class="fas fa-home"></i>
+                <span> My Listings</span>
+              </router-link>
+            </li>
+            <li class="tab-item" style="padding:0">
+              <router-link to="/orders-table" class="tab-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Orders Management</span>
+              </router-link>
+            </li>
+            <li class="tab-item"style="padding:0">
+              <router-link to="/hawker-analytics" class="tab-link">
+                <i class="fas fa-chart-simple"></i>
+                <span>Analytics</span>
+              </router-link>
+            </li>
+            <li class="tab-item active" style="padding:0">
+              <a href="#" class="tab-link">
+                <i class="fas fa-file-edit"></i>
+                <span>Edit Stall Info</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
       <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
@@ -54,7 +81,6 @@ import { auth } from '/firebase/config';
 import { getHawkersByUserId } from '/firebase/firestore';
 import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue';
 import { onAuthStateChanged } from 'firebase/auth';
-import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue';
 
 const hawkerData = ref(null);
 const loading = ref(true);
@@ -129,79 +155,14 @@ const handleStallUpdated = () => {
   border-radius: 20px;
   padding: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+<<<<<<< HEAD
   margin: 0 auto; /* center the card */
+=======
+>>>>>>> origin/main
 }
 
 .text-muted {
   color: #666;
   font-size: 1rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .listings-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-container {
-    padding: 16px;
-  }
-
-  .dashboard-header {
-    padding: 20px;
-  }
-
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-create {
-    justify-content: center;
-  }
-
-  .tabs-list {
-    flex-direction: column;
-  }
-
-  .listings-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .listing-image-container {
-    height: 180px;
-  }
-}
-@media (max-width: 576px) {
-  .dashboard-container{
-    padding: 0px 40px 40px 40px;
-  }
-}
-@media (max-width: 480px) {
-  .page-title {
-    font-size: 1.25rem;
-  }
-
-  .section-title {
-    font-size: 1.25rem;
-  }
-
-  .listing-name {
-    font-size: 1.1rem;
-  }
-
-  .current-price {
-    font-size: 1.3rem;
-  }
-
-  .stats-section {
-    flex-direction: column;
-  }
 }
 </style>
