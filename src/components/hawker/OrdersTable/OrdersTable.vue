@@ -407,11 +407,16 @@
                 <span class="col-date">{{ formatDate(order.timestamp) }}</span>
                 <span class="col-time">{{ formatTime(order.timestamp) }}</span>
     
-                <td>
+                <!-- <td>
                   <p v-for="i in order.items" :key="i.itemName" class="col-items">
                     {{ i.itemName }}
                   </p>
-                </td>
+                </td> -->
+                <span class="col-items">
+                  <p v-for="i in order.items" :key="i.itemName">
+                    {{ i.itemName }}
+                  </p>
+                </span>
     
                 <span class="col-total">${{ order.orderTotal?.toFixed(2) }}</span>
               </div>

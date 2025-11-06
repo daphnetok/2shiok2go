@@ -41,8 +41,9 @@
     </div>
     
     <!-- Listings grid -->
-    <div v-else class="listing-grid">
-      <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper">
+    <div v-else class="listing-grid container-flex">
+      <div class="row">
+        <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper col-md-6">
         <ListingCard 
           :hawker="hawker"
         />
@@ -67,6 +68,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>

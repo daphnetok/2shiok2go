@@ -11,58 +11,60 @@
     <!-- Show content only when hawker data is available -->
     <div v-else-if="hawker" class="container reset-style" style="position: relative;">
       <div class="row stall-info">
-        <div class="col-md-5">
+        <div class="col-md-6 col-12">
           <ImageWithLoader 
             :src="hawker.imageUrl" 
             :alt="hawker.hawkerName" 
             image-class="stallImg"
           />
         </div>
-        <div class="col-md-6 col-12">
-          <div>
-            <StallStatus
-              :opening-time="hawker.openingTime"
-              :closing-time="hawker.closingTime"
-              variant="inline"
-              :show-icon="true"
-              :show-hours="true"
-            />
-            <div class="stall-header">
-            <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
-          </div>
-          <p class="stall-address">
-            <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
-            <button @click="toggleMap" class="map-toggle-btn">
-              <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
-            </button>
-          </p>
-          
-          
-          <!-- Toggleable Embedded Google Maps -->
-          <div v-if="showMap" class="map-container">
-            <iframe
-              v-if="hawker.address && hawker.address.latitude && hawker.address.longitude"
-              :src="`https://www.google.com/maps?q=${hawker.address.latitude},${hawker.address.longitude}&hl=en&z=14&output=embed`"
-              width="100%"
-              height="200"
-              style="border:0; pointer-events: auto;"
-              allowfullscreen=""
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
-            <div v-else class="map-placeholder" style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-radius:8px;">
-              <p class="text-muted mb-0">Map unavailable</p>
+        <div class="col-md-6 col-12 ">
+          <div class="stall-info-wrapper">
+            <div class="stall-info-div">
+              <StallStatus
+                :opening-time="hawker.openingTime"
+                :closing-time="hawker.closingTime"
+                variant="inline"
+                :show-icon="true"
+                :show-hours="true"
+              />
+              <div class="stall-header">
+              <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
             </div>
-          </div>
-          
-          <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
-          <!-- Stall Status -->
-          <p><i class="fa-solid fa-star starIcon"></i> 
-            <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
-              {{ hawker.reviews.stallRating.toFixed(2) }} stars
-            </span>
-            <span v-else>No rating yet</span>
-          </p>
+            <p class="stall-address">
+              <i class="fa-solid fa-map-pin pinIcon"></i> {{ hawker.address.formattedAddress || 'Address not available' }}
+              <button @click="toggleMap" class="map-toggle-btn">
+                <i class="fa-solid fa-map-location-dot"></i> {{ showMap ? 'Hide Map' : 'Show Map' }}
+              </button>
+            </p>
+            
+            
+            <!-- Toggleable Embedded Google Maps -->
+            <div v-if="showMap" class="map-container">
+              <iframe
+                v-if="hawker.address && hawker.address.latitude && hawker.address.longitude"
+                :src="`https://www.google.com/maps?q=${hawker.address.latitude},${hawker.address.longitude}&hl=en&z=14&output=embed`"
+                width="100%"
+                height="200"
+                style="border:0; pointer-events: auto;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+              <div v-else class="map-placeholder" style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-radius:8px;">
+                <p class="text-muted mb-0">Map unavailable</p>
+              </div>
+            </div>
+            
+            <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+            <!-- Stall Status -->
+            <p><i class="fa-solid fa-star starIcon"></i> 
+              <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
+                {{ hawker.reviews.stallRating.toFixed(2) }} stars
+              </span>
+              <span v-else>No rating yet</span>
+            </p>
+            </div>
           </div>
         </div>
       </div>

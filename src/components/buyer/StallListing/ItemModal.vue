@@ -105,7 +105,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
@@ -151,6 +151,11 @@ export default {
       } else {
         document.body.style.overflow = 'auto';
       }
+    });
+
+    // Cleanup on unmount - restore body scroll
+    onUnmounted(() => {
+      document.body.style.overflow = 'auto';
     });
 
     const increment = () => {
