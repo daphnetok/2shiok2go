@@ -2,7 +2,7 @@
   <div class="review-page">
     <!-- Do it later link -->
     <div class="do-it-later">
-      <router-link to="/buyer-listings" class="do-it-later-link">Do it later ></router-link>
+      <a @click="handleDoItLater" class="do-it-later-link" style="cursor: pointer;">Do it later ></a>
     </div>
 
     <!-- Main Content -->
@@ -561,6 +561,7 @@ export default {
           return;
         }
 
+        const orderDocRef = doc(db, 'orders', orderSnapshot.docs[0].id);
         const orderData = orderSnapshot.docs[0].data();
         
         console.log('Order data:', orderData);
@@ -637,6 +638,7 @@ export default {
           storeService: storeService.value,
           valueForMoney: valueForMoney.value,
           userid: user.uid,
+          orderId: orderId, // Store orderId to link review to order
           photo: photoURLs,
           video: videoURLs,
           writtenreview: reviewText.value.trim() || '',
@@ -662,6 +664,12 @@ export default {
           reviews: reviewsUpdate
         });
 
+        // Mark order as review completed
+        await updateDoc(orderDocRef, {
+          reviewPending: false,
+          reviewCompleted: true
+        });
+
         alert('Review submitted successfully!');
         router.push('/buyer-listings');
       } catch (error) {
@@ -671,6 +679,36 @@ export default {
         alert(`Failed to submit review: ${error.message}`);
       } finally {
         isSubmitting.value = false;
+      }
+    };
+
+    // Handle "Do it later" - mark order as needing review
+    const handleDoItLater = async () => {
+      try {
+        const orderId = route.query.orderId;
+        if (!orderId) {
+          router.push('/buyer-listings');
+          return;
+        }
+
+        // Mark order as needing review
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('orderID', '==', orderId)
+        );
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        if (!ordersSnapshot.empty) {
+          const orderDoc = ordersSnapshot.docs[0];
+          await updateDoc(doc(db, 'orders', orderDoc.id), {
+            reviewPending: true
+          });
+        }
+        
+        router.push('/buyer-listings');
+      } catch (error) {
+        console.error('Error marking order for review:', error);
+        router.push('/buyer-listings');
       }
     };
 
@@ -713,7 +751,8 @@ export default {
       getVideoProgress,
       seekVideo,
       submitReview,
-      getStarFillStyle
+      getStarFillStyle,
+      handleDoItLater
     };
   }
 };

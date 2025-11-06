@@ -541,7 +541,21 @@ const markOrderCollected = async () => {
   try {
     isUpdating.value = true;
     const orderRef = doc(db, 'orders', order.value.id);
-    await updateDoc(orderRef, { status: 'collected' });
+    
+    // Get current timestamp
+    const now = new Date();
+    const pickupTime = now.toLocaleString('en-SG', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    // Save pickup time along with status
+    await updateDoc(orderRef, { 
+      status: 'collected',
+      pickupTime: pickupTime,
+      pickupTimestamp: now
+    });
     
     // Navigate to reviews page after updating status
     if (order.value && order.value.orderID) {
