@@ -11,6 +11,9 @@
 </template>
 
 <script>
+import { onMounted, onUnmounted } from 'vue';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { logout } from '/firebase/auth';
 import HeroSection from '@/components/Home/Hero/HeroSection.vue';
 import StatsSection from '@/components/Home/Stats/StatsSection.vue';
 import BenefitsSection from '@/components/Home/Benefits/BenefitsSection.vue';
@@ -29,6 +32,39 @@ export default {
     TestimonialsSection,
     CTASection,
     FooterSection
+  },
+  setup() {
+    const auth = getAuth();
+    let authUnsubscribe = null;
+    
+    // Check if user is logged in and log them out when visiting home page
+    onMounted(() => {
+      // Check current auth state immediately
+      authUnsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // User is logged in, log them out
+          console.log('User is logged in on home page, logging out...');
+          try {
+            // Unsubscribe before logging out to prevent infinite loop
+            if (authUnsubscribe) {
+              authUnsubscribe();
+              authUnsubscribe = null;
+            }
+            await logout();
+            console.log('User logged out successfully');
+          } catch (error) {
+            console.error('Error logging out user:', error);
+          }
+        }
+      });
+    });
+    
+    // Cleanup on unmount
+    onUnmounted(() => {
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
+    });
   },
   data() {
     return {
