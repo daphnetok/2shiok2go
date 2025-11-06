@@ -213,6 +213,9 @@
   padding: 20px;
   opacity: 0;
   transition: opacity 0.4s ease;
+  transition: background 0.3s ease, opacity 0.3s ease;
+  z-index: 5; /* ensures it’s above image + loading */
+  pointer-events: none; /* disabled by default */
 }
 
 .listing-card:hover .listing-overlay {
@@ -223,6 +226,7 @@
 .quick-actions-inactive {
   display: flex;
   gap: 10px;
+  pointer-events: auto; /* clickable when visible */
 }
 
 .action-btn {
