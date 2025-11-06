@@ -146,3 +146,6 @@ dist
 .env
 .env.local
 .env.production
+
+#Google Cloud
+google-cloud-sdk/google-cloud-sdk/
