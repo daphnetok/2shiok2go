@@ -2,8 +2,14 @@
   <div 
     class="item-card" 
     @click="isStallOpen && item.itemQty > 0 ? handleCardClick() : null" 
-    :class="{ 'disabled': !isStallOpen || item.itemQty === 0 }"
+    :class="{ 'disabled': !isStallOpen || item.itemQty === 0, 'stall-closed': !isStallOpen || item.itemQty === 0 }"
   >
+    <!-- Unavailable badge (Stall Closed or Sold Out) -->
+    <div v-if="!isStallOpen || item.itemQty === 0" class="closed-badge">
+      <i class="fa-solid fa-lock"></i>
+      <span>{{ !isStallOpen ? 'Stall Closed' : 'Sold Out' }}</span>
+    </div>
+
     <div class="img-container">
       <div class="carousel-wrapper">
         <div 
@@ -36,11 +42,6 @@
         ></button>
       </div>
       
-      <!-- Sold Out Tag - now positioned in top right corner -->
-      <span v-if="item.itemQty === 0" class="sold-out-text">SOLD OUT</span>
-      <!-- Dimmed overlay for sold out items -->
-      <div v-if="item.itemQty === 0" class="sold-out-overlay"></div>
-      
       <div 
         v-else 
         class="counter-btn"
@@ -71,9 +72,14 @@
     <div class="card-content">
       <div class="d-flex flex-column w-100">
         <div class="d-flex justify-content-between align-items-center">
-          <span class="item-name">{{ item.itemName }}</span>
-          <!-- show original price if discount applied -->
-          <span class="original-price" v-if="isDiscountApplied">${{ item.itemPrice }}</span>
+          <span class="item-name">
+            {{ item.itemName }}
+            <span v-if="!isStallOpen || item.itemQty === 0" class="closed-indicator">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </span>
+          </span>
+          <!-- show original price if discount applied or if closed/sold out -->
+          <span class="original-price" v-if="isDiscountApplied || !isStallOpen || item.itemQty === 0">${{ item.itemPrice }}</span>
         </div>
         
         <!-- Tags and Allergens -->
@@ -88,7 +94,7 @@
         
         <div class="d-flex justify-content-between align-items-center mt-2">
           <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-          <span class="discounted-price">${{ isDiscountApplied 
+          <span v-if="isStallOpen && item.itemQty > 0" class="discounted-price">${{ isDiscountApplied 
                                                 ? (item.discountedPrice).toFixed(2)
                                                 : item.itemPrice.toFixed(2) }}</span>
         </div>
