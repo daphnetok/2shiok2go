@@ -96,84 +96,6 @@
   }
 }
 
-/* Closed Stall Item Styles */
-.cart-item.stall-closed {
-  position: relative;
-  opacity: 0.7;
-  background: #fafafa;
-  border: 2px solid #ffccbc;
-}
-
-.cart-item.stall-closed::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 87, 34, 0.03) 10px,
-    rgba(255, 87, 34, 0.03) 20px
-  );
-  pointer-events: none;
-  border-radius: 16px;
-}
-
-.closed-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #ff5722 0%, #f44336 100%);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.closed-badge i {
-  font-size: 14px;
-}
-
-.closed-indicator {
-  color: #f44336;
-  margin-left: 8px;
-  font-size: 18px;
-  vertical-align: middle;
-}
-
-.closed-time-info {
-  color: #ff5722;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.cart-item.stall-closed .item-image {
-  filter: grayscale(50%);
-}
-
-.cart-item.stall-closed .quantity-control {
-  opacity: 0.5;
-}
-
 /* Payment Details - Unavailable Items */
 .payment-row.unavailable-items {
   color: #ff5722;
@@ -1330,8 +1252,8 @@
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
-  font-size: 14px;
-  color: #333;
+  font-size: 2rem;
+  color: #0a701b;
   margin-left: 0 ;
 }
 

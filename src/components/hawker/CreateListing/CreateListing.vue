@@ -92,11 +92,11 @@
   </transition>
 
 
-    <div class="top-header d-flex mx-4 mb-3">
+    <div class="top-header d-flex mx-4 mt-3">
       <button @click="goBack" class="create-listing back-btn mx-4">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
-      <h2 class="m-0 text-start">Create A New Listing</h2>
+      <h2 class="m-0 text-start mt-3">Create A New Listing</h2>
       
     </div>
     <!-- <p>Form for hawkers to upload surplus meals.</p>  -->
@@ -186,8 +186,9 @@
 
               <!-- AI Food Description Component -->
               <AIFoodDescription 
-                :selectedFile="mainImageFile"
+                :selectedFile="selectedFile"
                 :foodName="form.itemName"
+                :imageUrl="previewImageUrl"
                 v-model:description="form.description"
               />
             </div>
