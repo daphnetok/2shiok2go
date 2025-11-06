@@ -302,6 +302,14 @@
             :data="topMenuItemsData"
             :dark-mode="isDarkTheme"
           />
+          <div v-else-if="!loading && allOrders.length === 0" 
+              class="empty-chart" 
+              :class="{ 'dark-mode-card': isDarkTheme }"
+              style="min-height: 250px;">
+            <i class="fas fa-chart-bar empty-icon"></i>
+            <h4 class="mb-2">No Orders Yet</h4>
+            <p class="mb-0 text-muted">Your analytics will appear here once you start receiving orders</p>
+          </div>
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
             <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
@@ -315,6 +323,14 @@
             :options="donutOptions"
             :dark-mode="isDarkTheme"
           />
+          <div v-else-if="!loading && allOrders.length === 0" 
+              class="empty-chart" 
+              :class="{ 'dark-mode-card': isDarkTheme }"
+              style="min-height: 250px;">
+            <i class="fas fa-chart-pie empty-icon"></i>
+            <h4 class="mb-2">No Sales Data</h4>
+            <p class="mb-0 text-muted">Sales breakdown will appear here once you receive orders</p>
+          </div>
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
             <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
@@ -331,6 +347,14 @@
             :data="peakHoursData"
             :dark-mode="isDarkTheme"
           />
+          <div v-else-if="!loading && allOrders.length === 0" 
+              class="empty-chart" 
+              :class="{ 'dark-mode-card': isDarkTheme }"
+              style="min-height: 250px;">
+            <i class="fas fa-clock empty-icon"></i>
+            <h4 class="mb-2">No Peak Hours Data</h4>
+            <p class="mb-0 text-muted">Peak hours analytics will show once orders come in</p>
+          </div>
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
             <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>
@@ -343,6 +367,14 @@
             :data="customerTypeData"
             :dark-mode="isDarkTheme"
           />
+          <div v-else-if="!loading && allOrders.length === 0" 
+              class="empty-chart" 
+              :class="{ 'dark-mode-card': isDarkTheme }"
+              style="min-height: 250px;">
+            <i class="fas fa-users empty-icon"></i>
+            <h4 class="mb-2">No Customer Data</h4>
+            <p class="mb-0 text-muted">Customer insights will appear once you have orders</p>
+          </div>
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
             <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
           </div>

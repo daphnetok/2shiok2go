@@ -355,3 +355,49 @@
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
+
+/* Empty Chart Styles */
+.empty-chart {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-chart.dark-mode-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  color: #10b981;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+
+.empty-chart h4 {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.empty-chart .text-muted {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.dark-theme .empty-chart h4 {
+  color: #e2e8f0;
+}
+
+.dark-theme .empty-chart .text-muted {
+  color: #94a3b8 !important;
+}
