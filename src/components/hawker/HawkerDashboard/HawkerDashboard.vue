@@ -1,5 +1,5 @@
 <template>
-  <!-- Alert Box -->
+<!-- Alert Box -->
 <transition name="alert-scale">
   <div 
     v-if="alert.show" 
@@ -77,41 +77,16 @@
   
   <div class="container-fluid px-3 px-md-4">
     <!-- Navigation Tabs -->
-    <nav class="tabs-nav">
-      <ul class="tabs-list">
-        <li class="tab-item active" style="padding:0">
-          <a href="#" class="tab-link">
-            <i class="fas fa-home"></i>
-            <span> My Listings</span>
-          </a>
-        </li>
-        <li class="tab-item">
-          <router-link to="/orders-table" class="tab-link" >
-          <i class="fas fa-clipboard-list"></i>
-            <span>Orders Management</span>
-          </router-link>
-        </li>
-        <li class="tab-item">
-          <router-link to="/hawker-analytics" class="tab-link">
-            <i class="fas fa-chart-simple"></i>
-            <span>Analytics</span>
-          </router-link>
-        </li>
-        <li class="tab-item">
-          <router-link to="/edit-form" class="tab-link">
-            <i class="fas fa-file-edit"></i>
-            <span>Edit Stall Info</span>
-          </router-link>
-        </li>
-      </ul>
-    </nav>
+    <HawkerNavTabs />
   </div>
 
   <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
-        <h1 class="page-title">{{ hawkerName }}'s Listings</h1>
+        <h1 class="page-title">{{ hawkerName }}
+          <h6>Listings</h6>
+        </h1>
         <router-link to="/create-listing" class="btn-create">
           <i class="fas fa-plus"></i>
           <span>Create New Listing</span>
@@ -121,7 +96,7 @@
 
 
     <!-- Active Listings Section -->
-    <section class="listings-section dashboard-container">
+    <section class="listings-section listings-container">
       <div class="section-header mb-5">
         <h2 class="listings-section-title">
           Active Listings
@@ -180,7 +155,7 @@
               </span>
             </div>
 
-            <div class="stats-section">
+            <div class="card-stock-section">
               <div class="stat-item">
                 <div class="stat-info">
                   <span class="stat-label">Stock</span>
@@ -203,7 +178,7 @@
     </section>
 
     <!-- Inactive Listings Section -->
-    <section class="listings-section inactive-section dashboard-container">
+    <section class="listings-section inactive-section listings-container">
       <div class="section-header mb-5">
         <h2 class="listings-section-title inactive">
           Inactive Listings
@@ -265,7 +240,7 @@
               <span class="original-price">${{ listing.itemPrice }}</span>
             </div>
 
-            <div class="stats-section">
+            <div class="card-section">
               <div class="stat-item">
                 <div class="stat-info">
                   <span class="stat-label">Stock</span>
@@ -307,12 +282,14 @@ import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '/firebase/config'
+import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue';
 
 export default {
   name: "HawkerListings",
   components: {
     EditModal,
-    ImageWithLoader
+    ImageWithLoader,
+    HawkerNavTabs
   },
   setup() {
     const hawkerName = ref('') // store name reactively

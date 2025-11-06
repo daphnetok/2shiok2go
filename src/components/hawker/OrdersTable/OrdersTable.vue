@@ -1,40 +1,83 @@
 <template>
-  <div class="nav-container">
-    <div>
+  <!-- Alert Box -->
+  <transition name="alert-scale">
+    <div 
+      v-if="alert.show" 
+      class="custom-alert-overlay"
+      @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
+    >
+      <div class="custom-alert-container" :class="alert.type">
+        <div class="custom-alert-content">
+          <!-- Close Button (top right) -->
+          <button 
+            v-if="alert.type !== 'confirmation'" 
+            class="alert-close-btn-top" 
+            @click="closeAlert"
+          >
+            <i class="fas fa-times"></i>
+          </button>
 
+          <!-- Icon Section -->
+          <div class="alert-icon-section">
+            <div v-if="alert.type === 'success'" class="alert-icon-circle" :class="alert.type">
+              <i 
+                class="fas" 
+                :class="{
+                  'fa-check': alert.type === 'success'
+                }"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Message Section -->
+          <div class="alert-message-section">
+            <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+            <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+            <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+            
+            <p class="alert-message">{{ alert.message }}</p>
+          </div>
+
+          <!-- Action Buttons Section -->
+           <div class="mx-auto">
+             <div class="alert-actions">
+               <!-- Confirmation Buttons -->
+               <div v-if="alert.type === 'confirmation'" class="button-group">
+                 <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+                   <i class="fas fa-times"></i>
+                   <span>Cancel</span>
+                 </button>
+                 <button 
+                   v-if="alert.actionType === 'Delete'" 
+                   class="alert-btn alert-btn-danger" 
+                   @click="confirmationConfirm"
+                 >
+                   <i class="fas fa-trash"></i>
+                   <span>Delete</span>
+                 </button>
+                 <button 
+                   v-else 
+                   class="alert-btn alert-btn-primary" 
+                   @click="confirmationConfirm"
+                 >
+                   <i class="fas fa-check"></i>
+                   <span>Confirm</span>
+                 </button>
+               </div>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <div class="hawker-dashboard-container">
       <div class="container-fluid px-3 px-md-4">
-        <!-- Navigation Tabs -->
-        <nav class="tabs-nav">
-          <ul class="tabs-list">
-            <li class="tab-item">
-              <router-link to="/hawker-dashboard" class="tab-link">
-                <i class="fas fa-home"></i>
-                <span> My Listings</span>
-              </router-link>
-            </li>
-            <li class="tab-item active" style="padding:0">
-              <router-link to="/orders-table" class="tab-link">
-              <i class="fas fa-clipboard-list"></i>
-                <span>Orders Management</span>
-              </router-link>
-            </li>
-            <li class="tab-item">
-              <router-link to="/hawker-analytics" class="tab-link">
-                <i class="fas fa-chart-simple"></i>
-                <span>Analytics</span>
-              </router-link>
-            </li>
-            <li class="tab-item">
-            <router-link to="/edit-form" class="tab-link">
-              <i class="fas fa-file-edit"></i>
-              <span>Edit Stall Info</span>
-            </router-link>
-          </li>
-          </ul>
-        </nav>
+        <HawkerNavTabs/>
       </div>
 
       <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
+        
         <!-- Header Section -->
         <div class="orders-header">
           <div class="header-content">
@@ -259,11 +302,32 @@
                 <span class="total-label">${{ order.orderTotal?.toFixed(2) || '0.00' }}</span>
               </div>
   
-              <!-- Customer Info -->
-              <!-- <div class="customer-info">
-                <i class="fas fa-user"></i>
-                <span>Order ID: {{ order.orderID }}</span>
-              </div> -->
+              <!-- Customer Comments -->
+              <div 
+                v-if="order.items.some(i => i.requirements && i.requirements.trim() !== '')" 
+                class="customer-info"
+              >
+                <i class="fas fa-note-sticky"></i>
+                <span class="comments-title">Comments:</span>
+
+                <div>
+                  <div 
+                    v-for="(i, index) in order.items" 
+                    :key="index" 
+                    class="comment-line"
+                  >
+                    <span v-if="order.items.length === 1">
+                      {{ i.requirements }}
+                    </span>
+                    <span v-else>
+                      <span v-if="i.requirements != ''">
+                      For {{ i.itemName }}: {{ i.requirements }}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                </div>
+
   
               <!-- Action Buttons -->
               <div class="order-actions">
@@ -381,9 +445,10 @@
                 <span class="col-select"></span>
                 <span class="col-id">Order ID</span>
                 <span class="col-date">Date</span>
-                <span class="col-time">Time</span>
+                <span class="col-time">Time Ordered</span>
                 <span class="col-items">Items</span>
                 <span class="col-total">Total</span>
+                <span class="col-items">Notes</span>
               </div>
     
               <div 
@@ -420,23 +485,22 @@
                 </span>
     
                 <span class="col-total">${{ order.orderTotal?.toFixed(2) }}</span>
+                <span class="col-items"><p v-for="i in order.items" :key="i.itemName">
+                    {{ i.requirements }}
+                  </p>
+                </span>
               </div>
             </div>
           </div>
-  
-  
         </div>
-  
       </div>
-    </div>
     </div>
 </template>
 
 <script src="./OrdersTable.js"></script>
-<style src="./OrdersTable.css"></style>
-
 
 <style scoped>
 @import '@/assets/css/HawkerDashboard.css';
+@import '@/assets/css/alertBoxes.css';
 @import './OrdersTable.css';
 </style>
