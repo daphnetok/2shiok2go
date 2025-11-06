@@ -1,5 +1,4 @@
 <template>
-  <div class="nav-container" style="min-height: 100vh; transition: all 0.3s ease;">
   <!-- Alert Box -->
 <transition name="alert-scale">
   <div 
@@ -272,7 +271,6 @@
         </div>
       </div>
     </section>
-  </div>
   </div>
 </template>
 

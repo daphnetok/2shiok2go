@@ -378,8 +378,8 @@
     </div>
 
     <!-- Validation / Error Modal -->
-    <div v-if="showValidationModal" class="modal-overlay" @click="showValidationModal = false">
-      <div class="modal-content payment-error-modal" @click.stop>
+    <div v-if="showValidationModal" class="cart-modal-overlay" @click="showValidationModal = false">
+      <div class="cart-modal-content payment-error-modal" @click.stop>
         <div class="modal-header">
           <div class="modal-header-content">
             <i class="fa-solid fa-circle-exclamation modal-icon"></i>
@@ -398,8 +398,8 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-content" @click.stop>
+    <div v-if="showDeleteModal" class="cart-modal-overlay" @click="cancelDelete">
+      <div class="cart-modal-content" @click.stop>
         <div class="modal-header">
           <div class="modal-header-content">
             <i class="fa-solid fa-triangle-exclamation modal-icon"></i>
@@ -434,6 +434,6 @@
 zz
 <script src="./ShoppingCart.js"> </script>
 
-<style>
+<style scoped>
 @import './ShoppingCart.css';
 </style>

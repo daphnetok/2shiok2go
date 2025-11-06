@@ -636,14 +636,14 @@
 }
 
 .btn-action.accept {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(135deg, #f3bb2e 0%, #efb216 100%);
   color: white;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 2px 8px #fbbf24;
 }
 
 .btn-action.accept:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  box-shadow: 0 4px 12px #fbbf24;
 }
 
 .btn-action.ready {

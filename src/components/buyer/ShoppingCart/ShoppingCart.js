@@ -814,20 +814,45 @@ export default {
     };
     
     // Get next order ID
-    const getNextOrderID = async () => {
-      const counterRef = doc(db, 'meta', 'orderCounter');
-      return await runTransaction(db, async (transaction) => {
-        const counterSnap = await transaction.get(counterRef);
-        let newOrderID = 1;
-        if (counterSnap.exists()) {
-          newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
-          transaction.update(counterRef, { lastOrderID: newOrderID });
-        } else {
-          transaction.set(counterRef, { lastOrderID: 1 });
-        }
-        return newOrderID;
-      });
-    };
+    // const getNextOrderID = async () => {
+    //   const counterRef = doc(db, 'meta', 'orderCounter');
+    //   return await runTransaction(db, async (transaction) => {
+    //     const counterSnap = await transaction.get(counterRef);
+    //     let newOrderID = 1;
+    //     if (counterSnap.exists()) {
+    //       newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
+    //       transaction.update(counterRef, { lastOrderID: newOrderID });
+    //     } else {
+    //       transaction.set(counterRef, { lastOrderID: 1 });
+    //     }
+    //     return newOrderID;
+    //   });
+    // };
+
+    // Track daily order sequence in memory
+    let dailyOrderCount = 0;
+    let lastOrderDate = null;
+
+    const getNextOrderID = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}${month}${day}`;
+
+    // Use HHmmss but only keep last 4 digits (minute + second)
+    const timePart = String(now.getHours()).padStart(2, '0') +
+                    String(now.getMinutes()).padStart(2, '0') +
+                    String(now.getSeconds()).padStart(2, '0');
+
+    // Add just 2 random digits instead of 3
+    const randomPart = Math.floor(Math.random() * 90 + 10); // 10–99
+
+    // Combine
+    return `${today}-${timePart.slice(-4)}${randomPart}`;
+  };
+
+
 
     // Get hawker address from hawkerListings
     const getHawkerAddress = async (hawkerId) => {
@@ -917,13 +942,18 @@ export default {
         const timestamp = new Date();
         
         // Get starting order ID
-        let currentOrderID = await getNextOrderID();
+        // let currentOrderID = await getNextOrderID();
+        // Generate timestamp-based order ID
+        let currentOrderID = getNextOrderID();
         
         // Create all orders
         const orderPromises = [];
         const createdOrderIds = []; // Track created order document IDs
         
         for (const hawkerId in itemsByHawker) {
+          // Generate a unique order ID for each hawker group
+          currentOrderID = getNextOrderID();
+
           const hawkerGroup = itemsByHawker[hawkerId];
           const hawkerItems = hawkerGroup.items;
           
@@ -981,7 +1011,8 @@ export default {
             items: orderItems,
             subtotalBeforeDiscount: safeSubtotal,
             discount: safeDiscount,
-            orderTotal: isNaN(orderTotal) || !isFinite(orderTotal) ? 0 : orderTotal
+            orderTotal: isNaN(orderTotal) || !isFinite(orderTotal) ? 0 : orderTotal,
+            // notes: item.notes || '',
           };
           
           // Add to order creation promises
@@ -997,7 +1028,9 @@ export default {
           console.log('Order created with ID:', orderDocRef.id, 'OrderID:', orderData.orderID);
           
           // Increment for next hawker's order
-          currentOrderID++;
+          // currentOrderID++;
+          currentOrderID = getNextOrderID();
+
         }
         
         // Wait for all stock updates to complete

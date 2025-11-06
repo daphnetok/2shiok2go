@@ -1,5 +1,5 @@
 <template>
-  <div class="hawker-dashboard-container">
+  <!-- <div> -->
     <!-- <h2>Hawker Dashboard</h2> -->
 
     <!-- loading state -->
@@ -10,11 +10,11 @@
       <HawkerStallForm @stallCreated="onStallCreated"/>
     </div>
 
-    <div v-else>
+    <div v-else class="hawker-dashboard-container"  style="min-height: 100vh; transition: all 0.3s ease;">
       <!-- <p>Monitor orders, view analytics, and track unsold inventory.</p> -->
       <HawkerListings/>
     </div>
-  </div>
+  <!-- </div> -->
 </template>
 
 <script>
