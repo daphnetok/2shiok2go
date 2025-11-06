@@ -160,8 +160,6 @@
               <p class="text-muted mb-0">Loading map...</p>
             </div>
           </div>
-          <br></br>
-          <p class="text-muted mb-0">Collection time: <span class="fw-semibold text-success">7:00 pm</span></p>
         </div>
         
         <!-- Map -->
@@ -276,14 +274,14 @@
     </div>
 
     <!-- Ready Notification Popup -->
-    <div v-if="showReadyNotification" class="ready-notification" @click="closeNotification">
+    <div v-if="showReadyNotification && currentReadyNotification" class="ready-notification" @click="closeNotification">
       <div class="notification-content" @click.stop>
         <div class="notification-icon">
           <i class="bi bi-check-circle-fill"></i>
         </div>
         <div class="notification-text">
           <h5>Your order is ready!</h5>
-          <p>Your food is ready for collection. Please proceed to collect your order.</p>
+          <p>Your food from <strong>{{ currentReadyNotification.hawkerName }}</strong> is ready for collection. Please proceed to collect your order.</p>
         </div>
         <button class="notification-close" @click="closeNotification">
           <i class="bi bi-x"></i>
@@ -337,6 +335,8 @@ const loading = ref(true);
 const errorMsg = ref(null);
 const isUpdating = ref(false);
 const showReadyNotification = ref(false);
+const readyNotificationQueue = ref([]);
+const currentReadyNotification = ref(null);
 let orderUnsubscribe = null;
 const allOrderUnsubscribes = ref([]);
 
@@ -506,14 +506,24 @@ const setupAllOrderListeners = (orders) => {
   
   orders.forEach(ord => {
     const orderRef = doc(db, 'orders', ord.id);
+    let previousStatus = ord.status || 'preparing';
+    
     const unsubscribe = onSnapshot(orderRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
         const orderData = docSnapshot.data();
+        const newStatus = orderData.status || 'pending';
         const orderIndex = allOrders.value.findIndex(o => o.id === ord.id);
+        
         if (orderIndex !== -1) {
+          // Track status change for ready notification
+          if (previousStatus === 'preparing' && newStatus === 'ready') {
+            const hawkerName = orderData.hawkerName || allOrders.value[orderIndex].hawkerName || 'the stall';
+            addReadyNotification(hawkerName, ord.id);
+          }
+          
           allOrders.value[orderIndex] = {
             ...allOrders.value[orderIndex],
-            status: orderData.status,
+            status: newStatus,
             ...orderData
           };
           
@@ -521,6 +531,9 @@ const setupAllOrderListeners = (orders) => {
           if (ord.id === currentOrderId.value) {
             order.value = allOrders.value[orderIndex];
           }
+          
+          // Update previous status for next comparison
+          previousStatus = newStatus;
         }
       }
     }, (error) => {
@@ -673,8 +686,8 @@ const setupOrderListener = (orderId) => {
       }
       
       // Show notification when status changes from 'preparing' to 'ready'
-      if (oldStatus === 'preparing' && newStatus === 'ready') {
-        showReadyNotification.value = true;
+      if (oldStatus === 'preparing' && newStatus === 'ready' && order.value) {
+        addReadyNotification(order.value.hawkerName || 'the stall', order.value.id);
       }
     }
   }, (error) => {
@@ -682,9 +695,43 @@ const setupOrderListener = (orderId) => {
   });
 };
 
-// Close notification
+// Show next notification in queue
+const showNextNotification = () => {
+  if (readyNotificationQueue.value.length > 0) {
+    currentReadyNotification.value = readyNotificationQueue.value.shift();
+    showReadyNotification.value = true;
+  } else {
+    showReadyNotification.value = false;
+    currentReadyNotification.value = null;
+  }
+};
+
+// Close notification and show next one if available
 const closeNotification = () => {
   showReadyNotification.value = false;
+  // Show next notification in queue after a brief delay
+  setTimeout(() => {
+    showNextNotification();
+  }, 300);
+};
+
+// Add ready notification to queue
+const addReadyNotification = (hawkerName, orderId) => {
+  // Check if notification for this order already exists in queue or is currently showing
+  const alreadyExists = readyNotificationQueue.value.some(n => n.orderId === orderId) || 
+                       (currentReadyNotification.value && currentReadyNotification.value.orderId === orderId);
+  
+  if (!alreadyExists) {
+    readyNotificationQueue.value.push({
+      hawkerName: hawkerName,
+      orderId: orderId
+    });
+    
+    // If no notification is currently showing, show this one
+    if (!showReadyNotification.value) {
+      showNextNotification();
+    }
+  }
 };
 
 // Check if all orders are collected
@@ -856,9 +903,6 @@ const generatePDF = () => {
   pdf.setFont(undefined, 'normal');
   const address = hawker.value?.address?.formattedAddress || order.value.hawkerAddress || 'Address not available';
   yPosition = addText(address, margin, yPosition, pageWidth - 2 * margin, 10);
-  yPosition += 2;
-  
-  yPosition = addText('Collection time: 7:00 pm', margin, yPosition, pageWidth - 2 * margin, 10);
   yPosition += 10;
   
   // Order Items
