@@ -142,7 +142,7 @@
               <p class="text-muted mb-0">Loading map...</p>
             </div>
           </div>
-          <br></br>
+          <br>
           <p class="text-muted mb-0">Collection time: <span class="fw-semibold text-success">7:00 pm</span></p>
         </div>
         
