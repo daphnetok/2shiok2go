@@ -39,13 +39,15 @@
                         <span v-if="!previewImageUrl"><b>Upload Photo</b></span>
                         <span v-else><b>Change Photo</b></span>
                         <br>
-                        <small>Click here to browse or drag and drop</small>
-                      </label>
+                      <small>Click here to browse or drag and drop</small>
+                      <small v-if="imageError" class="text-danger d-block mt-2">{{ imageError }}</small>
+                    </label>
                       <input
                         type="file"
                         accept="image/jpeg, image/png, image/jpg"
                         @change="onFileSelected"
                         ref="fileInput"
+                        :multiple="false"
                         style="display: none;"
                       />
                     </div>

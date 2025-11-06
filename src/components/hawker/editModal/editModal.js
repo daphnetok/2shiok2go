@@ -28,6 +28,8 @@ export default {
     const allergenOptions = ['Eggs', 'Dairy', 'Fish', 'Soy', 'Peanuts', 'Sesame'];
     const tagOptions = ['Halal', 'Vegetarian', 'Seafood', 'Dairy-free'];
 
+    const imageError = ref('');
+
     const newImageFile = ref(null);
     const previewImageUrl = ref('');
     const fileInput = ref(null);
@@ -97,10 +99,17 @@ export default {
     }, { immediate: true });
 
     const onFileSelected = (e) => {
-      const file = e.target.files[0];
+      const files = e.target.files;
+      if (files.length > 1) {
+        imageError.value = 'Please upload only one image.';
+        e.target.value = ''; // Reset input
+        return;
+      }
+      const file = files[0];
       if (file) {
         newImageFile.value = file;
         previewImageUrl.value = URL.createObjectURL(file);
+        imageError.value = '';
       }
     };
 
@@ -199,7 +208,7 @@ export default {
 
     return {
       editForm, allergenOptions, tagOptions,
-      newImageFile, previewImageUrl, fileInput,
+      newImageFile, previewImageUrl, fileInput, imageError,
       isSubmitting, errorMessage, calculatedDiscountedPrice,
       userListings, selectAll, selectedListings,
       toggleSelectAll, onFileSelected, removeNewImage,

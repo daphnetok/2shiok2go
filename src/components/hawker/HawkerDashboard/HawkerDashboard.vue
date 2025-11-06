@@ -10,7 +10,7 @@
       <div class="custom-alert-content">
         <!-- Close Button (top right) -->
         <button 
-          v-if="alert.type !== 'confirmation'" 
+          v-if="alert.type !== 'confirmation' && alert.type !== 'success'" 
           class="alert-close-btn-top" 
           @click="closeAlert"
         >
@@ -59,6 +59,16 @@
             >
               <i class="fas fa-check"></i>
               <span>Confirm</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- OK Button for Success Alerts -->
+        <div class="alert-actions" v-if="alert.type === 'success'">
+          <div class="button-group">
+            <button class="alert-btn alert-btn-primary" @click="closeAlert">
+              <i class="fas fa-check"></i>
+              <span>OK</span>
             </button>
           </div>
         </div>

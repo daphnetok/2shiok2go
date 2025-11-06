@@ -125,7 +125,7 @@
 
         <!-- Images Section -->
          <div class="p-2 section-card">
-          <h3 class="section-title">Images</h3>
+          <h3 class="section-title">Image</h3>
           <div class="row mb-3 px-md-5">
             <div class="col-md-5 p-0 p-md-4">
               <div class="uploader-card">
@@ -134,37 +134,24 @@
                   @dragover.prevent 
                   @drop.prevent="onFileDrop">
                   <i class="fas fa-cloud-upload-alt"></i>
-                  <p class="m-0"><b>Upload Photos</b> (max 5)</p>
-                  <small>Click to browse or drag files here. Drag thumbnails to reorder.</small>
-                  <input multiple type="file" accept="image/jpeg, image/png, image/jpg"
-                    @change="onFileSelected" ref="fileInput">
+                  <p class="m-0"><b>Upload Photo</b></p>
+                  <small>Click to browse or drag file here.</small>
+                  <input type="file" accept="image/jpeg, image/png, image/jpg"
+                    @change="onFileSelected" ref="fileInput" :multiple="false">
                 </div>
                 <small v-if="imageError" class="text-danger d-block mt-2">{{ imageError }}</small>
               </div>
 
-              <div class="photos-region mt-3" v-if="images && images.length">
+              <div class="photos-region mt-3" v-if="previewImageUrl">
                 <div class="photos-region-header">
-                  <span class="photos-title">Your Photos</span>
-                  <small class="photos-hint">Drag to reorder. Star a photo to set as main.</small>
+                  <span class="photos-title">Your Photo</span>
                 </div>
                 <div class="thumbs-grid">
-                  <div
-                    v-for="(img, idx) in images"
-                    :key="idx"
-                    class="thumb-item"
-                    draggable="true"
-                    @dragstart="onDragStart(idx)"
-                    @dragover.prevent="onDragOver"
-                    @drop.prevent="onDrop($event, idx)"
-                  >
-                    <img :src="img.previewUrl" alt="preview">
-                    <button type="button" class="thumb-remove" @click="removeImageAt(idx)">
+                  <div class="thumb-item">
+                    <img :src="previewImageUrl" alt="preview">
+                    <button type="button" class="thumb-remove" @click="removeFile">
                       ×
                     </button>
-                    <button type="button" class="thumb-star" :class="{ active: img.main }" @click="setMainImage(idx)" title="Set as main">
-                      <i class="fas" :class="img.main ? 'fa-star' : 'fa-star-half-alt'"></i>
-                    </button>
-                    <span class="thumb-badge" v-if="img.main">Main</span>
                   </div>
                 </div>
               </div>
@@ -186,8 +173,9 @@
 
               <!-- AI Food Description Component -->
               <AIFoodDescription 
-                :selectedFile="mainImageFile"
+                :selectedFile="selectedFile"
                 :foodName="form.itemName"
+                :imageUrl="previewImageUrl"
                 v-model:description="form.description"
               />
             </div>
