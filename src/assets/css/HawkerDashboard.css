@@ -5,18 +5,8 @@
   transition: all 0.3s ease;
   position: relative;
   min-height: 100vh;
-  /* margin: 0 auto; */
 }
 
-/* Main Container */
-.nav-container {
-  margin: 0 -1.5rem; 
-  padding: 1rem 3rem 1rem 3rem;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 35%, #a7f3d0 65%, #6ee7b7 100%);
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: 100vh;
-}
 
 /* Navigation Tabs */
 .tabs-nav {
@@ -82,6 +72,10 @@
     min-width: auto;
     flex: 0 0 auto;
   }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 576px) {
@@ -100,6 +94,15 @@
   }
   
 }
+
+
+/* Main container margin */
+@media (min-width: 992px) {
+  .container-fluid {
+      max-width: 1400px;
+      margin: 0 auto
+    }
+  }
 
 
 /* Animations */

@@ -81,7 +81,8 @@
 .alert-icon-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin: auto;
+  margin-bottom: 50px;
 }
 
 .alert-icon-circle {
@@ -104,13 +105,14 @@
 /* Message Section */
 .alert-message-section {
   text-align: center;
+  margin: auto;
   margin-bottom: 24px;
 }
 
 .alert-title {
   font-size: 24px;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   color: black;
   letter-spacing: -0.5px;
 }
@@ -125,11 +127,12 @@
 /* Alert Actions */
 .alert-actions {
   margin-top: 28px;
+  min-width: 400px;
 }
 
 .button-group {
   display: flex;
-  gap: 12px;
+  gap: 30px;
   justify-content: center;
 }
 
@@ -154,6 +157,8 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  width: 100%;
+  margin: auto;
 }
 
 .alert-btn i {
@@ -161,6 +166,7 @@
 }
 
 .alert-btn-cancel {
+  margin: auto;
   background: grey;
   color: white;
   /* border: 2px solid rgba(255, 255, 255, 0.3); */
