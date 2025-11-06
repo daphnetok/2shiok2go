@@ -145,6 +145,13 @@ export default {
     const handleAddToCart = async (data) => {
       if (!data || !data.item || data.quantity === 0) return;
 
+      // Check if user is authenticated before proceeding
+      if (!userId.value) {
+        errorMsg.value = 'Please log in to add items to cart';
+        closeModal();
+        return;
+      }
+
       // Update the item's count and notes
       data.item.count = data.quantity;
       data.item.notes = data.notes;
@@ -153,8 +160,10 @@ export default {
       await saveToCart(data.item);
       saveItemToList(data.item);
 
-      // Show success message
-      triggerToast();
+      // Only show success message if user is authenticated
+      if (userId.value) {
+        triggerToast();
+      }
       
       // Close modal
       closeModal();
@@ -449,11 +458,20 @@ export default {
 
     // Increment item count
     const increment = async (item) => {
+      if (!userId.value) {
+        errorMsg.value = 'Please log in to add items to cart';
+        return;
+      }
+      
       if (item.itemQty > 0 && item.count < item.itemQty) {
         item.count++;
         await saveToCart(item);
         saveItemToList(item);
-        triggerToast();
+        
+        // Only show success message if user is authenticated
+        if (userId.value) {
+          triggerToast();
+        }
       }
     };
 

@@ -64,7 +64,7 @@
 
     <!-- Do it later link -->
     <div class="do-it-later">
-      <router-link to="/buyer-listings" class="do-it-later-link">Do it later ></router-link>
+      <a @click="handleDoItLater" class="do-it-later-link" style="cursor: pointer;">Do it later ></a>
     </div>
 
     <!-- Main Content -->
@@ -326,7 +326,7 @@ export default {
     const overallRating = computed(() => {
       const total = foodQuality.value + storeService.value + valueForMoney.value;
       if (total === 0) return 0;
-      return Math.round((total / 3) * 10) / 10; // Round to 1 decimal place
+      return Math.round((total / 3) * 10) / 10;
     });
 
     // Rating setter functions
@@ -366,7 +366,6 @@ export default {
           reader.readAsDataURL(file);
         }
       });
-      // Reset input value to allow re-uploading the same file
       if (event.target) {
         event.target.value = '';
       }
@@ -387,7 +386,6 @@ export default {
           reader.readAsDataURL(file);
         }
       });
-      // Reset input value to allow re-uploading the same file
       if (event.target) {
         event.target.value = '';
       }
@@ -395,7 +393,6 @@ export default {
 
     const removePhoto = (index) => {
       uploadedPhotos.value.splice(index, 1);
-      // Reset input value to allow re-uploading
       if (photoInput.value) {
         photoInput.value.value = '';
       }
@@ -403,7 +400,6 @@ export default {
 
     const removeVideo = (index) => {
       uploadedVideos.value.splice(index, 1);
-      // Reset input value to allow re-uploading
       if (videoInput.value) {
         videoInput.value.value = '';
       }
@@ -432,12 +428,10 @@ export default {
       
       try {
         if (video.paused) {
-          // Expand to fullscreen before playing
           videoContainer.classList.add('fullscreen');
           videoFullscreen.value[videoIndex] = true;
           activeVideoRef.value = video;
           
-          // Set video duration
           if (video.duration) {
             videoDuration.value[videoIndex] = video.duration;
           } else {
@@ -447,7 +441,6 @@ export default {
           }
           
           await video.play();
-          // Request fullscreen API if available
           try {
             if (videoContainer.requestFullscreen) {
               await videoContainer.requestFullscreen();
@@ -459,7 +452,6 @@ export default {
               await videoContainer.msRequestFullscreen();
             }
           } catch (fsError) {
-            // Fullscreen request failed, but continue with custom fullscreen
             console.log('Fullscreen API not available, using custom fullscreen');
           }
         } else {
@@ -475,10 +467,8 @@ export default {
       const videoContainer = video.closest('.video-media-item');
       videoContainer.classList.add('playing');
       
-      // Store reference to active video
       activeVideoRef.value = video;
       
-      // Add escape key listener
       const handleEscape = (e) => {
         if (e.key === 'Escape' && activeVideoRef.value) {
           activeVideoRef.value.pause();
@@ -486,7 +476,6 @@ export default {
       };
       document.addEventListener('keydown', handleEscape);
       
-      // Store handler for cleanup
       video._escapeHandler = handleEscape;
     };
 
@@ -506,7 +495,6 @@ export default {
       videoContainer.classList.remove('fullscreen');
       videoFullscreen.value[videoIndex] = false;
       
-      // Remove escape key listener
       if (video._escapeHandler) {
         document.removeEventListener('keydown', video._escapeHandler);
         video._escapeHandler = null;
@@ -514,7 +502,6 @@ export default {
       
       activeVideoRef.value = null;
       
-      // Exit browser fullscreen if active
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else if (document.webkitFullscreenElement) {
@@ -553,7 +540,6 @@ export default {
       video.currentTime = percentage * video.duration;
     };
 
-    // Get star fill style for partial stars
     const getStarFillStyle = (starPosition, rating) => {
       const fillPercentage = Math.max(0, Math.min(1, rating - (starPosition - 1))) * 100;
       
@@ -571,7 +557,6 @@ export default {
       }
     };
 
-    // Upload file to Firebase Storage
     const uploadFileToStorage = async (file, folderName, userId, timestamp) => {
       try {
         const fileExtension = file.name.split('.').pop();
@@ -600,19 +585,24 @@ export default {
           return;
         }
 
-        // Fetch order
+        console.log('Fetching order with orderID:', orderId);
+
+        // Fetch order using query
         const ordersQuery = query(
           collection(db, 'orders'),
-          where('orderID', '==', parseInt(orderId))
+          where('orderID', '==', orderId)
         );
 
         const ordersSnapshot = await getDocs(ordersQuery);
+        console.log('Query executed, found docs:', ordersSnapshot.size);
 
         if (!ordersSnapshot.empty) {
           const orderDoc = ordersSnapshot.docs[0];
           const orderData = orderDoc.data();
           currentOrderData.value = orderData;
           stallName.value = orderData.hawkerName || 'this stall';
+
+          console.log('Order data loaded:', orderData);
 
           // Fetch hawker image and store reference
           if (orderData.hawkerId) {
@@ -628,9 +618,13 @@ export default {
               hawkerImage.value = hawkerData.imageUrl || null;
             }
           }
+        } else {
+          console.log('No order found with orderID:', orderId);
         }
       } catch (error) {
         console.error('Error fetching order data:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
       } finally {
         loadingOrder.value = false;
       }
@@ -664,7 +658,7 @@ export default {
         // Fetch order data
         const orderQuery = query(
           collection(db, 'orders'),
-          where('orderID', '==', parseInt(orderId))
+          where('orderID', '==', orderId)
         );
         const orderSnapshot = await getDocs(orderQuery);
 
@@ -674,17 +668,13 @@ export default {
           return;
         }
 
+        const orderDocRef = doc(db, 'orders', orderSnapshot.docs[0].id);
         const orderData = orderSnapshot.docs[0].data();
         
-        // Debug: Log order data to see what fields exist
         console.log('Order data:', orderData);
         console.log('Current user UID:', user.uid);
-        console.log('Order buyerId:', orderData.buyerId);
-        console.log('Order userId:', orderData.userId);
-        console.log('Order customerId:', orderData.customerId);
         
         // Verify the current user is the one who made the order
-        // Check multiple possible field names for buyer ID
         const orderBuyerId = orderData.buyerId || orderData.userId || orderData.customerId;
         
         if (!orderBuyerId) {
@@ -755,9 +745,10 @@ export default {
           storeService: storeService.value,
           valueForMoney: valueForMoney.value,
           userid: user.uid,
+          orderId: orderId, // Store orderId to link review to order
           photo: photoURLs,
           video: videoURLs,
-          writtenreview: reviewText.value.trim() || '', // Allow empty string
+          writtenreview: reviewText.value.trim() || '',
           createdAt: new Date()
         };
         
@@ -770,9 +761,11 @@ export default {
         
         // Update hawker document with reviews map
         const reviewsUpdate = {
-          stallRating: Math.round(newStallRating * 100) / 100, // Round to 2 decimal places
+          stallRating: Math.round(newStallRating * 100) / 100,
           userRatings: updatedUserRatings
         };
+        
+        console.log('Updating hawker document with reviews:', reviewsUpdate);
         
         await updateDoc(hawkerDocRef.value, {
           reviews: reviewsUpdate
@@ -782,9 +775,41 @@ export default {
         router.push('/buyer-listings');
       } catch (error) {
         console.error('Error submitting review:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         showAlert('error', `Failed to submit review: ${error.message}`);
       } finally {
         isSubmitting.value = false;
+      }
+    };
+
+    // Handle "Do it later" - mark order as needing review
+    const handleDoItLater = async () => {
+      try {
+        const orderId = route.query.orderId;
+        if (!orderId) {
+          router.push('/buyer-listings');
+          return;
+        }
+
+        // Mark order as needing review
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('orderID', '==', orderId)
+        );
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        if (!ordersSnapshot.empty) {
+          const orderDoc = ordersSnapshot.docs[0];
+          await updateDoc(doc(db, 'orders', orderDoc.id), {
+            reviewPending: true
+          });
+        }
+        
+        router.push('/buyer-listings');
+      } catch (error) {
+        console.error('Error marking order for review:', error);
+        router.push('/buyer-listings');
       }
     };
 
@@ -833,7 +858,8 @@ export default {
       showConfirmation,
       closeAlert,
       confirmationConfirm,
-      confirmationCancel
+      confirmationCancel,
+      handleDoItLater
     };
   }
 };

@@ -22,11 +22,12 @@ service cloud.firestore {
     match /hawkerListings/{hawkerId} {
       allow read: if true; // Anyone can read hawker listings
       allow create: if request.auth != null;
-      // Allow owner to write everything
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
-      // Allow any authenticated user to update favouritedUser array only
+      // Allow owner to write/delete
+      allow write, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow authenticated users to update ONLY favouritedUser OR reviews (NO OTHER CHECKS)
       allow update: if request.auth != null && 
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favouritedUser']);
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favouritedUser']) ||
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviews']));
     }
     
     // Item listings
@@ -35,12 +36,21 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Orders collection
-    match /orders/{orderId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.hawkerId);
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.hawkerId);
-    }
+    // Orders collection - Allow querying by orderID
+      match /orders/{orderId} {
+        // Allow any authenticated user to query orders (they can only see their own via client-side filtering)
+        allow list: if request.auth != null;
+        // Allow reading specific document if user is buyer or hawker
+        allow get: if request.auth != null && 
+                  (request.auth.uid == resource.data.buyerId || 
+                  request.auth.uid == resource.data.userId || 
+                  request.auth.uid == resource.data.hawkerId);
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && 
+                    (request.auth.uid == resource.data.buyerId || 
+                      request.auth.uid == resource.data.userId || 
+                      request.auth.uid == resource.data.hawkerId);
+      }
     
     // Reviews collection
     match /reviews/{reviewId} {

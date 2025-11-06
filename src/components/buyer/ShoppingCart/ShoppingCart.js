@@ -509,6 +509,12 @@ export default {
                 const isSoldOut = currentQty <= 0;
                 return {
                   ...item,
+                  // Update price information from database
+                  itemPrice: itemData.itemPrice || item.itemPrice,
+                  discount: itemData.discount || item.discount || 0,
+                  discountedPrice: itemData.discountedPrice || item.discountedPrice,
+                  discountTime: itemData.discountTime || item.discountTime,
+                  // Update stock and availability
                   itemQty: currentQty,
                   qty: isSoldOut ? 0 : Math.min(parseInt(item.qty || 0), currentQty),
                   isClosed: isClosed,

@@ -126,9 +126,9 @@
                     <label class="filter-label">Status:</label>
                     <select v-model="filterStatus" class="filter-select" :class="{ 'dark-select': isDarkMode }">
                       <option value="all">All Orders</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="collected">Collected</option>
+                      <option value="preparing">Preparing</option>
+                      <option value="ready">Ready</option>
                     </select>
                   </div>
                   <div class="filter-group">
@@ -138,6 +138,8 @@
                       <option value="oldest">Oldest First</option>
                       <option value="amount-high">Highest Amount</option>
                       <option value="amount-low">Lowest Amount</option>
+                      <option value="review-done">Review Done</option>
+                      <option value="review-pending">Review Pending</option>
                     </select>
                   </div>
                 </div>
@@ -167,8 +169,8 @@
             <div v-for="order in filteredOrders" :key="order.id" class="order-card" :class="{ 'dark-mode-card': isDarkMode }">
               <div class="order-header">
                 <div class="order-info">
-                  <h5 class="order-id mb-1">Order #{{ order.id.substring(0, 8).toUpperCase() }}</h5>
-                  <p class="order-date mb-0 text-muted">{{ formatDate(order.createdAt) }}</p>
+                  <h5 class="order-id mb-1">Order #{{ order.orderID || order.id.substring(0, 8).toUpperCase() }}</h5>
+                  <p class="order-date mb-0 text-muted">{{ formatDate(order.timestamp || order.createdAt || order.time) }}</p>
                 </div>
                 <span class="order-status" :class="getStatusClass(order.status)">
                   <i :class="getStatusIcon(order.status)" class="me-1"></i>
@@ -192,13 +194,13 @@
                       <div v-else class="item-image-placeholder">
                         <i class="fas fa-utensils"></i>
                       </div>
-                      <div class="item-info">
-                        <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
-                        <div class="item-details">
-                          <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
-                          <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                        <div class="item-info">
+                          <div class="item-name">{{ item.itemName || item.name || 'Unknown Item' }}</div>
+                          <div class="item-details">
+                            <span class="item-quantity">Qty: {{ item.qty || item.quantity || 1 }}</span>
+                            <span class="item-price">${{ formatPrice(item.itemPrice || item.price) }}</span>
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -241,20 +243,26 @@
               </div>
 
               <div class="order-footer">
-                <button v-if="order.status === 'completed'" class="btn btn-outline-success btn-sm" style="border-radius: 8px;">
-                  <i class="fas fa-star me-2"></i>Write Review
-                </button>
                 <button v-if="order.status === 'reserved' || order.status === 'accepted'" 
                         class="btn btn-outline-danger btn-sm" 
                         style="border-radius: 8px;"
                         @click="cancelOrder(order.id)">
                   <i class="fas fa-times me-2"></i>Cancel Order
                 </button>
-                <button class="btn btn-outline-success btn-sm" 
-                        style="border-radius: 8px;"
-                        @click="contactSupport(order.id)">
-                  <i class="fas fa-headset me-2"></i>Contact Us
-                </button>
+                <!-- Review button or status -->
+                <template v-if="order.status === 'collected' || order.status === 'completed'">
+                  <button v-if="order.reviewPending || (!order.reviewCompleted && !order.hasReview)" 
+                          class="btn btn-outline-warning btn-sm write-review-btn" 
+                          style="border-radius: 8px;"
+                          @click="goToReview(order)">
+                    <i class="fas fa-star me-2"></i>Write Review
+                  </button>
+                  <span v-else-if="order.reviewCompleted || order.hasReview" 
+                        class="btn btn-sm review-done-badge">
+                    <i class="fas fa-check-circle me-2"></i>Review Done
+                  </span>
+                </template>
+                <!-- Contact Us button removed per request -->
                 <button class="btn btn-outline-primary btn-sm" 
                         style="border-radius: 8px;"
                         @click="viewOrderDetails(order.id)">
@@ -273,6 +281,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '../../firebase/config'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
@@ -288,6 +298,7 @@ export default {
     const filterStatus = ref('all')
     const sortBy = ref('newest')
     const currentUserId = ref(null)
+    const currentUserUid = ref(null)
 
     const auth = getAuth()
 
@@ -339,16 +350,33 @@ export default {
     const filteredOrders = computed(() => {
       let filtered = orders.value
 
-      // Filter by status
+      // Filter by status (exact string match to Firestore values)
       if (filterStatus.value !== 'all') {
-        if (filterStatus.value === 'in-progress') {
-          // In-progress includes reserved and accepted orders
-          filtered = filtered.filter(order => 
-            order.status === 'reserved' || order.status === 'accepted'
-          )
+        if (filterStatus.value === 'collected') {
+          // When "collected" is selected, show orders with status "collected"
+          filtered = filtered.filter(order => order.status === 'collected')
         } else {
           filtered = filtered.filter(order => order.status === filterStatus.value)
         }
+      }
+
+      // Filter and sort by review status if selected
+      if (sortBy.value === 'review-done' || sortBy.value === 'review-pending') {
+        filtered = filtered.filter(order => {
+          // Only filter orders that are collected or completed (eligible for review)
+          if (order.status !== 'collected' && order.status !== 'completed') {
+            return false // Hide non-eligible orders when filtering by review status
+          }
+
+          if (sortBy.value === 'review-done') {
+            // Show orders with reviews
+            return order.reviewCompleted || order.hasReview === true
+          } else if (sortBy.value === 'review-pending') {
+            // Show orders without reviews (pending or no review)
+            return order.reviewPending || (!order.reviewCompleted && order.hasReview !== true)
+          }
+          return true
+        })
       }
 
       // Sort
@@ -356,23 +384,32 @@ export default {
       switch (sortBy.value) {
         case 'newest':
           sorted.sort((a, b) => {
-            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
             return dateB - dateA
           })
           break
         case 'oldest':
           sorted.sort((a, b) => {
-            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
             return dateA - dateB
           })
           break
         case 'amount-high':
-          sorted.sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0))
+          sorted.sort((a, b) => (b.totalAmount || b.orderTotal || 0) - (a.totalAmount || a.orderTotal || 0))
           break
         case 'amount-low':
-          sorted.sort((a, b) => (a.totalAmount || 0) - (b.totalAmount || 0))
+          sorted.sort((a, b) => (a.totalAmount || a.orderTotal || 0) - (b.totalAmount || b.orderTotal || 0))
+          break
+        case 'review-done':
+        case 'review-pending':
+          // Already filtered above, just sort by newest
+          sorted.sort((a, b) => {
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
+            return dateB - dateA
+          })
           break
       }
 
@@ -381,32 +418,62 @@ export default {
 
     // Fetch orders
     const fetchOrders = async () => {
-      if (!currentUserId.value) return
+      if (!currentUserUid.value) return
 
       try {
         loading.value = true
-        const fetchedOrders = await getOrdersByUser(currentUserId.value, 'buyer')
-        console.log('Fetched orders:', fetchedOrders)
         
-        // Log first order to see data structure
-        if (fetchedOrders.length > 0) {
-          console.log('Sample order:', fetchedOrders[0])
-          console.log('Sample order items:', fetchedOrders[0].items)
-          console.log('Calculated subtotal:', calculateSubtotal(fetchedOrders[0].items))
-          console.log('Discount:', fetchedOrders[0].discount)
-          console.log('Calculated total:', calculateTotal(fetchedOrders[0]))
+        // Fetch user data from users collection to verify userId
+        const userDocRef = doc(db, 'users', currentUserUid.value)
+        const userDocSnap = await getDoc(userDocRef)
+        
+        if (!userDocSnap.exists()) {
+          orders.value = []
+          return
         }
         
-        orders.value = fetchedOrders
+        const userData = userDocSnap.data()
+        
+        
+        // Fetch orders by the userId stored in users collection
+        const userId = userData.userId || currentUserUid.value
+  const fetchedOrders = await getOrdersByUser(userId, 'buyer')
+        
+        // Filter orders to ensure userId matches
+        const verifiedOrders = fetchedOrders.filter(order => {
+          const orderMatches = order.userId === userId
+          if (!orderMatches) {
+            // order does not belong to this user; ignore
+          }
+          return orderMatches
+        })
+        
+        
+        
+        // Log first order to see data structure
+        
+        
+        // Check review status for each order
+        const ordersWithReviewStatus = await Promise.all(
+          verifiedOrders.map(async (order) => {
+            if (order.status === 'collected' || order.status === 'completed') {
+              const reviewExists = await checkReviewExists(order);
+              return {
+                ...order,
+                hasReview: reviewExists === true
+              };
+            }
+            return order;
+          })
+        );
+        
+        orders.value = ordersWithReviewStatus
       } catch (error) {
-        console.error('Error fetching orders:', error)
-        showAlert('error', 'Failed to load orders. Please try again later.')
+        // Error fetching orders
       } finally {
         loading.value = false
       }
-    }
-
-    // Cancel order
+    }    // Cancel order
     const cancelOrder = async (orderId) => {
       // if (!confirm('Are you sure you want to cancel this order?')) return
       showConfirmation(
@@ -439,14 +506,36 @@ export default {
     // Format date
     const formatDate = (date) => {
       if (!date) return 'N/A'
-      const d = date.toDate ? date.toDate() : new Date(date)
-      return d.toLocaleString('en-SG', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      
+      try {
+        // Handle Firestore Timestamp object
+        if (date.toDate && typeof date.toDate === 'function') {
+          const d = date.toDate()
+          return d.toLocaleString('en-SG', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+        
+        // Handle regular Date object or date string
+        const d = new Date(date)
+        if (isNaN(d.getTime())) {
+          return 'N/A'
+        }
+        
+        return d.toLocaleString('en-SG', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } catch (error) {
+        return 'N/A'
+      }
     }
 
     // Format price
@@ -509,7 +598,10 @@ export default {
         reserved: 'status-reserved',
         accepted: 'status-accepted',
         completed: 'status-completed',
-        cancelled: 'status-cancelled'
+        cancelled: 'status-cancelled',
+        collected: 'status-collected',
+        preparing: 'status-preparing',
+        ready: 'status-ready'
       }
       return classes[status] || 'status-reserved'
     }
@@ -520,7 +612,10 @@ export default {
         reserved: 'fas fa-clock',
         accepted: 'fas fa-check-circle',
         completed: 'fas fa-check-double',
-        cancelled: 'fas fa-times-circle'
+        cancelled: 'fas fa-times-circle',
+        collected: 'fas fa-check-circle',
+        preparing: 'fas fa-clock',
+        ready: 'fas fa-bell'
       }
       return icons[status] || 'fas fa-clock'
     }
@@ -532,6 +627,85 @@ export default {
       document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
       localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
     }
+
+    // Check if review exists for an order
+    const checkReviewExists = async (order) => {
+      try {
+        // First check if order has reviewCompleted flag
+        if (order.reviewCompleted) {
+          return true;
+        }
+
+        // If order has reviewPending flag, review doesn't exist yet
+        if (order.reviewPending) {
+          return false;
+        }
+
+        // Check if order status is collected or completed - eligible for review
+        if (order.status !== 'collected' && order.status !== 'completed') {
+          return null; // Not eligible for review yet
+        }
+
+        // Check if review exists in hawker's reviews
+        if (!order.hawkerId) {
+          return null;
+        }
+
+        const hawkerQuery = query(
+          collection(db, 'hawkerListings'),
+          where('userId', '==', order.hawkerId)
+        );
+        const hawkerSnapshot = await getDocs(hawkerQuery);
+        
+        if (hawkerSnapshot.empty) {
+          return null;
+        }
+
+        const hawkerData = hawkerSnapshot.docs[0].data();
+        const reviews = hawkerData.reviews || {};
+        const userRatings = reviews.userRatings || [];
+        
+        const orderId = order.orderID || order.id;
+        const userId = currentUserUid.value;
+        
+        // Check if there's a review for this order by this user
+        const reviewExists = userRatings.some(rating => 
+          rating.orderId === orderId && rating.userid === userId
+        );
+
+        return reviewExists;
+      } catch (error) {
+        console.error('Error checking review:', error);
+        return null;
+      }
+    };
+
+    // Check if order needs review (collected/completed but no review)
+    const needsReview = async (order) => {
+      if (order.status !== 'collected' && order.status !== 'completed') {
+        return false;
+      }
+      
+      if (order.reviewCompleted) {
+        return false;
+      }
+
+      if (order.reviewPending) {
+        return true;
+      }
+
+      const reviewExists = await checkReviewExists(order);
+      return reviewExists === false;
+    };
+
+    // Navigate to review page
+    const goToReview = (order) => {
+      const orderId = order.orderID || order.id;
+      router.push({ 
+        path: '/reviews', 
+        query: { orderId: orderId } 
+      });
+    };
 
     // View order details - navigate to receipt page
     const viewOrderDetails = (orderId) => {
@@ -560,9 +734,11 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           currentUserId.value = user.uid
+          currentUserUid.value = user.uid
           fetchOrders()
         } else {
           currentUserId.value = null
+          currentUserUid.value = null
           orders.value = []
           loading.value = false
         }
@@ -580,6 +756,9 @@ export default {
       cancelOrder,
       viewOrderDetails,
       contactSupport,
+      goToReview,
+      checkReviewExists,
+      needsReview,
       formatDate,
       formatPrice,
       calculateSubtotal,
@@ -883,10 +1062,13 @@ export default {
 .order-id {
   font-weight: 700;
   color: #059669;
-  font-size: 0.95rem;
+  /* Increased for better readability for older users. Use relative units so accessibility scaling works. */
+  font-size: 1.25rem;
   margin-bottom: 0.25rem;
+  /* Allow wrapping without overflowing the card */
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .dark-theme .order-id {
@@ -894,10 +1076,11 @@ export default {
 }
 
 .order-date {
-  font-size: 0.8rem;
+  /* Slightly larger and more readable date */
+  font-size: 0.95rem;
   color: #6b7280;
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .dark-theme .order-date {
@@ -934,6 +1117,24 @@ export default {
 .status-cancelled {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.status-collected {
+  background: #dcfce7;
+  color: #065f46;
+  border: 1px solid #065f46;
+}
+
+.status-preparing {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #1e40af;
+}
+
+.status-ready {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #991b1b;
 }
 
 /* Order Body */
@@ -1010,21 +1211,28 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  /* Ensure consistent inner padding so item names are visually centered within item cards */
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 .item-name {
   font-weight: 600;
-  font-size: 0.8rem;
+  /* Make item names easier to read; allow up to 3 lines but never overflow container */
+  font-size: 1rem;
   color: #111827;
   margin-bottom: 0.125rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   white-space: normal;
-  line-height: 1.3;
+  line-height: 1.25;
+  /* center the caption under the image without affecting details alignment */
+  text-align: center;
+  margin: auto;
 }
 
 .dark-mode-card .item-name {
@@ -1089,9 +1297,10 @@ export default {
   color: #374151;
   flex: 1;
   word-break: break-word;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   min-width: 0;
-  font-size: 0.85rem;
+  /* Slightly larger for readability */
+  font-size: 0.95rem;
 }
 
 .dark-theme .detail-value {
@@ -1132,6 +1341,7 @@ export default {
 .summary-value {
   font-weight: 600;
   color: #374151;
+  font-size: 1rem;
 }
 
 .dark-theme .summary-value {
@@ -1373,6 +1583,54 @@ export default {
   .detail-label {
     min-width: auto;
   }
+}
+
+/* Write Review Button - Yellow (styled like View Details but yellow) */
+.write-review-btn {
+  border-color: #e0ac10;
+  color: #e0ac10;
+  background-color: transparent;
+}
+
+.write-review-btn:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.dark-theme .write-review-btn {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.dark-theme .write-review-btn:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+/* Review Done Badge - Non-clickable, no fill, no border */
+.review-done-badge {
+  background-color: transparent;
+  border: none;
+  color: #10b981;
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.dark-theme .review-done-badge {
+  background-color: transparent;
+  border: none;
+  color: #10b981;
 }
 
 /* Print Styles */
