@@ -2,7 +2,7 @@
   <!-- Alert Box -->
   <transition name="alert-scale">
     <div 
-      v-if="alert.show" 
+    v-if="alert.show" 
       class="custom-alert-overlay"
       @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
     >
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Redirect Buttons -->
-            <div v-else-if="alert.type === 'redirect'" class="button-group-vertical row">
+            <div v-else-if="alert.type === 'redirect'" class="button-group-vertical">
               <div class="p-0">
                 <router-link to="/hawker-dashboard">
                   <button class="alert-btn alert-btn-primary alert-btn-large" @click="closeAlert">
@@ -78,7 +78,7 @@
                   </button>
               </router-link>
               </div>
-              <div class="p-0 mx-auto">
+              <div class="p-0">
                 <button class="alert-btn alert-btn-secondary alert-btn-large" @click="closeAlert">
                   <i class="fas fa-plus"></i>
                   <span>Create Another Listing</span>

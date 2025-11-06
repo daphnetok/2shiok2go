@@ -17,7 +17,7 @@
                 <span>Orders Management</span>
               </router-link>
             </li>
-            <li class="tab-item"style="padding:0">
+            <li class="tab-item" style="padding:0">
               <router-link to="/hawker-analytics" class="tab-link">
                 <i class="fas fa-chart-simple"></i>
                 <span>Analytics</span>

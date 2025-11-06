@@ -1,5 +1,80 @@
 <template>
   <div class="buyer-dashboard-wrapper" :class="{ 'dark-theme': isDarkMode }">
+
+    <!-- Alert Box -->
+    <transition name="alert-scale">
+      <div 
+        v-if="alert.show" 
+        class="custom-alert-overlay"
+        @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
+      >
+        <div class="custom-alert-container" :class="alert.type">
+          <div class="custom-alert-content">
+            <!-- Close Button (top right) -->
+            <button 
+              v-if="alert.type !== 'confirmation'" 
+              class="alert-close-btn-top" 
+              @click="closeAlert"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Icon Section -->
+            <div class="alert-icon-section">
+              <div v-if="alert.type === 'success'" class="alert-icon-circle success">
+                <i class="fas fa-check"></i>
+              </div>
+              <div v-else-if="alert.type === 'error'" class="alert-icon-circle error">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div v-else-if="alert.type === 'confirmation'" class="alert-icon-circle warning">
+                <i class="fas fa-question"></i>
+              </div>
+            </div>
+
+            <!-- Message Section -->
+            <div class="alert-message-section">
+              <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+              <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+              <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+              
+              <p class="alert-message">{{ alert.message }}</p>
+            </div>
+
+            <!-- Action Buttons Section -->
+            <div class="mx-auto">
+              <div class="alert-actions">
+                <!-- Confirmation Buttons -->
+                <div v-if="alert.type === 'confirmation'" class="button-group">
+                  <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                  </button>
+                  <button 
+                    v-if="alert.actionType === 'Delete' || alert.actionType === 'Cancel'" 
+                    class="alert-btn alert-btn-danger" 
+                    @click="confirmationConfirm"
+                  >
+                    <i class="fas" :class="alert.actionType === 'Delete' ? 'fa-trash' : 'fa-times'"></i>
+                    <span>{{ alert.actionType }}</span>
+                  </button>
+                  <button 
+                    v-else 
+                    class="alert-btn alert-btn-primary" 
+                    @click="confirmationConfirm"
+                  >
+                    <i class="fas fa-check"></i>
+                    <span>Confirm</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+
     <!-- Sidebar Navigation -->
     <div class="sidebar" :class="{ 'dark-sidebar': isDarkMode }">
       <nav class="sidebar-nav">
@@ -51,10 +126,9 @@
                     <label class="filter-label">Status:</label>
                     <select v-model="filterStatus" class="filter-select" :class="{ 'dark-select': isDarkMode }">
                       <option value="all">All Orders</option>
-                      <option value="completed">Completed</option>
+                      <option value="collected">Collected</option>
                       <option value="preparing">Preparing</option>
                       <option value="ready">Ready</option>
-                      <option value="pending">Pending</option>
                     </select>
                   </div>
                   <div class="filter-group">
@@ -64,6 +138,8 @@
                       <option value="oldest">Oldest First</option>
                       <option value="amount-high">Highest Amount</option>
                       <option value="amount-low">Lowest Amount</option>
+                      <option value="review-done">Review Done</option>
+                      <option value="review-pending">Review Pending</option>
                     </select>
                   </div>
                 </div>
@@ -167,15 +243,25 @@
               </div>
 
               <div class="order-footer">
-                <button v-if="order.status === 'completed'" class="btn btn-outline-success btn-sm" style="border-radius: 8px;">
-                  <i class="fas fa-star me-2"></i>Write Review
-                </button>
                 <button v-if="order.status === 'reserved' || order.status === 'accepted'" 
                         class="btn btn-outline-danger btn-sm" 
                         style="border-radius: 8px;"
                         @click="cancelOrder(order.id)">
                   <i class="fas fa-times me-2"></i>Cancel Order
                 </button>
+                <!-- Review button or status -->
+                <template v-if="order.status === 'collected' || order.status === 'completed'">
+                  <button v-if="order.reviewPending || (!order.reviewCompleted && !order.hasReview)" 
+                          class="btn btn-outline-warning btn-sm write-review-btn" 
+                          style="border-radius: 8px;"
+                          @click="goToReview(order)">
+                    <i class="fas fa-star me-2"></i>Write Review
+                  </button>
+                  <span v-else-if="order.reviewCompleted || order.hasReview" 
+                        class="btn btn-sm review-done-badge">
+                    <i class="fas fa-check-circle me-2"></i>Review Done
+                  </span>
+                </template>
                 <!-- Contact Us button removed per request -->
                 <button class="btn btn-outline-primary btn-sm" 
                         style="border-radius: 8px;"
@@ -195,7 +281,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
@@ -216,13 +302,81 @@ export default {
 
     const auth = getAuth()
 
+
+  // Alert or Confirmation boxes
+  const alert = ref({
+    show: false,
+    type: '',
+    message: '',
+    actionType: '',
+    onConfirm: null,
+    onCancel: null
+  })
+
+  const showAlert = (type, message) => {
+    alert.value = {
+      show: true,
+      type,
+      message
+    }
+  }
+
+  const showConfirmation = (message, actionType, onConfirm, onCancel) => {
+    alert.value = {
+      show: true,
+      type: 'confirmation',
+      message,
+      actionType,
+      onConfirm,
+      onCancel
+    }
+  }
+
+  const closeAlert = () => {
+    alert.value.show = false
+  }
+
+  const confirmationConfirm = () => {
+    if (alert.value.onConfirm) alert.value.onConfirm()
+    alert.value.show = false
+  }
+
+  const confirmationCancel = () => {
+    if (alert.value.onCancel) alert.value.onCancel()
+    alert.value.show = false
+  }
+
     // Filter and sort orders
     const filteredOrders = computed(() => {
       let filtered = orders.value
 
       // Filter by status (exact string match to Firestore values)
       if (filterStatus.value !== 'all') {
-        filtered = filtered.filter(order => order.status === filterStatus.value)
+        if (filterStatus.value === 'collected') {
+          // When "collected" is selected, show orders with status "collected"
+          filtered = filtered.filter(order => order.status === 'collected')
+        } else {
+          filtered = filtered.filter(order => order.status === filterStatus.value)
+        }
+      }
+
+      // Filter and sort by review status if selected
+      if (sortBy.value === 'review-done' || sortBy.value === 'review-pending') {
+        filtered = filtered.filter(order => {
+          // Only filter orders that are collected or completed (eligible for review)
+          if (order.status !== 'collected' && order.status !== 'completed') {
+            return false // Hide non-eligible orders when filtering by review status
+          }
+
+          if (sortBy.value === 'review-done') {
+            // Show orders with reviews
+            return order.reviewCompleted || order.hasReview === true
+          } else if (sortBy.value === 'review-pending') {
+            // Show orders without reviews (pending or no review)
+            return order.reviewPending || (!order.reviewCompleted && order.hasReview !== true)
+          }
+          return true
+        })
       }
 
       // Sort
@@ -247,6 +401,15 @@ export default {
           break
         case 'amount-low':
           sorted.sort((a, b) => (a.totalAmount || a.orderTotal || 0) - (b.totalAmount || b.orderTotal || 0))
+          break
+        case 'review-done':
+        case 'review-pending':
+          // Already filtered above, just sort by newest
+          sorted.sort((a, b) => {
+            const dateA = (a.timestamp || a.createdAt)?.toDate ? (a.timestamp || a.createdAt).toDate() : new Date(a.timestamp || a.createdAt || 0)
+            const dateB = (b.timestamp || b.createdAt)?.toDate ? (b.timestamp || b.createdAt).toDate() : new Date(b.timestamp || b.createdAt || 0)
+            return dateB - dateA
+          })
           break
       }
 
@@ -290,7 +453,21 @@ export default {
         // Log first order to see data structure
         
         
-        orders.value = verifiedOrders
+        // Check review status for each order
+        const ordersWithReviewStatus = await Promise.all(
+          verifiedOrders.map(async (order) => {
+            if (order.status === 'collected' || order.status === 'completed') {
+              const reviewExists = await checkReviewExists(order);
+              return {
+                ...order,
+                hasReview: reviewExists === true
+              };
+            }
+            return order;
+          })
+        );
+        
+        orders.value = ordersWithReviewStatus
       } catch (error) {
         // Error fetching orders
       } finally {
@@ -298,14 +475,32 @@ export default {
       }
     }    // Cancel order
     const cancelOrder = async (orderId) => {
-      if (!confirm('Are you sure you want to cancel this order?')) return
+      // if (!confirm('Are you sure you want to cancel this order?')) return
+      showConfirmation(
+        'Are you sure you want to cancel this order? This action cannot be undone.',
+        'Cancel',
+        async () => {
+          try {
+            await cancelOrderService(orderId)
+            await fetchOrders() // Refresh the list
+            showAlert('success', 'Order cancelled successfully!')
+          } catch (error) {
+            console.error('Error cancelling order:', error)
+            showAlert('error', 'Failed to cancel order. Please try again.')
+          }
+        },
+        () => {
+          // User cancelled the confirmation
+        }
+      )
 
-      try {
-        await cancelOrderService(orderId)
-        await fetchOrders() // Refresh the list
-      } catch (error) {
-        alert('Failed to cancel order. Please try again.')
-      }
+      // try {
+      //   await cancelOrderService(orderId)
+      //   await fetchOrders() // Refresh the list
+      // } catch (error) {
+      //   console.error('Error cancelling order:', error)
+      //   showAlert('error', 'Failed to cancel order. Please try again.')
+      // }
     }
 
     // Format date
@@ -403,7 +598,10 @@ export default {
         reserved: 'status-reserved',
         accepted: 'status-accepted',
         completed: 'status-completed',
-        cancelled: 'status-cancelled'
+        cancelled: 'status-cancelled',
+        collected: 'status-collected',
+        preparing: 'status-preparing',
+        ready: 'status-ready'
       }
       return classes[status] || 'status-reserved'
     }
@@ -414,7 +612,10 @@ export default {
         reserved: 'fas fa-clock',
         accepted: 'fas fa-check-circle',
         completed: 'fas fa-check-double',
-        cancelled: 'fas fa-times-circle'
+        cancelled: 'fas fa-times-circle',
+        collected: 'fas fa-check-circle',
+        preparing: 'fas fa-clock',
+        ready: 'fas fa-bell'
       }
       return icons[status] || 'fas fa-clock'
     }
@@ -426,6 +627,85 @@ export default {
       document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
       localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
     }
+
+    // Check if review exists for an order
+    const checkReviewExists = async (order) => {
+      try {
+        // First check if order has reviewCompleted flag
+        if (order.reviewCompleted) {
+          return true;
+        }
+
+        // If order has reviewPending flag, review doesn't exist yet
+        if (order.reviewPending) {
+          return false;
+        }
+
+        // Check if order status is collected or completed - eligible for review
+        if (order.status !== 'collected' && order.status !== 'completed') {
+          return null; // Not eligible for review yet
+        }
+
+        // Check if review exists in hawker's reviews
+        if (!order.hawkerId) {
+          return null;
+        }
+
+        const hawkerQuery = query(
+          collection(db, 'hawkerListings'),
+          where('userId', '==', order.hawkerId)
+        );
+        const hawkerSnapshot = await getDocs(hawkerQuery);
+        
+        if (hawkerSnapshot.empty) {
+          return null;
+        }
+
+        const hawkerData = hawkerSnapshot.docs[0].data();
+        const reviews = hawkerData.reviews || {};
+        const userRatings = reviews.userRatings || [];
+        
+        const orderId = order.orderID || order.id;
+        const userId = currentUserUid.value;
+        
+        // Check if there's a review for this order by this user
+        const reviewExists = userRatings.some(rating => 
+          rating.orderId === orderId && rating.userid === userId
+        );
+
+        return reviewExists;
+      } catch (error) {
+        console.error('Error checking review:', error);
+        return null;
+      }
+    };
+
+    // Check if order needs review (collected/completed but no review)
+    const needsReview = async (order) => {
+      if (order.status !== 'collected' && order.status !== 'completed') {
+        return false;
+      }
+      
+      if (order.reviewCompleted) {
+        return false;
+      }
+
+      if (order.reviewPending) {
+        return true;
+      }
+
+      const reviewExists = await checkReviewExists(order);
+      return reviewExists === false;
+    };
+
+    // Navigate to review page
+    const goToReview = (order) => {
+      const orderId = order.orderID || order.id;
+      router.push({ 
+        path: '/reviews', 
+        query: { orderId: orderId } 
+      });
+    };
 
     // View order details - navigate to receipt page
     const viewOrderDetails = (orderId) => {
@@ -476,6 +756,9 @@ export default {
       cancelOrder,
       viewOrderDetails,
       contactSupport,
+      goToReview,
+      checkReviewExists,
+      needsReview,
       formatDate,
       formatPrice,
       calculateSubtotal,
@@ -484,7 +767,13 @@ export default {
       getItemsList,
       getTotalQuantity,
       getStatusClass,
-      getStatusIcon
+      getStatusIcon,
+      alert,
+      showAlert,
+      showConfirmation,
+      closeAlert,
+      confirmationConfirm,
+      confirmationCancel
     }
   }
 }
@@ -492,6 +781,7 @@ export default {
 
 <style scoped>
 @import '@/assets/css/dashboard-theme.css';
+@import '@/assets/css/alertBoxes.css';
 
 /* Wrapper Layout */
 .buyer-dashboard-wrapper {
@@ -827,6 +1117,24 @@ export default {
 .status-cancelled {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.status-collected {
+  background: #dcfce7;
+  color: #065f46;
+  border: 1px solid #065f46;
+}
+
+.status-preparing {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #1e40af;
+}
+
+.status-ready {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #991b1b;
 }
 
 /* Order Body */
@@ -1275,6 +1583,54 @@ export default {
   .detail-label {
     min-width: auto;
   }
+}
+
+/* Write Review Button - Yellow (styled like View Details but yellow) */
+.write-review-btn {
+  border-color: #e0ac10;
+  color: #e0ac10;
+  background-color: transparent;
+}
+
+.write-review-btn:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.dark-theme .write-review-btn {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.dark-theme .write-review-btn:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+/* Review Done Badge - Non-clickable, no fill, no border */
+.review-done-badge {
+  background-color: transparent;
+  border: none;
+  color: #10b981;
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.dark-theme .review-done-badge {
+  background-color: transparent;
+  border: none;
+  color: #10b981;
 }
 
 /* Print Styles */

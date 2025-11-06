@@ -65,7 +65,6 @@
                   class="ai-action-btn ai-btn-use"
                   @click="useAiDescription"
                 >
-                  <i class="fas fa-check"></i>
                   <span>Use This</span>
                 </button>
                 <button 

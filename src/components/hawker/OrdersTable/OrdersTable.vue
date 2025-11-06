@@ -410,6 +410,34 @@
             </div>
             
             <div class="action-buttons">
+              <!-- Date Filter -->
+              <div class="date-filter-group ">
+                <div class="date-input-wrapper">
+                  <label class="date-label">From:</label>
+                  <input 
+                    type="date" 
+                    v-model="dateFilter.startDate"
+                    class="date-input"
+                  />
+                </div>
+                <div class="date-input-wrapper">
+                  <label class="date-label">To:</label>
+                  <input 
+                    type="date" 
+                    v-model="dateFilter.endDate"
+                    class="date-input"
+                  />
+                </div>
+                <button 
+                  v-if="dateFilter.startDate || dateFilter.endDate"
+                  class="btn-clear-filter"
+                  @click="clearDateFilter"
+                  title="Clear date filter"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
               <button 
                 v-if="selectedOrders.length > 0"
                 class="btn-bulk-action delete"
@@ -418,14 +446,14 @@
                 <i class="fas fa-trash"></i>
                 Delete Selected ({{ selectedOrders.length }})
               </button>
-  
+
               <button class="sort-btn" @click="toggleSortOrder">
                 <i class="fas" :class="sortOrder === 'desc' ? 'fa-arrow-down' : 'fa-arrow-up'"></i>
                 <span>{{ sortOrder === 'desc' ? 'Newest First' : 'Oldest First' }}</span>
               </button>
             </div>
           </div>
-  
+
           <div v-if="loadingHistory" class="loading-state">
             <div class="spinner"></div>
             <p>Loading history...</p>

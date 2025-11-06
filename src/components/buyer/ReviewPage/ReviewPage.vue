@@ -1,8 +1,70 @@
 <template>
   <div class="review-page">
+
+    <!-- Alert Box -->
+    <transition name="alert-scale">
+      <div 
+        v-if="alert.show" 
+        class="custom-alert-overlay"
+        @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
+      >
+        <div class="custom-alert-container" :class="alert.type">
+          <div class="custom-alert-content">
+            <!-- Close Button (top right) -->
+            <button 
+              v-if="alert.type !== 'confirmation'" 
+              class="alert-close-btn-top" 
+              @click="closeAlert"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Icon Section -->
+            <div class="alert-icon-section">
+              <div v-if="alert.type === 'success'" class="alert-icon-circle success">
+                <i class="fas fa-check"></i>
+              </div>
+              <div v-else-if="alert.type === 'error'" class="alert-icon-circle error">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+            </div>
+
+            <!-- Message Section -->
+            <div class="alert-message-section">
+              <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+              <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+              <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+              
+              <p class="alert-message">{{ alert.message }}</p>
+            </div>
+
+            <!-- Action Buttons Section -->
+            <div class="mx-auto">
+              <div class="alert-actions">
+                <!-- Confirmation Buttons -->
+                <div v-if="alert.type === 'confirmation'" class="button-group">
+                  <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                  </button>
+                  <button 
+                    class="alert-btn alert-btn-primary" 
+                    @click="confirmationConfirm"
+                  >
+                    <i class="fas fa-check"></i>
+                    <span>Confirm</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Do it later link -->
     <div class="do-it-later">
-      <router-link to="/buyer-listings" class="do-it-later-link">Do it later ></router-link>
+      <a @click="handleDoItLater" class="do-it-later-link" style="cursor: pointer;">Do it later ></a>
     </div>
 
     <!-- Main Content -->
@@ -180,7 +242,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db, storage } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -214,6 +276,51 @@ export default {
     const videoFullscreen = ref({});
     const videoDuration = ref({});
     const activeVideoRef = ref(null);
+
+
+      // Alert or Confirmation boxes
+      const alert = ref({
+        show: false,
+        type: '',
+        message: '',
+        actionType: '',
+        onConfirm: null,
+        onCancel: null
+      });
+
+      const showAlert = (type, message) => {
+        alert.value = {
+          show: true,
+          type,
+          message
+        };
+      };
+
+      const showConfirmation = (message, actionType, onConfirm, onCancel) => {
+        alert.value = {
+          show: true,
+          type: 'confirmation',
+          message,
+          actionType,
+          onConfirm,
+          onCancel
+        };
+      };
+
+      const closeAlert = () => {
+        alert.value.show = false;
+      };
+
+      const confirmationConfirm = () => {
+        if (alert.value.onConfirm) alert.value.onConfirm();
+        alert.value.show = false;
+      };
+
+      const confirmationCancel = () => {
+        if (alert.value.onCancel) alert.value.onCancel();
+        alert.value.show = false;
+      };
+
 
     // Computed overall rating (average of the three ratings)
     const overallRating = computed(() => {
@@ -466,6 +573,33 @@ export default {
       }
     };
 
+    // Reset form fields
+    const resetForm = () => {
+      foodQuality.value = 0;
+      storeService.value = 0;
+      valueForMoney.value = 0;
+      reviewText.value = '';
+      uploadedPhotos.value = [];
+      uploadedVideos.value = [];
+      hawkerImage.value = null;
+      stallName.value = 'this stall';
+      hawkerDocRef.value = null;
+      currentOrderData.value = null;
+      selectedImage.value = null;
+      videoProgress.value = {};
+      videoFullscreen.value = {};
+      videoDuration.value = {};
+      activeVideoRef.value = null;
+      
+      // Reset file inputs
+      if (photoInput.value) {
+        photoInput.value.value = '';
+      }
+      if (videoInput.value) {
+        videoInput.value.value = '';
+      }
+    };
+
     // Fetch order and hawker data
     const fetchOrderData = async () => {
       try {
@@ -526,7 +660,7 @@ export default {
     // Submit review
     const submitReview = async () => {
       if (!foodQuality.value || !storeService.value || !valueForMoney.value) {
-        alert('Please fill in all three ratings (Food Quality, Store Service, and Value For Money)');
+        showAlert('error', 'Please fill in all three ratings (Food Quality, Store Service, and Value For Money)');
         return;
       }
 
@@ -536,14 +670,14 @@ export default {
         const user = auth.currentUser;
 
         if (!user) {
-          alert('Please log in to submit a review');
+          showAlert('error', 'Please log in to submit a review');
           isSubmitting.value = false;
           return;
         }
 
         const orderId = route.query.orderId;
         if (!orderId) {
-          alert('Order ID is missing.');
+          showAlert('error', 'Order ID is missing.');
           isSubmitting.value = false;
           return;
         }
@@ -556,11 +690,12 @@ export default {
         const orderSnapshot = await getDocs(orderQuery);
 
         if (orderSnapshot.empty) {
-          alert('Order not found.');
+          showAlert('error', 'Order not found.');
           isSubmitting.value = false;
           return;
         }
 
+        const orderDocRef = doc(db, 'orders', orderSnapshot.docs[0].id);
         const orderData = orderSnapshot.docs[0].data();
         
         console.log('Order data:', orderData);
@@ -571,14 +706,14 @@ export default {
         
         if (!orderBuyerId) {
           console.error('No buyer ID found in order data');
-          alert('Order data is incomplete. Cannot verify order ownership.');
+          showAlert('error', 'Order data is incomplete. Cannot verify order ownership.');
           isSubmitting.value = false;
           return;
         }
         
         if (orderBuyerId !== user.uid) {
           console.error('User ID mismatch:', orderBuyerId, 'vs', user.uid);
-          alert('You can only review orders you have made.');
+          showAlert('error', 'You can only review orders you have made.');
           isSubmitting.value = false;
           return;
         }
@@ -637,6 +772,7 @@ export default {
           storeService: storeService.value,
           valueForMoney: valueForMoney.value,
           userid: user.uid,
+          orderId: orderId, // Store orderId to link review to order
           photo: photoURLs,
           video: videoURLs,
           writtenreview: reviewText.value.trim() || '',
@@ -662,17 +798,137 @@ export default {
           reviews: reviewsUpdate
         });
 
-        alert('Review submitted successfully!');
-        router.push('/buyer-listings');
+        // Mark order as review completed
+        await updateDoc(orderDocRef, {
+          reviewPending: false,
+          reviewCompleted: true
+        });
+
+        showAlert('success', 'Review submitted successfully!');
+        
+        // Wait a moment for user to see success message, then check for next order
+        setTimeout(async () => {
+          // Check if there are more orders to review
+          const allOrderIds = route.query.allOrderIds;
+          if (allOrderIds) {
+            const orderIdsArray = allOrderIds.split(',').filter(id => id.trim());
+            const currentOrderIndex = orderIdsArray.findIndex(id => id === orderId);
+            
+            // Find next order that needs review
+            if (currentOrderIndex !== -1 && currentOrderIndex < orderIdsArray.length - 1) {
+              // Get next order ID
+              const nextOrderId = orderIdsArray[currentOrderIndex + 1];
+              
+              // Fetch next order to get hawkerId
+              const nextOrderQuery = query(
+                collection(db, 'orders'),
+                where('orderID', '==', nextOrderId)
+              );
+              const nextOrderSnapshot = await getDocs(nextOrderQuery);
+              
+              if (!nextOrderSnapshot.empty) {
+                const nextOrderData = nextOrderSnapshot.docs[0].data();
+                // Redirect to next order's review
+                router.push({
+                  path: '/reviews',
+                  query: {
+                    orderId: nextOrderId,
+                    hawkerId: nextOrderData.hawkerId,
+                    allOrderIds: allOrderIds
+                  }
+                });
+                return;
+              }
+            }
+          }
+          
+          // No more orders to review, go to buyer listings
+          router.push('/buyer-listings');
+        }, 2000); // Wait 2 seconds to show success message
       } catch (error) {
         console.error('Error submitting review:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        alert(`Failed to submit review: ${error.message}`);
+        showAlert('error', `Failed to submit review: ${error.message}`);
       } finally {
         isSubmitting.value = false;
       }
     };
+
+    // Handle "Do it later" - mark order as needing review
+    const handleDoItLater = async () => {
+      try {
+        const orderId = route.query.orderId;
+        if (!orderId) {
+          router.push('/buyer-listings');
+          return;
+        }
+
+        // Mark order as needing review
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('orderID', '==', orderId)
+        );
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        if (!ordersSnapshot.empty) {
+          const orderDoc = ordersSnapshot.docs[0];
+          await updateDoc(doc(db, 'orders', orderDoc.id), {
+            reviewPending: true
+          });
+        }
+        
+        // Check if there are more orders to review
+        const allOrderIds = route.query.allOrderIds;
+        if (allOrderIds) {
+          const orderIdsArray = allOrderIds.split(',').filter(id => id.trim());
+          const currentOrderIndex = orderIdsArray.findIndex(id => id === orderId);
+          
+          // Find next order that needs review
+          if (currentOrderIndex !== -1 && currentOrderIndex < orderIdsArray.length - 1) {
+            // Get next order ID
+            const nextOrderId = orderIdsArray[currentOrderIndex + 1];
+            
+            // Fetch next order to get hawkerId
+            const nextOrderQuery = query(
+              collection(db, 'orders'),
+              where('orderID', '==', nextOrderId)
+            );
+            const nextOrderSnapshot = await getDocs(nextOrderQuery);
+            
+            if (!nextOrderSnapshot.empty) {
+              const nextOrderData = nextOrderSnapshot.docs[0].data();
+              // Redirect to next order's review
+              router.push({
+                path: '/reviews',
+                query: {
+                  orderId: nextOrderId,
+                  hawkerId: nextOrderData.hawkerId,
+                  allOrderIds: allOrderIds
+                }
+              });
+              return;
+            }
+          }
+        }
+        
+        // No more orders to review, go to buyer listings
+        router.push('/buyer-listings');
+      } catch (error) {
+        console.error('Error marking order for review:', error);
+        router.push('/buyer-listings');
+      }
+    };
+
+    // Watch for orderId changes to reset form and fetch new data
+    watch(() => route.query.orderId, (newOrderId, oldOrderId) => {
+      if (newOrderId && newOrderId !== oldOrderId) {
+        // Reset form when orderId changes
+        resetForm();
+        // Fetch new order data
+        fetchOrderData();
+      }
+    }, { immediate: false });
 
     onMounted(() => {
       fetchOrderData();
@@ -713,7 +969,14 @@ export default {
       getVideoProgress,
       seekVideo,
       submitReview,
-      getStarFillStyle
+      getStarFillStyle,
+      alert,
+      showAlert,
+      showConfirmation,
+      closeAlert,
+      confirmationConfirm,
+      confirmationCancel,
+      handleDoItLater
     };
   }
 };
@@ -721,4 +984,5 @@ export default {
 
 <style scoped>
 @import './ReviewPage.css';
+@import '/src/assets/css/alertBoxes.css';
 </style>

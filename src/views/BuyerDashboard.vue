@@ -1471,15 +1471,16 @@ export default {
 
     // Navigate to stall page with the top dish
     const orderTopDish = () => {
-      // Navigate to buyer listing page and filter by stall
-      // The BuyerListing component can read query params to filter or auto-add to cart
+      if (!topDish.value.stallId) {
+        console.error('Stall ID not available for top dish');
+        return;
+      }
+      
+      // Navigate to the buyer view stall page for the hawker that sells the top dish
       router.push({
-        path: '/buyer-listings',
-        query: {
-          stallId: topDish.value.stallId,
-          stallName: topDish.value.stall,
-          dishName: topDish.value.name,
-          autoAdd: 'true'
+        name: 'BuyerViewStall',
+        params: { 
+          userId: topDish.value.stallId
         }
       })
     }
