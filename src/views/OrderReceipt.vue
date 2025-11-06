@@ -12,6 +12,24 @@
       <p class="text-muted small mb-0">Thank you for your order.<br>We'll send you a confirmation email shortly.</p>
     </div>
 
+    <!-- Order Switcher (if multiple orders) -->
+    <div v-if="allOrders.length > 1" class="order-switcher mb-3 w-100">
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button
+          v-for="(ord, index) in allOrders"
+          :key="ord.id || index"
+          @click="switchToOrder(ord.id)"
+          class="btn btn-sm"
+          :class="currentOrderId === ord.id ? 'btn-success' : 'btn-outline-success'"
+        >
+          {{ ord.hawkerName || `Order ${index + 1}` }}
+        </button>
+      </div>
+      <p class="text-center text-muted small mt-2 mb-0">
+        {{ currentOrderIndex + 1 }} of {{ allOrders.length }} orders
+      </p>
+    </div>
+
     <!-- Receipt Card -->
     <div class="receipt-card card shadow rounded-4 w-100" style="border-top: 5px solid #198754;">
       <!-- Header -->
@@ -189,15 +207,20 @@
               <div class="flex-grow-1">
                 <div class="fw-bold text-success item-name">{{ item.itemName }}</div>
                 <div class="text-muted small item-pricing">
-                  Original: <span class="text-decoration-line-through">${{ formatPrice(item.itemPrice) }}</span>
-                  <span class="text-success fw-bold ms-1">Now: ${{ formatPrice(item.discountedPrice) }}</span>
+                  <template v-if="item.itemPrice === item.discountedPrice">
+                    <span class="text-success fw-bold">${{ formatPrice(item.itemPrice) }}</span>
+                  </template>
+                  <template v-else>
+                    Original: <span class="text-decoration-line-through">${{ formatPrice(item.itemPrice) }}</span>
+                    <span class="text-success fw-bold ms-1">Now: ${{ formatPrice(item.discountedPrice) }}</span>
+                  </template>
                 </div>
               </div>
             </div>
             <div class="text-end small item-total ms-auto ms-sm-0">
               <div class="text-muted">x{{ item.qty }}</div>
               <div class="fw-bold text-success">${{ formatPrice(item.itemTotal) }}</div>
-            </div>
+          </div>
           </div>
         </div>
         <div v-else-if="loading" class="text-center text-muted py-3">
@@ -267,7 +290,7 @@
         </button>
         <button class="notification-acknowledge" @click="closeNotification">
           Got it
-        </button>
+          </button>
       </div>
     </div>
   </main>
@@ -306,12 +329,16 @@ const handleImageError = (event) => {
 
 const auth = getAuth();
 const order = ref(null);
+const allOrders = ref([]);
+const currentOrderId = ref(null);
+const currentOrderIndex = ref(0);
 const hawker = ref(null);
 const loading = ref(true);
 const errorMsg = ref(null);
 const isUpdating = ref(false);
 const showReadyNotification = ref(false);
 let orderUnsubscribe = null;
+const allOrderUnsubscribes = ref([]);
 
 const fetchLatestOrder = async (userId) => {
   try {
@@ -386,11 +413,129 @@ const fetchLatestOrder = async (userId) => {
 };
 
 // Fetch a specific order by ID
+// Fetch all orders from checkout group
+const fetchAllOrdersFromGroup = async (orderIds, userId) => {
+  try {
+    loading.value = true;
+    errorMsg.value = null;
+    
+    const ordersToFetch = orderIds.split(',').filter(id => id.trim());
+    const orderPromises = ordersToFetch.map(async (orderId) => {
+      const orderRef = doc(db, 'orders', orderId.trim());
+      const orderDoc = await getDoc(orderRef);
+      
+      if (orderDoc.exists()) {
+        const orderData = orderDoc.data();
+        
+        // Verify this order belongs to the current user
+        if (orderData.userId !== userId) {
+          return null;
+        }
+        
+        return {
+          id: orderDoc.id,
+          orderID: orderData.orderID,
+          day: orderData.day,
+          date: orderData.date,
+          time: orderData.time,
+          status: orderData.status || 'pending',
+          hawkerName: orderData.hawkerName,
+          ...orderData
+        };
+      }
+      return null;
+    });
+    
+    const orders = (await Promise.all(orderPromises)).filter(o => o !== null);
+    
+    if (orders.length === 0) {
+      errorMsg.value = 'No orders found';
+      return;
+    }
+    
+    allOrders.value = orders;
+    currentOrderId.value = orders[0].id;
+    currentOrderIndex.value = 0;
+    order.value = orders[0];
+    
+    // Set up real-time listener for current order
+    setupOrderListener(currentOrderId.value);
+    
+    // Fetch hawker details for current order
+    if (order.value.hawkerId) {
+      await fetchHawkerDetails(order.value.hawkerId);
+    }
+    
+    // Set up listeners for all orders to track status changes
+    setupAllOrderListeners(orders);
+    
+  } catch (error) {
+    console.error('Error fetching orders from group:', error);
+    errorMsg.value = `Failed to load orders: ${error.message}`;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Switch to a different order
+const switchToOrder = async (orderId) => {
+  const orderToSwitch = allOrders.value.find(o => o.id === orderId);
+  if (!orderToSwitch) return;
+  
+  currentOrderId.value = orderId;
+  currentOrderIndex.value = allOrders.value.findIndex(o => o.id === orderId);
+  order.value = orderToSwitch;
+  
+  // Set up listener for new order
+  if (orderUnsubscribe) {
+    orderUnsubscribe();
+  }
+  setupOrderListener(orderId);
+  
+  // Fetch hawker details for new order
+  if (order.value.hawkerId) {
+    await fetchHawkerDetails(order.value.hawkerId);
+  }
+};
+
+// Set up listeners for all orders
+const setupAllOrderListeners = (orders) => {
+  // Clean up existing listeners
+  allOrderUnsubscribes.value.forEach(unsub => unsub());
+  allOrderUnsubscribes.value = [];
+  
+  orders.forEach(ord => {
+    const orderRef = doc(db, 'orders', ord.id);
+    const unsubscribe = onSnapshot(orderRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const orderData = docSnapshot.data();
+        const orderIndex = allOrders.value.findIndex(o => o.id === ord.id);
+        if (orderIndex !== -1) {
+          allOrders.value[orderIndex] = {
+            ...allOrders.value[orderIndex],
+            status: orderData.status,
+            ...orderData
+          };
+          
+          // Update current order if it's the one being viewed
+          if (ord.id === currentOrderId.value) {
+            order.value = allOrders.value[orderIndex];
+          }
+        }
+      }
+    }, (error) => {
+      console.error('Error listening to order updates:', error);
+    });
+    
+    allOrderUnsubscribes.value.push(unsubscribe);
+  });
+};
+
 const fetchSpecificOrder = async (orderId, userId) => {
   try {
     loading.value = true;
     errorMsg.value = null;
-
+    
     const orderRef = doc(db, 'orders', orderId);
     const orderDoc = await getDoc(orderRef);
     
@@ -414,6 +559,10 @@ const fetchSpecificOrder = async (orderId, userId) => {
         status: orderData.status || 'pending',
         ...orderData
       };
+      
+      allOrders.value = [order.value];
+      currentOrderId.value = order.value.id;
+      currentOrderIndex.value = 0;
       
       // Set up real-time listener for order status updates
       setupOrderListener(orderId);
@@ -483,13 +632,20 @@ onMounted(() => {
   // Wait for auth state to be ready
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {
-      // If orderId is provided via props or route params, fetch that specific order
-      const orderIdToFetch = props.orderId || route.params.orderId;
-      if (orderIdToFetch) {
-        fetchSpecificOrder(orderIdToFetch, user.uid);
+      // Check if multiple order IDs are provided in query params
+      const orderIdsParam = route.query.orderIds;
+      if (orderIdsParam) {
+        // Fetch all orders from the checkout group
+        fetchAllOrdersFromGroup(orderIdsParam, user.uid);
       } else {
-        // Otherwise fetch the latest order
-        fetchLatestOrder(user.uid);
+        // If orderId is provided via props or route params, fetch that specific order
+        const orderIdToFetch = props.orderId || route.params.orderId;
+        if (orderIdToFetch) {
+          fetchSpecificOrder(orderIdToFetch, user.uid);
+        } else {
+          // Otherwise fetch the latest order
+          fetchLatestOrder(user.uid);
+        }
       }
     } else {
       loading.value = false;
@@ -531,6 +687,12 @@ const closeNotification = () => {
   showReadyNotification.value = false;
 };
 
+// Check if all orders are collected
+const areAllOrdersCollected = () => {
+  if (allOrders.value.length === 0) return false;
+  return allOrders.value.every(ord => ord.status === 'collected');
+};
+
 // Mark order as collected
 const markOrderCollected = async () => {
   if (!order.value || !order.value.id) {
@@ -557,15 +719,36 @@ const markOrderCollected = async () => {
       pickupTimestamp: now
     });
     
-    // Navigate to reviews page after updating status
-    if (order.value && order.value.orderID) {
-      router.push({
-        path: '/reviews',
-        query: {
-          orderId: order.value.orderID,
-          hawkerId: order.value.hawkerId
-        }
-      });
+    // Update local order status
+    const orderIndex = allOrders.value.findIndex(o => o.id === order.value.id);
+    if (orderIndex !== -1) {
+      allOrders.value[orderIndex].status = 'collected';
+      order.value.status = 'collected';
+    }
+    
+    // Check if all orders are collected before redirecting to reviews
+    if (areAllOrdersCollected()) {
+      // All orders collected - redirect to reviews for the first order
+      // User will review each store individually
+      if (allOrders.value.length > 0 && allOrders.value[0].orderID) {
+        // Pass all order IDs so review page can continue to next order
+        const allOrderIds = allOrders.value.map(o => o.orderID).join(',');
+        router.push({
+          path: '/reviews',
+          query: {
+            orderId: allOrders.value[0].orderID,
+            hawkerId: allOrders.value[0].hawkerId,
+            allOrderIds: allOrderIds
+          }
+        });
+      }
+    } else {
+      // Not all orders collected yet - show message or switch to next uncollected order
+      const nextUncollectedOrder = allOrders.value.find(o => o.status !== 'collected');
+      if (nextUncollectedOrder) {
+        // Switch to next uncollected order
+        await switchToOrder(nextUncollectedOrder.id);
+      }
     }
   } catch (error) {
     console.error('Error marking order as collected:', error);
@@ -700,7 +883,13 @@ const generatePDF = () => {
       pdf.text(item.itemName, margin, yPosition);
       
       pdf.setFont(undefined, 'normal');
-      const itemDetails = `Original: $${formatPrice(item.itemPrice)} | Now: $${formatPrice(item.discountedPrice)} | Qty: ${item.qty}`;
+      // Show price based on whether there's a discount
+      let itemDetails;
+      if (item.itemPrice === item.discountedPrice) {
+        itemDetails = `$${formatPrice(item.itemPrice)} | Qty: ${item.qty}`;
+      } else {
+        itemDetails = `Original: $${formatPrice(item.itemPrice)} | Now: $${formatPrice(item.discountedPrice)} | Qty: ${item.qty}`;
+      }
       yPosition += 4;
       pdf.text(itemDetails, margin, yPosition);
       
@@ -778,6 +967,10 @@ const generatePDF = () => {
 };
 
 onUnmounted(() => {
+  // Clean up all order listeners
+  allOrderUnsubscribes.value.forEach(unsub => unsub());
+  allOrderUnsubscribes.value = [];
+  
   if (authUnsubscribe) {
     authUnsubscribe();
   }
@@ -856,6 +1049,20 @@ onUnmounted(() => {
   letter-spacing: 0.3px;
   white-space: nowrap;
   transition: all 0.3s ease;
+}
+
+/* Order Switcher */
+.order-switcher {
+  max-width: 1000px;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-switcher .btn {
+  min-width: 120px;
+  font-size: 0.9rem;
 }
 
 /* Order Status */

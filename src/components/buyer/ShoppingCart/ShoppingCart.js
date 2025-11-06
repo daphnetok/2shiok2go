@@ -1081,6 +1081,9 @@ export default {
         // Generate timestamp-based order ID
         let currentOrderID = getNextOrderID();
         
+        // Generate a checkout group ID to link all orders from this checkout
+        const checkoutGroupId = `checkout_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        
         // Create all orders
         const orderPromises = [];
         const createdOrderIds = []; // Track created order document IDs
@@ -1158,6 +1161,7 @@ export default {
             subtotalBeforeDiscount: safeSubtotal,
             discount: safeDiscount,
             orderTotal: isNaN(orderTotal) || !isFinite(orderTotal) ? 0 : orderTotal,
+            checkoutGroupId: checkoutGroupId, // Link orders from same checkout
             // notes: item.notes || '',
           };
           
@@ -1188,9 +1192,17 @@ export default {
         await deleteDoc(cartRef);
         cartItems.value = [];
         
-        // Redirect to order receipt page with the first order's document ID
+        // Redirect to order receipt page with all order IDs
         if (createdOrderIds.length > 0) {
-          router.push(`/order-receipt/${createdOrderIds[0]}`);
+          // Pass all order IDs as query parameter
+          const orderIdsParam = createdOrderIds.join(',');
+          router.push({
+            path: `/order-receipt/${createdOrderIds[0]}`,
+            query: { 
+              orderIds: orderIdsParam,
+              checkoutGroupId: checkoutGroupId
+            }
+          });
         } else {
           // Fallback to just order-receipt if no orders created (shouldn't happen)
           router.push('/order-receipt');
