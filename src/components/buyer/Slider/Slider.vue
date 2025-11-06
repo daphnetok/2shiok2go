@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import VueSlider from "vue-3-slider-component";
 
 const props = defineProps({
@@ -14,6 +14,10 @@ const props = defineProps({
   maxValue: {
     type: Number,
     default: 20
+  },
+  interval: {
+    type: Number,
+    default: 1
   }
 });
 
@@ -30,12 +34,31 @@ watch(() => props.modelValue, (newValue) => {
 watch(value, (newValue) => {
   emit('update:modelValue', newValue);
 });
+
+// Custom formatter for price range slider (1-4 → $, $$, $$$, $$$$)
+const formatter = computed(() => {
+  return (val) => {
+    if (props.minValue === 1 && props.maxValue === 4) {
+      // This is the discrete price range slider
+      return '$'.repeat(val);
+    }
+    // Default formatter for other sliders
+    return `$${val}`;
+  };
+});
 </script>
 
 <template>
   <div>
-    <VueSlider v-model="value" class="slider" :style="{ width: '80%' }" :min="props.minValue" :max="props.maxValue"/>
-    <p>Between <span class="value">${{ props.minValue }}</span> to <span class="value">${{ value }}</span></p>
+    <VueSlider 
+      v-model="value" 
+      class="slider" 
+      :style="{ width: '80%' }" 
+      :min="props.minValue" 
+      :max="props.maxValue"
+      :interval="props.interval"
+      :tooltip-formatter="formatter"
+    />
   </div>
 </template>
 

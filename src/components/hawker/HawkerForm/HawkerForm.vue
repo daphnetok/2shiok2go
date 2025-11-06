@@ -18,7 +18,7 @@
                 <div id="img-container" class="mb-3" v-show="previewSelectedFileSRC">
                     <img id="image" :src="previewSelectedFileSRC">
                     <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
-                        <font-awesome-icon icon="remove" class="fa-lg icon-green" />
+                        <font-awesome-icon icon="times" class="fa-lg" />
                     </span>
                 </div>
                 <div id="uploadImg" @click="$refs.fileInput.click()">
@@ -86,7 +86,10 @@
                             v-model="form.priceRange"
                             required
                         />
-                        <span>$2 - $5 ($)</span>
+                        <span>
+                            <span class="price-text">$2 - $5</span>
+                            <span class="dollar">($)</span>
+                        </span>
                     </label>
                     <label class="radio-option">
                         <input
@@ -96,7 +99,10 @@
                             v-model="form.priceRange"
                             required
                         />
-                        <span>$5 - $10 ($$)</span>
+                        <span>
+                            <span class="price-text">$5 - $10</span>
+                            <span class="dollar">($$)</span>
+                        </span>
                     </label>
                     <label class="radio-option">
                         <input
@@ -106,7 +112,10 @@
                             v-model="form.priceRange"
                             required
                         />
-                        <span>$10 - $20 ($$$)</span>
+                        <span>
+                            <span class="price-text">$10 - $20</span>
+                            <span class="dollar">($$$)</span>
+                        </span>
                     </label>
                     <label class="radio-option">
                         <input
@@ -116,7 +125,10 @@
                             v-model="form.priceRange"
                             required
                         />
-                        <span>$20+ ($$$$)</span>
+                        <span>
+                            <span class="price-text">$20+</span>
+                            <span class="dollar">($$$$)</span>
+                        </span>
                     </label>
                 </div>
             </div>

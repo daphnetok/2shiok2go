@@ -123,31 +123,54 @@
       <form id="form" @submit.prevent="onSubmit">
         <div class="mx-5 py-3">
 
-        <!-- Image upload-->
-         <div class="p-2">
+        <!-- Images Section -->
+         <div class="p-2 section-card">
+          <h3 class="section-title">Images</h3>
           <div class="row mb-3 px-md-5">
-            <div class="col-md-4 p-0 p-md-4">
-
-              <div id="img-container" class="mb-3 w-100" v-show="selectedFile"> 
-                <!-- <p class="text-center text-secondary" v-if="!previewSelectedFileSRC"><i>Image Preview</i></p> -->
-                <img id="image" :src="previewSelectedFileSRC"> 
-                <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
-                  <font-awesome-icon icon="remove" class="fa-lg" />
-                </span>
-              </div>
-            
-              <div id="uploadImg" @click="$refs.fileInput.click()" class="mb-4 p-2 w-100" style="overflow:hidden;">
-                <label for="input-file"><font-awesome-icon icon="upload" class="fa-lg" />
-                  <span v-if="!previewSelectedFileSRC"><b>Upload Photo</b></span>
-                  <span v-else><b>Change Photo</b></span>
-                    <br> by clicking here to browse or drag and drop here </label>
-                <input type="file" accept="image/jpeg, image/png, image/jpg" 
-                  @change="onFileSelected" ref="fileInput">
+            <div class="col-md-5 p-0 p-md-4">
+              <div class="uploader-card">
+                <div class="uploader-drop" 
+                  @click="$refs.fileInput.click()" 
+                  @dragover.prevent 
+                  @drop.prevent="onFileDrop">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <p class="m-0"><b>Upload Photos</b> (max 5)</p>
+                  <small>Click to browse or drag files here. Drag thumbnails to reorder.</small>
+                  <input multiple type="file" accept="image/jpeg, image/png, image/jpg"
+                    @change="onFileSelected" ref="fileInput">
+                </div>
+                <small v-if="imageError" class="text-danger d-block mt-2">{{ imageError }}</small>
               </div>
 
+              <div class="photos-region mt-3" v-if="images && images.length">
+                <div class="photos-region-header">
+                  <span class="photos-title">Your Photos</span>
+                  <small class="photos-hint">Drag to reorder. Star a photo to set as main.</small>
+                </div>
+                <div class="thumbs-grid">
+                  <div
+                    v-for="(img, idx) in images"
+                    :key="idx"
+                    class="thumb-item"
+                    draggable="true"
+                    @dragstart="onDragStart(idx)"
+                    @dragover.prevent="onDragOver"
+                    @drop.prevent="onDrop($event, idx)"
+                  >
+                    <img :src="img.previewUrl" alt="preview">
+                    <button type="button" class="thumb-remove" @click="removeImageAt(idx)">
+                      ×
+                    </button>
+                    <button type="button" class="thumb-star" :class="{ active: img.main }" @click="setMainImage(idx)" title="Set as main">
+                      <i class="fas" :class="img.main ? 'fa-star' : 'fa-star-half-alt'"></i>
+                    </button>
+                    <span class="thumb-badge" v-if="img.main">Main</span>
+                  </div>
+                </div>
+              </div>
             </div>
               
-            <div class="col-md-8 p-0">
+            <div class="col-md-7 p-0">
               <!-- Item Name field -->
               <div class="mb-3">
                 <label for="itemName" class="form-label">Item Name</label>
@@ -163,34 +186,41 @@
 
               <!-- AI Food Description Component -->
               <AIFoodDescription 
-                :selectedFile="selectedFile"
+                :selectedFile="mainImageFile"
                 :foodName="form.itemName"
                 v-model:description="form.description"
               />
             </div>
           </div>
-       
+         </div>
 
-        <!-- Price & Discount fields-->
-         <div class="p-0">
+        <!-- Pricing & Discount Section -->
+         <div class="p-2 section-card">
+           <h3 class="section-title">Pricing & Discount</h3>
            <div class="row mb-3 px-md-5">
              <div class="price-input-container col-md-6 p-2">
                <label class="form-label">Original Price</label>
-               <input type="number" class="form-control mb-3" style="padding-left:30px" required 
-                   step="0.01" v-model.number="form.itemPrice" name="itemPrice">
+              <div class="input-with-prefix mb-1" :class="{ 'field-error': priceError }">
+                <input type="number" class="form-control" required 
+                    step="0.01" v-model.number="form.itemPrice" name="itemPrice">
+              </div>
+               <small v-if="priceError" class="text-danger emphasized">{{ priceError }}</small>
              </div>
              <div class="col-md-6 p-2">
                <label class="form-label">Discount (%)</label>
-               <input type="number" class="form-control mb-3" required 
+                <input type="number" class="form-control mb-1" :class="{ 'field-error': discountError }" required 
                    step="0.01" v-model.number="form.discount" name="discount">
+                <small v-if="discountError" class="text-danger emphasized">{{ discountError }}</small>
              </div>
-             <p class="fw-bold">Price after discount: $
-               <span v-if="form.itemPrice" class="fw-bold">{{ discountedPrice }}</span>
+             <p v-if="showDiscountedPrice" class="fw-bold m-0">Price after discount: $
+               <span class="fw-bold">{{ discountedPrice }}</span>
              </p>
            </div>
          </div>
           
-         <div class="p-0">
+        <!-- Scheduling Section -->
+         <div class="p-2 section-card">
+           <h3 class="section-title">Scheduling</h3>
            <div class="row mb-3 px-md-5">
              <!-- Time of discount -->
              <div class="col-md-6 p-2">
@@ -202,14 +232,13 @@
                  required
                >
              </div>
-             <!-- This dropdown will appear only if hawker has listings -->
+             <!-- Apply to listings -->
              <div class="col-md-6 p-2" v-if="userListings">
                  <label class="form-label">Apply Discount Start Time To</label>
  
                  <div class="border rounded p-3 bg-white text-dark">
                      <!-- Select All checkbox -->
-                     <p class="pt-1">Select All</p>
-                     <div class="form-check border-bottom pb-1">
+                     <div class="form-check border-bottom pb-2">
                        <input
                          type="checkbox"
                          id="selectAll"
@@ -217,63 +246,46 @@
                          v-model="selectAll"
                          @change="toggleSelectAll"
                        />
-                       <label for="selectAll" class="form-check-label">
+                       <label for="selectAll" class="form-check-label fw-bold">
                          All My Listings
                        </label>
                      </div>
- 
                      <!-- Active Listings -->
-                     <p class="pt-3">Active Listings</p>
-                     <div class="form-check">
-                       <input
-                         type="checkbox"
-                         id="selectAllActive"
-                         class="form-check-input"
-                         v-model="selectAllActive"
-                         @change="toggleSelectAllActive"
-                       />
-                       <label for="selectAllActive" class="form-check-label">
-                         Select All Active Listings
-                       </label>
+                     <div class="pt-3">
+                       <p class="m-0 fw-bold text-success">Active Listings</p>
+                       <div v-if="activeListings && activeListings.length > 0">
+                         <div v-for="listing in activeListings" :key="listing.id" class="form-check">
+                           <input
+                             type="checkbox"
+                             class="form-check-input individualCheckbox mx-3"
+                             :id="listing.id"
+                             :value="listing.id"
+                             v-model="selectedListings"
+                           />
+                           <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
+                         </div>
+                       </div>
+                       <p v-else class="text-muted small m-0">No active listings</p>
                      </div>
- 
-                     <div v-for="listing in activeListings" :key="listing.id" class="form-check">
-                       <input
-                         type="checkbox"
-                         class="form-check-input individualCheckbox mx-3"
-                         :id="listing.id"
-                         :value="listing.id"
-                         v-model="selectedListings"
-                       />
-                       <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
-                     </div>
- 
-                     <div class="border-bottom pb-1"></div>
- 
+
+                     <div class="border-top my-2"></div>
+
                      <!-- Inactive Listings -->
-                     <p class="pt-3">Inactive Listings</p>
-                     <div class="form-check">
-                       <input
-                         type="checkbox"
-                         id="selectAllInactive"
-                         class="form-check-input"
-                         v-model="selectAllInactive"
-                         @change="toggleSelectAllInactive"
-                       />
-                       <label for="selectAllInactive" class="form-check-label">
-                         Select All Inactive Listings
-                       </label>
-                     </div>
- 
-                     <div v-for="listing in inactiveListings" :key="listing.id" class="form-check">
-                       <input
-                         type="checkbox"
-                         class="form-check-input individualCheckbox mx-3"
-                         :id="listing.id"
-                         :value="listing.id"
-                         v-model="selectedListings"
-                       />
-                       <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
+                     <div class="pt-2">
+                       <p class="m-0 fw-bold text-secondary">Inactive Listings</p>
+                       <div v-if="inactiveListings && inactiveListings.length > 0">
+                         <div v-for="listing in inactiveListings" :key="listing.id" class="form-check">
+                           <input
+                             type="checkbox"
+                             class="form-check-input individualCheckbox mx-3"
+                             :id="listing.id"
+                             :value="listing.id"
+                             v-model="selectedListings"
+                           />
+                           <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
+                         </div>
+                       </div>
+                       <p v-else class="text-muted small m-0">No inactive listings</p>
                      </div>
                  </div>
              </div>
@@ -281,67 +293,35 @@
          </div>
 
         <!-- Quantity field -->
-         <div class="p-0">
+         <!-- Inventory & Tags Section -->
+         <div class="p-2 section-card">
+           <h3 class="section-title heading-strong">Inventory & Tags</h3>
            <div class="row mb-3 px-md-5">
              <label class="form-label">Quantity</label>
-             <div class="col-md-6 p-0 p-md-2">
-               <input type="number" class="form-control" required 
+            <div class="col-md-6 p-0 p-md-2">
+              <input type="number" class="form-control" :class="{ 'field-error': qtyError }" required 
                  v-model.number="form.itemQty" name="itemQty">
+             <small v-if="qtyError" class="text-danger emphasized">{{ qtyError }}</small>
             </div>
            </div>
-         </div>
-
-        <!-- Allergen types checkboxes-->
-         <div class="row mb-3 px-md-5 p-0 p-md-2 text-dark">
-           <label class="form-label">Allergens</label>
-           <div class="border rounded p-3 bg-white col-md-6" style="margin-left:10px">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Eggs" v-model="form.allergens">
-                <label class="form-check-label">Eggs</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Dairy" v-model="form.allergens">
-                <label class="form-check-label">Dairy</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Fish" v-model="form.allergens">
-                <label class="form-check-label">Fish</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Soy" v-model="form.allergens">
-                <label class="form-check-label">Soy</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Peanuts" v-model="form.allergens">
-                <label class="form-check-label">Peanuts</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Sesame" v-model="form.allergens">
-                <label class="form-check-label">Sesame</label>
-            </div>
-           </div>
-         </div>
-
-        <!-- Tags -->
-         <div class="row mb-3 px-md-5 p-0 p-md-2 text-dark">
-           <label class="form-label">Tags</label>
-           <div class="mb-5 border rounded p-3 bg-white col-md-6" style="margin-left:10px">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Halal" v-model="form.tags">
-                <label class="form-check-label">Halal</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Vegetarian" v-model="form.tags">
-                <label class="form-check-label">Vegetarian</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Seafood" v-model="form.tags">
-                <label class="form-check-label">Seafood</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="Dairy-free" v-model="form.tags">
-                <label class="form-check-label">Dairy-free</label>
-            </div>
+           <!-- Allergens + Tags side by side -->
+           <div class="row mb-3 px-md-5 text-dark align-items-start">
+             <div class="col-md-6 col-12 pe-md-3 order-md-1">
+               <label class="form-label heading-strong fw-bold">Allergens</label>
+               <div>
+                 <div class="form-check" v-for="opt in ['Eggs','Dairy','Fish','Soy','Peanuts','Sesame']" :key="opt">
+                   <input class="form-check-input" type="checkbox" :value="opt" v-model="form.allergens" :id="'allergen-'+opt">
+                   <label class="form-check-label" :for="'allergen-'+opt">{{ opt }}</label>
+                 </div>
+               </div>
+             </div>
+             <div class="col-md-6 col-12  ps-md-3 mt-3 mt-md-0 order-md-2">
+               <label class="form-label heading-strong fw-bold">Tags</label>
+                 <div class="form-check" v-for="tag in ['Halal','Vegetarian','Seafood','Dairy-free']" :key="tag">
+                   <input class="form-check-input" type="checkbox" :value="tag" v-model="form.tags" :id="'tag-'+tag">
+                   <label class="form-check-label" :for="'tag-'+tag">{{ tag }}</label>
+                 </div>
+             </div>
            </div>
          </div>
 
@@ -356,7 +336,6 @@
                <label class="fw-bold text-dark">Post Listing</label>
              <p class="text-secondary">Current listing will be live to customers</p>
              </div>
-   
              <div v-else>
                <label class="fw-bold text-dark">Keep Listing as Unlisted</label>
                <p class="text-secondary">Current listing will be inactive</p>
@@ -377,7 +356,6 @@
         <p v-if="successMsg" class="fw-bold text-success">
           {{ successMsg }}
         </p>
-        </div>
         </div>
       </form>
     </div>
