@@ -91,6 +91,16 @@ export default {
       }
     };
 
+    const onFileDrop = (event) => {
+      event.preventDefault();
+      const file = event.dataTransfer?.files[0];
+      if (file) {
+        selectedFile.value = file;
+        previewImageUrl.value = URL.createObjectURL(file);
+        imageError.value = '';
+      }
+    };
+
     const removeFile = () => {
       if (previewImageUrl.value) {
         URL.revokeObjectURL(previewImageUrl.value);
@@ -150,19 +160,8 @@ export default {
       const listingData = {
         ...form,
         discountedPrice: parseFloat(discountedPrice.value),
-        // Store as single image fields
+        // Store only as single image URL
         imageUrl: imageData.url,
-        imageName: imageData.name,
-        imagePath: imageData.path,
-        // Also store as images array for backward compatibility
-        images: [{
-          url: imageData.url,
-          name: imageData.name,
-          path: imageData.path,
-          main: true,
-          order: 0
-        }],
-        primaryImageUrl: imageData.url,
         orders: 0,
         hawkerName: currentUser.value.displayName,
         userId: currentUser.value.uid,
@@ -407,6 +406,7 @@ export default {
       errorMsg,
       fileInput,
       onFileSelected,
+      onFileDrop,
       removeFile,
       onSubmit,
       mainImageFile,

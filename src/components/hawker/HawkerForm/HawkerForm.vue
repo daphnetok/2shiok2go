@@ -41,7 +41,7 @@
                 <div v-if="images.length > 0" class="photos-region">
                     <div class="photos-region-header">
                         <span class="photos-title">Uploaded Photos ({{ images.length }}/5)</span>
-                        <span class="photos-hint">Drag to reorder • Click to set as main</span>
+                        <span class="photos-hint">Drag to reorder | Click star to set as main</span>
                     </div>
                     <div class="thumbs-grid">
                         <div
@@ -53,11 +53,18 @@
                             @dragstart="onDragStart(index)"
                             @dragover="onDragOver"
                             @drop="onDrop($event, index)"
-                            @click="setMainImage(index)"
                         >
                             <img :src="img.existing ? img.existingData.url : img.previewUrl" :alt="`Image ${index + 1}`">
                             <div class="thumb-overlay">
-                                <span v-if="img.main" class="main-badge">Main</span>
+                                <button
+                                    type="button"
+                                    class="thumb-star"
+                                    :class="{ 'active': img.main }"
+                                    @click.stop="setMainImage(index)"
+                                    :title="img.main ? 'Main image' : 'Set as main image'"
+                                >
+                                    <i class="fas fa-star"></i>
+                                </button>
                                 <button
                                     type="button"
                                     class="thumb-remove"
@@ -111,7 +118,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Price Range</label>
-                <div class="custom-dropdown" :class="{ 'is-open': isDropdownOpen }" ref="dropdownRef">
+                <div class="custom-dropdown" :class="{ 'is-open': isDropdownOpen, 'has-error': priceRangeError }" ref="dropdownRef">
                     <div class="dropdown-selected" @click="toggleDropdown">
                         <span class="dropdown-text">
                             {{ selectedPriceText || 'Select a price range' }}
@@ -140,6 +147,7 @@
                     </div>
                     <input type="hidden" name="priceRange" :value="form.priceRange" required>
                 </div>
+                <small v-if="priceRangeError" class="text-danger d-block mt-2">Please select a price range.</small>
             </div>
             <div class="button-group">
                 <button class="btn btn-success" type="submit" :disabled="loading">

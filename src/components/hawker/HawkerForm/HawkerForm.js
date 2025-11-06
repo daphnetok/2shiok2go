@@ -42,6 +42,7 @@ export default {
     const loading = ref(false);
     const errorMsg = ref('');
     const successMsg = ref('');
+    const priceRangeError = ref(false);
     const selectedFile = ref(null);
     const previewSelectedFileSRC = ref('');
     const fileInput = ref(null);
@@ -243,6 +244,7 @@ export default {
         form.openingTime = data.openingTime || '';
         form.closingTime = data.closingTime || '';
         form.priceRange = data.priceRange || null;
+        priceRangeError.value = false; // Clear any error when loading data
         await nextTick();
         if (data.address) {
           form.address = {
@@ -262,10 +264,13 @@ export default {
         if (data.images && Array.isArray(data.images) && data.images.length > 0) {
           // Load existing images from the images array
           data.images.forEach((img, index) => {
+            // Explicitly use main value from Firebase (true or false)
+            // Only fallback to index === 0 if main is undefined/null (for backward compatibility)
+            const isMain = img.main === true || ((img.main === undefined || img.main === null) && index === 0);
             images.value.push({
               file: null,
               previewUrl: img.url,
-              main: img.main || index === 0,
+              main: isMain,
               existing: true,
               existingData: {
                 url: img.url,
@@ -325,9 +330,30 @@ export default {
       if (files.length > availableSlots) {
         imageError.value = 'You can upload up to 5 photos.';
       }
+      
+      // Get existing image URLs to check for duplicates
+      const existingUrls = new Set();
+      images.value.forEach(img => {
+        if (img.existing && img.existingData?.url) {
+          existingUrls.add(img.existingData.url);
+        }
+      });
+      
       for (const file of filesToAdd) {
-        const previewUrl = URL.createObjectURL(file);
-        images.value.push({ file, previewUrl, main: false, existing: false });
+        // Create a preview URL to check if this file already exists
+        // Note: We can't directly compare File objects, but we can check by name and size
+        const fileKey = `${file.name}_${file.size}`;
+        const isDuplicate = images.value.some(img => {
+          if (img.file) {
+            return `${img.file.name}_${img.file.size}` === fileKey;
+          }
+          return false;
+        });
+        
+        if (!isDuplicate) {
+          const previewUrl = URL.createObjectURL(file);
+          images.value.push({ file, previewUrl, main: false, existing: false });
+        }
       }
       // If no main image yet, set the first as main
       if (!images.value.some(img => img.main) && images.value.length > 0) {
@@ -383,6 +409,16 @@ export default {
       successMsg.value = '';
 
       try {
+        // Validate price range - must be selected (values are 1, 2, 3, or 4)
+        const validPriceRanges = [1, 2, 3, 4];
+        if (!form.priceRange || !validPriceRanges.includes(Number(form.priceRange))) {
+          errorMsg.value = 'Please select a price range.';
+          priceRangeError.value = true;
+          loading.value = false;
+          return;
+        }
+        priceRangeError.value = false; // Clear error if validation passes
+
         // Validate images
         if (images.value.length === 0) {
           errorMsg.value = 'Please upload at least one photo.';
@@ -397,6 +433,7 @@ export default {
 
         let hawkerDataToSave;
         const imagesArray = [];
+        const seenUrls = new Set(); // Track URLs to prevent duplicates
 
         // Upload new images and prepare images array
         for (let i = 0; i < images.value.length; i++) {
@@ -418,12 +455,20 @@ export default {
             continue;
           }
 
+          // Check if this image URL already exists in the array
+          if (seenUrls.has(imageData.url)) {
+            // Skip duplicate image
+            continue;
+          }
+
+          // Add to seen set and array
+          seenUrls.add(imageData.url);
           imagesArray.push({
             url: imageData.url,
             name: imageData.name,
             path: imageData.path,
-            main: img.main || false,
-            order: i
+            main: img.main === true, // Explicitly set main: true or main: false
+            order: imagesArray.length
           });
         }
 
@@ -465,6 +510,7 @@ export default {
           form.closingTime = '';
           form.openingTime = '';
           form.priceRange = null;
+          priceRangeError.value = false; // Clear error on reset
           form.address = {
             formattedAddress: '',
             latitude: null,
@@ -509,6 +555,7 @@ export default {
       const selectedOption = priceOptions.find(opt => opt.value === value);
       selectedPriceText.value = selectedOption ? selectedOption.text : '';
       isDropdownOpen.value = false;
+      priceRangeError.value = false; // Clear error when option is selected
     };
 
     const handleClickOutside = (event) => {
@@ -563,6 +610,7 @@ export default {
       loading,
       errorMsg,
       successMsg,
+      priceRangeError,
       selectedFile,
       previewSelectedFileSRC,
       fileInput,

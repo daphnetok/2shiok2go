@@ -65,6 +65,15 @@
   box-shadow: 0 2px 4px rgba(33, 116, 65, 0.1);
 }
 
+.custom-dropdown.has-error .dropdown-selected {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.custom-dropdown.has-error .dropdown-selected:hover {
+  border-color: #dc2626;
+}
+
 .custom-dropdown.is-open .dropdown-selected {
   border-color: #217441;
   box-shadow: 0 0 0 3px rgba(33, 116, 65, 0.1);
@@ -501,6 +510,25 @@ input[type="file"] {
   cursor: grabbing;
 }
 
+.thumb-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.thumb-item:hover .thumb-overlay {
+  opacity: 1;
+}
+
 .thumb-item img {
   width: 100%;
   height: 120px;
@@ -536,31 +564,49 @@ input[type="file"] {
 
 .thumb-star {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
+  bottom: 8px;
+  left: 8px;
   background: rgba(255, 255, 255, 0.95);
-  border: none;
-  border-radius: 12px;
-  padding: 4px 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  padding: 6px;
   cursor: pointer;
-  color: #065f46;
-  font-size: 14px;
+  color: #9ca3af;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  opacity: 1;
 }
 
 .thumb-star.active {
-  background: linear-gradient(135deg, #86efac, #4ade80);
-  color: #166534;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #ffffff;
+  border-color: #f59e0b;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
 }
 
 .thumb-star:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 1);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.thumb-star.active:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #d97706;
+  color: #ffffff;
 }
 
 .thumb-badge {
   position: absolute;
   bottom: 6px;
-  left: 6px;
+  left: 50px;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #fff;
   border-radius: 10px;
