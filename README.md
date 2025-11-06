@@ -42,3 +42,41 @@ npm run build
 ```sh
 npm run lint
 ```
+
+### Links
+
+Cloud-hosted link: https://test-25bd6.web.app/
+
+Git repo: https://github.com/daphnetok/2shiok2go
+
+### Test Accounts
+
+Buyer (seasoned user): 
+  email: 'buyer@smu.com'
+  password: '12345678'
+
+Buyer (new user):
+  email: 'new@smu.com'
+  password: '12345678'
+
+Hawker (seasoned user):
+  email: 'chicken@smu.com'
+  password: '12345678'
+
+Hawker (new user):
+  email: 'fishball@smu.com'
+  password: '12345678'
+
+### API Keys
+
+Google Maps API
+  1. Go to Google Cloud Console
+  2. Create a new project or select existing
+  3. Enable APIs: Maps JavaScript API, Places API, Geocoding API
+  4. Create credentials (API Key)
+  5. Add to .env as VITE_GOOGLE_MAPS_API_KEY
+
+Google Gemini AI API
+  1. Go to Google AI Studio
+  2. Create API key
+  3. Add to .env as VITE_GEMINI_API_KEY

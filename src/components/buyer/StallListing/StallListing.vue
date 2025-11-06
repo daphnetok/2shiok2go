@@ -56,13 +56,21 @@
               </div>
             </div>
             
-            <p class="stall-distance">{{ hawker.distance || '?' }}km away </p>
+            <p class="stall-distance">{{ hawker.distance || '?' }} km away </p>
             <!-- Stall Status -->
             <p><i class="fa-solid fa-star starIcon"></i> 
               <span v-if="hawker.reviews && hawker.reviews.stallRating !== undefined && hawker.reviews.stallRating !== null">
                 {{ hawker.reviews.stallRating.toFixed(2) }} stars
               </span>
               <span v-else>No rating yet</span>
+            </p>
+            <p class="price-range">
+              <i class="fa-solid fa-tag"></i> 
+              <span v-if="hawker.priceRange === 1" class="value"> $</span>
+              <span v-else-if="hawker.priceRange === 2" class="value"> $$</span>
+              <span v-else-if="hawker.priceRange === 3" class="value"> $$$</span>
+              <span v-else-if="hawker.priceRange === 4" class="value"> $$$$</span>
+              <span v-else class="text-muted"> Price not available</span>
             </p>
             </div>
           </div>

@@ -9,7 +9,7 @@ const route = useRoute()
 
 <template>
   <div id="app">
-    <Navbar v-if="route.path !== '/'" />
+    <Navbar v-if="!['/', '/login'].includes(route.path)" />
     <main class="main-content">
       <RouterView />
     </main>
