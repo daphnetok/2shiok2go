@@ -99,6 +99,13 @@
   }
 }
 
+/* Hide highlights on small screens */
+@media (max-width: 760px) {
+  .login-highlights {
+    display: none;
+  }
+}
+
 .login-hero { grid-area: hero; text-align: left; }
 .login-form { grid-area: form; }
 

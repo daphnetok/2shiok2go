@@ -7,14 +7,38 @@
         </button>
         
         <div class="modal-content-wrapper">
-          <!-- Left Side: Image -->
+          <!-- Left Side: Image Carousel -->
           <div class="modal-image-section">
-            <ImageWithLoader 
-              :src="item.imageUrl" 
-              :alt="item.itemName" 
-              image-class="modal-image"
-              error-icon="fas fa-utensils"
-            />
+            <div class="carousel-wrapper">
+              <div 
+                class="carousel-track"
+                :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+              >
+                <div 
+                  v-for="(image, index) in itemImages" 
+                  :key="index"
+                  class="carousel-slide"
+                >
+                  <ImageWithLoader 
+                    :src="image" 
+                    :alt="`${item.itemName} - Image ${index + 1}`" 
+                    image-class="modal-image"
+                    error-icon="fas fa-utensils"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <!-- Carousel Dots -->
+            <div v-if="itemImages.length > 1" class="carousel-dots">
+              <button
+                v-for="(image, index) in itemImages"
+                :key="index"
+                :class="['dot', { active: currentImageIndex === index }]"
+                @click="goToSlide(index)"
+                :aria-label="`Go to image ${index + 1}`"
+              ></button>
+            </div>
           </div>
 
           <!-- Right Side: Info -->
@@ -105,7 +129,7 @@
 </template>
 
 <script>
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed } from 'vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 
 export default {
@@ -135,27 +159,84 @@ export default {
   setup(props, { emit }) {
     const modalQuantity = ref(0);
     const buyerNotes = ref('');
+    const currentImageIndex = ref(0);
+    const autoScrollInterval = ref(null);
+
+    // Get item images array
+    const itemImages = computed(() => {
+      if (!props.item) return [];
+      
+      // Check for images array first
+      if (props.item.images && Array.isArray(props.item.images) && props.item.images.length > 0) {
+        return props.item.images
+          .filter(img => img && (img.url || img.path))
+          .map(img => img.url || img.path)
+          .sort((a, b) => {
+            // Main images first
+            const aMain = props.item.images.find(i => (i.url || i.path) === a)?.main;
+            const bMain = props.item.images.find(i => (i.url || i.path) === b)?.main;
+            if (aMain && !bMain) return -1;
+            if (!aMain && bMain) return 1;
+            return 0;
+          });
+      }
+      
+      // Fallback to single imageUrl
+      return props.item.imageUrl ? [props.item.imageUrl] : [];
+    });
+
+    const startAutoScroll = () => {
+      if (itemImages.value.length > 1) {
+        autoScrollInterval.value = setInterval(() => {
+          nextSlide();
+        }, 3500);
+      }
+    };
+
+    const stopAutoScroll = () => {
+      if (autoScrollInterval.value) {
+        clearInterval(autoScrollInterval.value);
+        autoScrollInterval.value = null;
+      }
+    };
+
+    const nextSlide = () => {
+      currentImageIndex.value = (currentImageIndex.value + 1) % itemImages.value.length;
+    };
+
+    const goToSlide = (index) => {
+      currentImageIndex.value = index;
+      stopAutoScroll();
+      startAutoScroll();
+    };
 
     // Watch for item changes to reset form
     watch(() => props.item, (newItem) => {
       if (newItem) {
         modalQuantity.value = newItem.count || 0;
         buyerNotes.value = newItem.notes || '';
+        currentImageIndex.value = 0;
+        stopAutoScroll();
+        startAutoScroll();
       }
     }, { immediate: true });
 
-    // Watch for visibility changes to manage body scroll
+    // Watch for visibility changes to manage body scroll and carousel
     watch(() => props.visible, (isVisible) => {
       if (isVisible) {
         document.body.style.overflow = 'hidden';
+        currentImageIndex.value = 0;
+        startAutoScroll();
       } else {
         document.body.style.overflow = 'auto';
+        stopAutoScroll();
       }
     });
 
-    // Cleanup on unmount - restore body scroll
+    // Cleanup on unmount - restore body scroll and stop carousel
     onUnmounted(() => {
       document.body.style.overflow = 'auto';
+      stopAutoScroll();
     });
 
     const increment = () => {
@@ -187,10 +268,13 @@ export default {
     return {
       modalQuantity,
       buyerNotes,
+      itemImages,
+      currentImageIndex,
       increment,
       decrement,
       handleClose,
-      handleAddToCart
+      handleAddToCart,
+      goToSlide
     };
   }
 }

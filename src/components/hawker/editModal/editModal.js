@@ -28,9 +28,8 @@ export default {
     const allergenOptions = ['Eggs', 'Dairy', 'Fish', 'Soy', 'Peanuts', 'Sesame'];
     const tagOptions = ['Halal', 'Vegetarian', 'Seafood', 'Dairy-free'];
 
-    // Single image state
-    const selectedFile = ref(null);
-    const previewImageUrl = ref('');
+    // Images state (max 5), with drag-sort and main image selection
+    const images = ref([]); // [{ file, previewUrl, main: boolean, existing: boolean, existingData: {url, name, path} }]
     const imageError = ref('');
     const fileInput = ref(null);
     const isSubmitting = ref(false);
@@ -64,11 +63,36 @@ export default {
         }
       };
 
-    const calculatedDiscountedPrice = computed(() => {
-      if (!editForm.itemPrice || !editForm.discount) return '';
-      const final = editForm.itemPrice - (editForm.itemPrice * editForm.discount) / 100;
-      return final.toFixed(2);
+    const mainImageFile = computed(() => {
+      const main = images.value.find(i => i.main);
+      return main?.file || images.value.find(i => !i.existing)?.file || null;
     });
+
+    const mainImageUrl = computed(() => {
+      const main = images.value.find(i => i.main);
+      if (main) {
+        return main.existing ? main.existingData.url : main.previewUrl;
+      }
+      return images.value[0] ? (images.value[0].existing ? images.value[0].existingData.url : images.value[0].previewUrl) : '';
+    });
+
+    const processFiles = (files) => {
+      imageError.value = "";
+      if (!files || !files.length) return;
+      const availableSlots = Math.max(0, 5 - images.value.length);
+      const filesToAdd = Array.from(files).slice(0, availableSlots);
+      if (files.length > availableSlots) {
+        imageError.value = "You can upload up to 5 photos.";
+      }
+      for (const file of filesToAdd) {
+        const previewUrl = URL.createObjectURL(file);
+        images.value.push({ file, previewUrl, main: false, existing: false });
+      }
+      // If no main image yet, set the first as main
+      if (!images.value.some(img => img.main) && images.value.length > 0) {
+        images.value[0].main = true;
+      }
+    };
 
     const allListings = useLoadListings();
 
@@ -78,6 +102,12 @@ export default {
         const currentUserId = JSON.parse(localStorage.getItem('user'))?.uid;
         userListings.value = allListings.value.filter(l => l.userId === currentUserId);
       }
+    });
+
+    const calculatedDiscountedPrice = computed(() => {
+      if (!editForm.itemPrice || !editForm.discount) return '';
+      const final = editForm.itemPrice - (editForm.itemPrice * editForm.discount) / 100;
+      return final.toFixed(2);
     });
 
     // Watch for prop listing
@@ -95,48 +125,77 @@ export default {
           discountTime: l.discountTime,
         });
         
-        // Load existing image
-        if (l.imageUrl) {
-          previewImageUrl.value = l.imageUrl;
-          selectedFile.value = null; // No new file selected yet
-        } else {
-          previewImageUrl.value = '';
-          selectedFile.value = null;
+        // Load existing images
+        images.value = [];
+        if (l.images && Array.isArray(l.images) && l.images.length > 0) {
+          // Multiple images exist
+          l.images.forEach((img, idx) => {
+            images.value.push({
+              existing: true,
+              existingData: {
+                url: img.url || img.path || img,
+                name: img.name,
+                path: img.path
+              },
+              main: img.main === true || idx === 0,
+              previewUrl: img.url || img.path || img
+            });
+          });
+        } else if (l.imageUrl) {
+          // Single image (backward compatibility)
+          images.value.push({
+            existing: true,
+            existingData: {
+              url: l.imageUrl,
+              name: l.imageName,
+              path: l.imagePath
+            },
+            main: true,
+            previewUrl: l.imageUrl
+          });
         }
       }
     }, { immediate: true });
 
-    // Single file selection functions
     const onFileSelected = (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        selectedFile.value = file;
-        previewImageUrl.value = URL.createObjectURL(file);
-        imageError.value = '';
-      }
-      // Reset input value to allow re-uploading the same file name
+      processFiles(event.target.files);
       if (fileInput.value) fileInput.value.value = '';
     };
 
     const onFileDrop = (event) => {
       event.preventDefault();
-      const file = event.dataTransfer?.files[0];
-      if (file) {
-        selectedFile.value = file;
-        previewImageUrl.value = URL.createObjectURL(file);
-        imageError.value = '';
+      const files = event.dataTransfer?.files;
+      if (files) {
+        processFiles(files);
       }
     };
 
-    const removeFile = () => {
-      if (previewImageUrl.value && previewImageUrl.value.startsWith('blob:')) {
-        URL.revokeObjectURL(previewImageUrl.value);
+    const removeImageAt = (index) => {
+      const img = images.value[index];
+      if (img?.previewUrl && !img.existing) {
+        URL.revokeObjectURL(img.previewUrl);
       }
-      previewImageUrl.value = '';
-      selectedFile.value = null;
-      if (fileInput.value) {
-        fileInput.value.value = '';
+      images.value.splice(index, 1);
+      // Ensure there is still a main image
+      if (!images.value.some(i => i.main) && images.value.length > 0) {
+        images.value[0].main = true;
       }
+    };
+
+    const setMainImage = (index) => {
+      images.value.forEach((img, i) => { img.main = i === index; });
+    };
+
+    // Drag and drop sorting
+    const dragIndex = ref(null);
+    const onDragStart = (index) => { dragIndex.value = index; };
+    const onDragOver = (event) => { event.preventDefault(); };
+    const onDrop = (event, index) => {
+      event.preventDefault();
+      if (dragIndex.value === null || dragIndex.value === index) return;
+      const moved = images.value.splice(dragIndex.value, 1)[0];
+      images.value.splice(index, 0, moved);
+      dragIndex.value = null;
     };
 
     const closeModal = () => emit('close');
@@ -145,26 +204,48 @@ export default {
       try {
         isSubmitting.value = true;
         
-        if (!selectedFile.value && !previewImageUrl.value) {
-          errorMessage.value = 'Please upload a photo.';
+        if (images.value.length === 0) {
+          errorMessage.value = 'Please upload at least one photo.';
+          isSubmitting.value = false;
           return;
         }
 
-        let imageUrl = '';
+        // Upload new images and prepare image data
+        const uploaded = [];
+        for (const [idx, img] of images.value.entries()) {
+          if (img.existing) {
+            // Use existing image
+            uploaded.push({
+              url: img.existingData.url,
+              name: img.existingData.name,
+              path: img.existingData.path,
+              main: !!img.main,
+              order: idx
+            });
+          } else {
+            // Upload new image
+            const imageData = await uploadImage(img.file, 'itemListings');
+            uploaded.push({
+              url: imageData.url,
+              name: imageData.name,
+              path: imageData.path,
+              main: !!img.main,
+              order: idx
+            });
+          }
+        }
         
-        // If a new file was selected, upload it
-        if (selectedFile.value) {
-          const imageData = await uploadImage(selectedFile.value, 'itemListings');
-          imageUrl = imageData.url;
-        } else if (previewImageUrl.value) {
-          // Use existing image URL
-          imageUrl = previewImageUrl.value;
+        // Ensure at least one main image
+        if (!uploaded.some(u => u.main) && uploaded.length > 0) {
+          uploaded[0].main = true;
         }
 
         await updateListing(props.listing.id, {
           ...editForm,
           discountedPrice: parseFloat(calculatedDiscountedPrice.value),
-          imageUrl: imageUrl,
+          images: uploaded,
+          primaryImageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '',
+          imageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '', // Keep for backward compatibility
           selectedListings: selectedListings.value,
           description: editForm.description,
           discountTime: editForm.discountTime
@@ -232,18 +313,21 @@ export default {
 
     // Cleanup on unmount
     onBeforeUnmount(() => {
-      if (previewImageUrl.value && previewImageUrl.value.startsWith('blob:')) {
-        URL.revokeObjectURL(previewImageUrl.value);
-      }
+      images.value.forEach(img => {
+        if (img.previewUrl && !img.existing) {
+          URL.revokeObjectURL(img.previewUrl);
+        }
+      });
     });
 
     return {
       editForm, allergenOptions, tagOptions,
-      selectedFile, previewImageUrl, imageError, fileInput,
+      images, imageError, fileInput,
       isSubmitting, errorMessage, calculatedDiscountedPrice,
       userListings, selectAll, selectedListings,
       toggleSelectAll, onFileSelected, onFileDrop,
-      removeFile,
+      removeImageAt, setMainImage, onDragStart, onDragOver, onDrop,
+      mainImageFile, mainImageUrl,
       closeModal, handleSubmit,
       toggleSelectAllActive,
       toggleSelectAllInactive,

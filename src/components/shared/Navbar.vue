@@ -219,6 +219,9 @@
     border-radius: 8px;
     transition: all 0.3s ease;
     background: transparent;
+    flex-shrink: 0;
+    width: auto;
+    min-width: auto;
   }
   
   .btn-outline-success:hover {
@@ -560,6 +563,26 @@
     
     .container-fluid {
       padding: 0 1rem;
+    }
+  }
+  
+  /* Prevent hamburger button from taking full width on small screens */
+  @media (max-width: 576px) {
+    .btn-outline-success {
+      width: auto !important;
+      flex: 0 0 auto !important;
+      max-width: none !important;
+    }
+    
+    .container-fluid {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .navbar-brand {
+      flex: 1;
+      min-width: 0;
     }
   }
   

@@ -5,12 +5,37 @@
     :class="{ 'disabled': !isStallOpen || item.itemQty === 0 }"
   >
     <div class="img-container">
-      <ImageWithLoader 
-        :src="item.imageUrl" 
-        :alt="item.itemName"
-        image-class="foodImg"
-        error-icon="fas fa-utensils"
-      />
+      <div class="carousel-wrapper">
+        <div 
+          class="carousel-track"
+          :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+        >
+          <div 
+            v-for="(image, index) in itemImages" 
+            :key="index"
+            class="carousel-slide"
+          >
+            <ImageWithLoader 
+              :src="image" 
+              :alt="`${item.itemName} - Image ${index + 1}`"
+              image-class="foodImg"
+              error-icon="fas fa-utensils"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Carousel Dots -->
+      <div v-if="itemImages.length > 1" class="carousel-dots">
+        <button
+          v-for="(image, index) in itemImages"
+          :key="index"
+          :class="['dot', { active: currentImageIndex === index }]"
+          @click.stop="goToSlide(index)"
+          :aria-label="`Go to image ${index + 1}`"
+        ></button>
+      </div>
+      
       <!-- Sold Out Tag - now positioned in top right corner -->
       <span v-if="item.itemQty === 0" class="sold-out-text">SOLD OUT</span>
       <!-- Dimmed overlay for sold out items -->

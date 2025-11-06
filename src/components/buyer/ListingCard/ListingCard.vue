@@ -11,7 +11,7 @@
     <div class="card mb-3">
       <!-- Image Carousel Container with Overlay -->
       <div class="image-container">
-        <div class="carousel-wrapper">
+        <div class="carousel-wrapper" v-if="stallImages && stallImages.length > 0">
           <div 
             class="carousel-track"
             :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
@@ -28,6 +28,13 @@
               />
             </div>
           </div>
+        </div>
+        <div v-else class="carousel-wrapper">
+          <ImageWithLoader 
+            :src="hawker.imageUrl || ''" 
+            :alt="hawker.hawkerName"
+            image-class="card-img-top"
+          />
         </div>
         
         <div class="image-overlay">
@@ -114,20 +121,35 @@ export default {
   },
   computed: {
     stallImages() {
-      // Get the stall's main image (should be the first/main image)
-      const stallImageUrl = this.hawker.imageUrl;
-      
-      // Check for hawkerListing.images first (array of objects with url property)
+      // Check for images array from hawkerListings collection
+      // Structure: hawker.hawkerListing.images (array of objects with url, path, main, order, name)
       let imagesArray = null;
       
+      // Debug: Log the structure
+      console.log('ListingCard - Checking images:', {
+        hawkerName: this.hawker.hawkerName,
+        hasHawkerListing: !!this.hawker.hawkerListing,
+        hawkerListingImages: this.hawker.hawkerListing?.images,
+        hasDirectImages: !!this.hawker.images,
+        directImages: this.hawker.images,
+        hawkerKeys: Object.keys(this.hawker)
+      });
+      
+      // Priority 1: Check hawker.hawkerListing.images (nested structure - correct path)
       if (this.hawker.hawkerListing?.images && Array.isArray(this.hawker.hawkerListing.images) && this.hawker.hawkerListing.images.length > 0) {
         imagesArray = this.hawker.hawkerListing.images;
-      } else if (this.hawker.images && Array.isArray(this.hawker.images) && this.hawker.images.length > 0) {
+        console.log('✅ Found images in hawker.hawkerListing.images:', imagesArray);
+      } 
+      // Priority 2: Check hawker.images (direct on hawker object)
+      else if (this.hawker.images && Array.isArray(this.hawker.images) && this.hawker.images.length > 0) {
         imagesArray = this.hawker.images;
+        console.log('✅ Found images in hawker.images:', imagesArray);
+      } else {
+        console.log('❌ No images array found');
       }
       
       if (imagesArray) {
-        // Extract URLs from image objects and sort by order
+        // Extract URLs from image objects and sort by order and main flag
         const imageUrls = imagesArray
           .filter(img => img && (img.url || img.path))
           .map(img => ({
@@ -143,20 +165,13 @@ export default {
           })
           .map(img => img.url);
         
-        // Ensure stall image is the first/main image
-        if (stallImageUrl) {
-          // Remove stall image from array if it exists elsewhere
-          const filteredUrls = imageUrls.filter(url => url !== stallImageUrl);
-          // Put stall image at the beginning
-          return [stallImageUrl, ...filteredUrls];
-        }
-        
         if (imageUrls.length > 0) {
           return imageUrls;
         }
       }
       
       // Fallback to single imageUrl
+      const stallImageUrl = this.hawker.imageUrl;
       return stallImageUrl ? [stallImageUrl] : [];
     }
   },
