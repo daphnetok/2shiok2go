@@ -56,11 +56,11 @@ export const showAlert = (type, message) => {
   alert.value.type = type;
   alert.value.message = message;
 
-  // if (type === 'success') {
-  //   setTimeout(() => {
-  //     closeAlert();
-  //   }, 5000);
-  // }
+  if (type === 'success') {
+    setTimeout(() => {
+      closeAlert();
+    }, 5000);
+  }
 };
 
 export const closeAlert = () => {

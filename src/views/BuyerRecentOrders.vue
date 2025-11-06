@@ -1,5 +1,80 @@
 <template>
   <div class="buyer-dashboard-wrapper" :class="{ 'dark-theme': isDarkMode }">
+
+    <!-- Alert Box -->
+    <transition name="alert-scale">
+      <div 
+        v-if="alert.show" 
+        class="custom-alert-overlay"
+        @click.self="alert.type !== 'confirmation' && alert.type !== 'redirect' && closeAlert()"
+      >
+        <div class="custom-alert-container" :class="alert.type">
+          <div class="custom-alert-content">
+            <!-- Close Button (top right) -->
+            <button 
+              v-if="alert.type !== 'confirmation'" 
+              class="alert-close-btn-top" 
+              @click="closeAlert"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Icon Section -->
+            <div class="alert-icon-section">
+              <div v-if="alert.type === 'success'" class="alert-icon-circle success">
+                <i class="fas fa-check"></i>
+              </div>
+              <div v-else-if="alert.type === 'error'" class="alert-icon-circle error">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div v-else-if="alert.type === 'confirmation'" class="alert-icon-circle warning">
+                <i class="fas fa-question"></i>
+              </div>
+            </div>
+
+            <!-- Message Section -->
+            <div class="alert-message-section">
+              <h3 v-if="alert.type === 'success'" class="alert-title">Success!</h3>
+              <h3 v-else-if="alert.type === 'error'" class="alert-title">Error</h3>
+              <h3 v-else-if="alert.type === 'confirmation'" class="alert-title">Confirm Action</h3>
+              
+              <p class="alert-message">{{ alert.message }}</p>
+            </div>
+
+            <!-- Action Buttons Section -->
+            <div class="mx-auto">
+              <div class="alert-actions">
+                <!-- Confirmation Buttons -->
+                <div v-if="alert.type === 'confirmation'" class="button-group">
+                  <button class="alert-btn alert-btn-cancel" @click="confirmationCancel">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                  </button>
+                  <button 
+                    v-if="alert.actionType === 'Delete' || alert.actionType === 'Cancel'" 
+                    class="alert-btn alert-btn-danger" 
+                    @click="confirmationConfirm"
+                  >
+                    <i class="fas" :class="alert.actionType === 'Delete' ? 'fa-trash' : 'fa-times'"></i>
+                    <span>{{ alert.actionType }}</span>
+                  </button>
+                  <button 
+                    v-else 
+                    class="alert-btn alert-btn-primary" 
+                    @click="confirmationConfirm"
+                  >
+                    <i class="fas fa-check"></i>
+                    <span>Confirm</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+
     <!-- Sidebar Navigation -->
     <div class="sidebar" :class="{ 'dark-sidebar': isDarkMode }">
       <nav class="sidebar-nav">
@@ -216,6 +291,50 @@ export default {
 
     const auth = getAuth()
 
+
+  // Alert or Confirmation boxes
+  const alert = ref({
+    show: false,
+    type: '',
+    message: '',
+    actionType: '',
+    onConfirm: null,
+    onCancel: null
+  })
+
+  const showAlert = (type, message) => {
+    alert.value = {
+      show: true,
+      type,
+      message
+    }
+  }
+
+  const showConfirmation = (message, actionType, onConfirm, onCancel) => {
+    alert.value = {
+      show: true,
+      type: 'confirmation',
+      message,
+      actionType,
+      onConfirm,
+      onCancel
+    }
+  }
+
+  const closeAlert = () => {
+    alert.value.show = false
+  }
+
+  const confirmationConfirm = () => {
+    if (alert.value.onConfirm) alert.value.onConfirm()
+    alert.value.show = false
+  }
+
+  const confirmationCancel = () => {
+    if (alert.value.onCancel) alert.value.onCancel()
+    alert.value.show = false
+  }
+
     // Filter and sort orders
     const filteredOrders = computed(() => {
       let filtered = orders.value
@@ -281,6 +400,7 @@ export default {
         orders.value = fetchedOrders
       } catch (error) {
         console.error('Error fetching orders:', error)
+        showAlert('error', 'Failed to load orders. Please try again later.')
       } finally {
         loading.value = false
       }
@@ -288,15 +408,32 @@ export default {
 
     // Cancel order
     const cancelOrder = async (orderId) => {
-      if (!confirm('Are you sure you want to cancel this order?')) return
+      // if (!confirm('Are you sure you want to cancel this order?')) return
+      showConfirmation(
+        'Are you sure you want to cancel this order? This action cannot be undone.',
+        'Cancel',
+        async () => {
+          try {
+            await cancelOrderService(orderId)
+            await fetchOrders() // Refresh the list
+            showAlert('success', 'Order cancelled successfully!')
+          } catch (error) {
+            console.error('Error cancelling order:', error)
+            showAlert('error', 'Failed to cancel order. Please try again.')
+          }
+        },
+        () => {
+          // User cancelled the confirmation
+        }
+      )
 
-      try {
-        await cancelOrderService(orderId)
-        await fetchOrders() // Refresh the list
-      } catch (error) {
-        console.error('Error cancelling order:', error)
-        alert('Failed to cancel order. Please try again.')
-      }
+      // try {
+      //   await cancelOrderService(orderId)
+      //   await fetchOrders() // Refresh the list
+      // } catch (error) {
+      //   console.error('Error cancelling order:', error)
+      //   showAlert('error', 'Failed to cancel order. Please try again.')
+      // }
     }
 
     // Format date
@@ -451,7 +588,13 @@ export default {
       getItemsList,
       getTotalQuantity,
       getStatusClass,
-      getStatusIcon
+      getStatusIcon,
+      alert,
+      showAlert,
+      showConfirmation,
+      closeAlert,
+      confirmationConfirm,
+      confirmationCancel
     }
   }
 }
@@ -459,6 +602,7 @@ export default {
 
 <style scoped>
 @import '@/assets/css/dashboard-theme.css';
+@import '@/assets/css/alertBoxes.css';
 
 /* Wrapper Layout */
 .buyer-dashboard-wrapper {
