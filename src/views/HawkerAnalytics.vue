@@ -199,6 +199,83 @@
                 <i class="fas fa-calendar-alt me-1 d-none d-md-inline"></i>Month
               </button>
             </div>
+            
+            <!-- Custom Date Range Filter -->
+            <div class="position-relative">
+              <button 
+                type="button" 
+                class="btn px-2 px-sm-3 py-2 fw-semibold shadow-sm"
+                :class="globalFilter === 'custom' ? 'btn-success' : 'btn-outline-success'"
+                @click="toggleDatePicker"
+                style="border-radius: 10px; transition: all 0.3s ease; font-size: 0.875rem; white-space: nowrap;">
+                <i class="fas fa-calendar-range me-1"></i>
+                <span class="d-none d-sm-inline">{{ customDateLabel }}</span>
+              </button>
+              
+              <!-- Date Range Picker Dropdown -->
+              <div v-if="showDatePicker" class="date-picker-dropdown shadow-lg" :class="{ 'dark-theme': isDarkTheme }">
+                <div class="p-4">
+                  <h6 class="mb-3 fw-bold" :style="{ color: isDarkTheme ? '#f1f5f9' : '#1f2937' }">
+                    <i class="fas fa-calendar-alt me-2 text-success"></i>Select Date Range
+                  </h6>
+                  
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold mb-2" :style="{ color: isDarkTheme ? '#cbd5e1' : '#64748b' }">
+                      <i class="fas fa-calendar-day me-1"></i>From Date
+                    </label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text" :class="{ 'dark-input': isDarkTheme }">
+                        <i class="fas fa-calendar text-success"></i>
+                      </span>
+                      <input 
+                        type="date" 
+                        class="form-control"
+                        :class="{ 'dark-input': isDarkTheme }"
+                        v-model="customStartDate"
+                        :max="customEndDate || today"
+                        placeholder="Select start date"
+                        style="border-radius: 0 8px 8px 0;">
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold mb-2" :style="{ color: isDarkTheme ? '#cbd5e1' : '#64748b' }">
+                      <i class="fas fa-calendar-check me-1"></i>To Date
+                    </label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text" :class="{ 'dark-input': isDarkTheme }">
+                        <i class="fas fa-calendar text-success"></i>
+                      </span>
+                      <input 
+                        type="date" 
+                        class="form-control"
+                        :class="{ 'dark-input': isDarkTheme }"
+                        v-model="customEndDate"
+                        :min="customStartDate"
+                        :max="today"
+                        placeholder="Select end date"
+                        style="border-radius: 0 8px 8px 0;">
+                    </div>
+                  </div>
+                  
+                  <div class="d-flex gap-2 mt-4">
+                    <button 
+                      class="btn btn-success flex-grow-1 shadow-sm"
+                      @click="applyCustomDateFilter"
+                      :disabled="!customStartDate || !customEndDate"
+                      style="border-radius: 8px; font-weight: 600;">
+                      <i class="fas fa-check me-2"></i>Apply Filter
+                    </button>
+                    <button 
+                      class="btn btn-outline-secondary flex-grow-1"
+                      @click="clearCustomDateFilter"
+                      style="border-radius: 8px; font-weight: 600;">
+                      <i class="fas fa-times me-2"></i>Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <button class="btn btn-theme shadow-sm px-2 px-sm-3 py-2 fw-semibold no-print" style="border-radius: 10px; transition: all 0.3s ease; font-size: 0.875rem; white-space: nowrap;" @click="toggleTheme">
               <i :class="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'" class="me-1"></i>
               <span class="d-none d-md-inline">{{ isDarkTheme ? 'Light' : 'Dark' }}</span>
@@ -213,106 +290,117 @@
 
       <!-- Stats Cards -->
       <div class="row mb-2 mb-md-3 g-2 g-md-3">
+        <!-- Total Sales Card -->
         <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-          <div class="stat-card stat-card-success" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15); transition: all 0.3s ease; cursor: pointer; margin-right:8px;">
-            <div style="padding: 0.875rem 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-              <div class="d-flex justify-content-between align-items-start mb-1 mb-md-2">
+          <div class="stat-card stat-card-success" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15); transition: all 0.3s ease; cursor: pointer;">
+            <div style="padding: 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stat-icon d-flex" style="width: clamp(32px, 8vw, 48px); height: clamp(32px, 8vw, 48px); background: rgba(255,255,255,0.25); border-radius: 10px; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
+                  <i class="fas fa-dollar-sign text-white" style="font-size: clamp(0.9rem, 2.5vw, 1.25rem);"></i>
+                </div>
                 <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-items-center gap-1 mb-1">
-                    <p class="text-white mb-0" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Total Sales</p>
-                    <span class="badge d-none d-lg-inline" :class="currentStats.salesChange >= 0 ? 'bg-light bg-opacity-25' : 'bg-danger bg-opacity-25'" style="font-size: 0.6rem; padding: 0.15rem 0.35rem; border-radius: 6px; flex-shrink: 0;">
+                  <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                    <p class="text-white mb-0" style="font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9;">
+                      <span class="d-none d-sm-inline">TOTAL SALES</span>
+                      <span class="d-inline d-sm-none">SALES</span>
+                    </p>
+                    <span class="badge d-none d-md-inline" :class="currentStats.salesChange >= 0 ? 'bg-light bg-opacity-25' : 'bg-danger bg-opacity-25'" style="font-size: 0.55rem; padding: 0.15rem 0.35rem; border-radius: 6px;">
                       <i :class="currentStats.salesChange >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'" style="font-size: 0.5rem;"></i>
                       {{ Math.abs(currentStats.salesChange) }}%
                     </span>
                   </div>
-                  <h3 class="text-white mb-0 fw-bold" style="font-size: 1.35rem; letter-spacing: -0.5px;">{{ currentStats.totalSales }}</h3>
-                </div>
-                <div class="stat-icon d-none d-lg-flex" style="width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
-                  <i class="fas fa-dollar-sign text-white" style="font-size: 1.25rem;"></i>
+                  <h3 class="text-white mb-0 fw-bold" style="font-size: clamp(1.1rem, 3vw, 1.5rem); letter-spacing: -0.5px; line-height: 1.2;">{{ currentStats.totalSales }}</h3>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
-                <i class="fas fa-chart-line me-1 me-md-2 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.75rem;"></i>
-                <p class="text-white mb-0" style="font-size: 0.65rem; opacity: 0.9; line-height: 1.2;">
-                  Revenue for {{ globalFilter === 'day' ? 'today' : globalFilter === 'week' ? 'this week' : 'this month' }}
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-chart-line me-1 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.7rem;"></i>
+                <p class="text-white mb-0" style="font-size: clamp(0.6rem, 1.5vw, 0.7rem); opacity: 0.9; line-height: 1.3;">
+                  <span class="d-none d-md-inline">Revenue for {{ globalFilter === 'day' ? 'today' : globalFilter === 'week' ? 'this week' : 'this month' }}</span>
+                  <span class="d-inline d-md-none">Revenue this {{ globalFilter }}</span>
                 </p>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Total Orders Card -->
         <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-          <div class="stat-card stat-card-info" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15); transition: all 0.3s ease; cursor: pointer; margin-right:8px;">
-            <div style="padding: 0.875rem 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-              <div class="d-flex justify-content-between align-items-start mb-1 mb-md-2">
+          <div class="stat-card stat-card-info" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15); transition: all 0.3s ease; cursor: pointer;">
+            <div style="padding: 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stat-icon d-flex" style="width: clamp(32px, 8vw, 48px); height: clamp(32px, 8vw, 48px); background: rgba(255,255,255,0.25); border-radius: 10px; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
+                  <i class="fas fa-shopping-bag text-white" style="font-size: clamp(0.9rem, 2.5vw, 1.25rem);"></i>
+                </div>
                 <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-items-center gap-1 mb-1">
-                    <p class="text-white mb-0" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Total Orders</p>
-                    <span class="badge d-none d-lg-inline" :class="currentStats.ordersChange >= 0 ? 'bg-light bg-opacity-25' : 'bg-danger bg-opacity-25'" style="font-size: 0.6rem; padding: 0.15rem 0.35rem; border-radius: 6px; flex-shrink: 0;">
+                  <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                    <p class="text-white mb-0" style="font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9;">
+                      <span class="d-none d-sm-inline">TOTAL ORDERS</span>
+                      <span class="d-inline d-sm-none">ORDERS</span>
+                    </p>
+                    <span class="badge d-none d-md-inline" :class="currentStats.ordersChange >= 0 ? 'bg-light bg-opacity-25' : 'bg-danger bg-opacity-25'" style="font-size: 0.55rem; padding: 0.15rem 0.35rem; border-radius: 6px;">
                       <i :class="currentStats.ordersChange >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'" style="font-size: 0.5rem;"></i>
                       {{ Math.abs(currentStats.ordersChange) }}%
                     </span>
                   </div>
-                  <h3 class="text-white mb-0 fw-bold" style="font-size: 1.35rem; letter-spacing: -0.5px;">{{ currentStats.totalOrders }}</h3>
-                </div>
-                <div class="stat-icon d-none d-lg-flex" style="width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
-                  <i class="fas fa-shopping-bag text-white" style="font-size: 1.25rem;"></i>
+                  <h3 class="text-white mb-0 fw-bold" style="font-size: clamp(1.1rem, 3vw, 1.5rem); letter-spacing: -0.5px; line-height: 1.2;">{{ currentStats.totalOrders }}</h3>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
-                <i class="fas fa-receipt me-1 me-md-2 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.75rem;"></i>
-                <p class="text-white mb-0" style="font-size: 0.65rem; opacity: 0.9; line-height: 1.2;">
-                  Orders received {{ globalFilter === 'day' ? 'today' : globalFilter === 'week' ? 'this week' : 'this month' }}
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-receipt me-1 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.7rem;"></i>
+                <p class="text-white mb-0" style="font-size: clamp(0.6rem, 1.5vw, 0.7rem); opacity: 0.9; line-height: 1.3;">
+                  <span class="d-none d-md-inline">Orders received {{ globalFilter === 'day' ? 'today' : globalFilter === 'week' ? 'this week' : 'this month' }}</span>
+                  <span class="d-inline d-md-none">Received this {{ globalFilter }}</span>
                 </p>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Peak Hour Card -->
         <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-          <div class="stat-card stat-card-warning" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15); transition: all 0.3s ease; cursor: pointer; margin-right:8px;">
-            <div style="padding: 0.875rem 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-              <div class="d-flex justify-content-between align-items-start mb-1 mb-md-2">
+          <div class="stat-card stat-card-warning" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15); transition: all 0.3s ease; cursor: pointer;">
+            <div style="padding: 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stat-icon d-flex" style="width: clamp(32px, 8vw, 48px); height: clamp(32px, 8vw, 48px); background: rgba(255,255,255,0.25); border-radius: 10px; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
+                  <i class="fas fa-clock text-white" style="font-size: clamp(0.9rem, 2.5vw, 1.25rem);"></i>
+                </div>
                 <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-items-center gap-1 mb-1">
-                    <p class="text-white mb-0" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Peak Hour</p>
-                    <span class="badge bg-light bg-opacity-25 d-none d-lg-inline" style="font-size: 0.6rem; padding: 0.15rem 0.35rem; border-radius: 6px; flex-shrink: 0;">
+                  <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                    <p class="text-white mb-0" style="font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9;">PEAK HOUR</p>
+                    <span class="badge bg-light bg-opacity-25 d-none d-md-inline" style="font-size: 0.55rem; padding: 0.15rem 0.35rem; border-radius: 6px;">
                       <i class="fas fa-info-circle" style="font-size: 0.5rem;"></i>
                       {{ globalFilter === 'day' ? 'Today' : globalFilter === 'week' ? 'Week' : 'Month' }}
                     </span>
                   </div>
-                  <h3 class="text-white mb-0 fw-bold" style="font-size: 1.35rem; letter-spacing: -0.5px;">{{ currentStats.peakHour }}</h3>
-                </div>
-                <div class="stat-icon d-none d-lg-flex" style="width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
-                  <i class="fas fa-clock text-white" style="font-size: 1.25rem;"></i>
+                  <h3 class="text-white mb-0 fw-bold" style="font-size: clamp(1.1rem, 3vw, 1.5rem); letter-spacing: -0.5px; line-height: 1.2;">{{ currentStats.peakHour }}</h3>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
-                <i class="fas fa-fire me-1 me-md-2 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.75rem;"></i>
-                <p class="text-white mb-0" style="font-size: 0.65rem; opacity: 0.9; line-height: 1.2;">
-                  Busiest time slot
-                </p>
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-fire me-1 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.7rem;"></i>
+                <p class="text-white mb-0" style="font-size: clamp(0.6rem, 1.5vw, 0.7rem); opacity: 0.9; line-height: 1.3;">Busiest time slot</p>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Best Seller Card -->
         <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-          <div class="stat-card stat-card-primary" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15); transition: all 0.3s ease; cursor: pointer; margin-right:8px;">
-            <div style="padding: 0.875rem 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-              <div class="d-flex justify-content-between align-items-start mb-1 mb-md-2">
-                <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-items-center gap-1 mb-1">
-                    <p class="text-white mb-0" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9; white-space: nowrap;">Best Seller</p>
-                  </div>
-                  <h3 class="text-white mb-0 fw-bold" style="font-size: 1.2rem; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ currentStats.bestSeller }}</h3>
+          <div class="stat-card stat-card-primary" style="border-radius: 12px; border: none; min-height: 120px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15); transition: all 0.3s ease; cursor: pointer;">
+            <div style="padding: 1rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stat-icon d-flex" style="width: clamp(32px, 8vw, 48px); height: clamp(32px, 8vw, 48px); background: rgba(255,255,255,0.25); border-radius: 10px; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
+                  <i class="fas fa-trophy text-white" style="font-size: clamp(0.9rem, 2.5vw, 1.25rem);"></i>
                 </div>
-                <div class="stat-icon d-none d-lg-flex" style="width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;">
-                  <i class="fas fa-trophy text-white" style="font-size: 1.25rem;"></i>
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <div class="d-flex align-items-center mb-1">
+                    <p class="text-white mb-0" style="font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.9;">BEST SELLER</p>
+                  </div>
+                  <h3 class="text-white mb-0 fw-bold" style="font-size: clamp(0.9rem, 2.5vw, 1.25rem); letter-spacing: -0.3px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; word-break: break-word;">{{ currentStats.bestSeller }}</h3>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
-                <i class="fas fa-star me-1 me-md-2 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.75rem;"></i>
-                <p class="text-white mb-0" style="font-size: 0.65rem; opacity: 0.9; line-height: 1.2;">
-                  Most popular item
-                </p>
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-star me-1 text-white d-none d-lg-inline" style="opacity: 0.8; font-size: 0.7rem;"></i>
+                <p class="text-white mb-0" style="font-size: clamp(0.6rem, 1.5vw, 0.7rem); opacity: 0.9; line-height: 1.3;">Most popular item</p>
               </div>
             </div>
           </div>
@@ -327,6 +415,7 @@
             title="Top 5 Menu Items"
             type="bar"
             :data="topMenuItemsData"
+            :options="noLegendOptions"
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
@@ -356,6 +445,7 @@
             title="Peak Hours - Orders by Hour"
             type="line"
             :data="peakHoursData"
+            :options="noLegendOptions"
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
@@ -368,121 +458,11 @@
             title="Customer Type Analysis"
             type="bar"
             :data="customerTypeData"
+            :options="noLegendOptions"
             :dark-mode="isDarkTheme"
           />
           <div v-else class="card" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
             <LoadingSpinner message="Loading chart data..." message-class="mt-3 text-muted" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Calendar & To-do List -->
-      <div class="row mb-3 g-2 g-md-3 no-print">
-        <div class="col-12 col-md-6 col-lg-6">
-          <CalendarCard 
-            :events="customEvents"
-            :dark-mode="isDarkTheme"
-            @add-event="showAddEventModal"
-            @clear-events="clearAllEvents"
-            @remove-event="removeEvent"
-          />
-        </div>
-        <div class="col-12 col-md-6 col-lg-6">
-          <TodoList 
-            :items="todoList"
-            :dark-mode="isDarkTheme"
-            @add="addTodo"
-            @toggle="toggleTodo"
-            @delete="deleteTodo"
-            @clear-all="clearAllTodos"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Event Modal -->
-    <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 12px; border: none;">
-          <div class="modal-header border-0" style="padding: 1.5rem;">
-            <h5 class="modal-title fw-semibold" style="color: #059669;">Add New Event</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" style="padding: 0 1.5rem 1.5rem;">
-            <div class="mb-3">
-              <label class="form-label fw-semibold mb-2" style="font-size: 0.875rem;">Event Title</label>
-              <input type="text" class="form-control" style="border-radius: 8px; padding: 0.625rem 0.875rem;" v-model="newEvent.title" placeholder="Enter event title">
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold mb-2" style="font-size: 0.875rem;">Date</label>
-              <input type="date" class="form-control" style="border-radius: 8px; padding: 0.625rem 0.875rem;" v-model="newEvent.date">
-            </div>
-          </div>
-          <div class="modal-footer border-0" style="padding: 1rem 1.5rem 1.5rem;">
-            <button type="button" class="btn btn-secondary" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-success" style="border-radius: 8px;" @click="addEvent">
-              <i class="fas fa-plus me-1"></i>Add Event
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Clear All Todos Confirmation Modal -->
-    <div class="modal fade" id="clearTodosModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);">
-          <div class="modal-header border-0" style="padding: 2rem 2rem 1rem; background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%); border-radius: 12px 12px 0 0;">
-            <div class="d-flex align-items-center gap-3">
-              <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 1.5rem;"></i>
-              </div>
-              <h5 class="modal-title fw-bold mb-0" style="color: #92400e;">Clear All Todos?</h5>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" style="padding: 1.5rem 2rem;">
-            <p class="mb-0" style="color: #374151; font-size: 0.95rem; line-height: 1.6;">
-              This will permanently delete all your todo items. This action cannot be undone.
-            </p>
-          </div>
-          <div class="modal-footer border-0" style="padding: 1rem 2rem 2rem; gap: 0.75rem;">
-            <button type="button" class="btn btn-outline-secondary" style="border-radius: 8px; padding: 0.625rem 1.5rem;" data-bs-dismiss="modal">
-              <i class="fas fa-times me-1"></i>Cancel
-            </button>
-            <button type="button" class="btn btn-danger" style="border-radius: 8px; padding: 0.625rem 1.5rem;" @click="confirmClearTodos">
-              <i class="fas fa-trash-alt me-1"></i>Clear All
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Clear All Events Confirmation Modal -->
-    <div class="modal fade" id="clearEventsModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);">
-          <div class="modal-header border-0" style="padding: 2rem 2rem 1rem; background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%); border-radius: 12px 12px 0 0;">
-            <div class="d-flex align-items-center gap-3">
-              <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 1.5rem;"></i>
-              </div>
-              <h5 class="modal-title fw-bold mb-0" style="color: #92400e;">Clear All Events?</h5>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" style="padding: 1.5rem 2rem;">
-            <p class="mb-0" style="color: #374151; font-size: 0.95rem; line-height: 1.6;">
-              This will permanently delete all your calendar events. This action cannot be undone.
-            </p>
-          </div>
-          <div class="modal-footer border-0" style="padding: 1rem 2rem 2rem; gap: 0.75rem;">
-            <button type="button" class="btn btn-outline-secondary" style="border-radius: 8px; padding: 0.625rem 1.5rem;" data-bs-dismiss="modal">
-              <i class="fas fa-times me-1"></i>Cancel
-            </button>
-            <button type="button" class="btn btn-danger" style="border-radius: 8px; padding: 0.625rem 1.5rem;" @click="confirmClearEvents">
-              <i class="fas fa-trash-alt me-1"></i>Clear All
-            </button>
           </div>
         </div>
       </div>
@@ -492,25 +472,29 @@
 
 <script>
 import ChartCard from '@/components/dashboard/ChartCard.vue'
-import CalendarCard from '@/components/dashboard/CalendarCard.vue'
-import TodoList from '@/components/dashboard/TodoList.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, getDocs, orderBy, doc, getDoc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 
 export default {
   name: 'HawkerAnalytics',
-  components: { ChartCard, CalendarCard, TodoList, LoadingSpinner },
+  components: { ChartCard, LoadingSpinner },
   data() {
     return {
       isDarkTheme: false,
-      globalFilter: 'day',
+  // Default to month so charts load with data on first visit
+  globalFilter: 'month',
       currentHawkerId: null,
       hawkerListingId: null, // Store the actual hawker listing document ID
       hawkerOwnerId: null, // userId owner of the hawker listing (used for routing to buyer-view-stall)
       allOrders: [],
       loading: true,
+      
+      // Custom date range filter
+      showDatePicker: false,
+      customStartDate: '',
+      customEndDate: '',
       
       // Dummy data for different time periods - REMOVED, will be computed dynamically
       // statsData, salesTrendDummyData, topMenuItemsDummyData, etc.
@@ -519,18 +503,26 @@ export default {
       hawkerName: 'Loading...',
       hawkerOpeningHours: 'Loading...',
       hawkerRating: 0,
-      hawkerReviewCount: 0,
-
-      todoList: [
-        { text: 'Restock ingredients', done: false },
-        { text: 'Update menu prices', done: false },
-        { text: 'Check equipment maintenance', done: true }
-      ],
-      customEvents: [],
-      newEvent: { title: '', date: '', id: null }
+      hawkerReviewCount: 0
     }
   },
   computed: {
+    // Get today's date in YYYY-MM-DD format for date input max attribute
+    today() {
+      const date = new Date()
+      return date.toISOString().split('T')[0]
+    },
+    
+    // Custom date label for the button
+    customDateLabel() {
+      if (this.globalFilter === 'custom' && this.customStartDate && this.customEndDate) {
+        const start = new Date(this.customStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        const end = new Date(this.customEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        return `${start} - ${end}`
+      }
+      return 'Custom'
+    },
+    
     // Filter orders based on time period
     filteredOrders() {
       const now = new Date()
@@ -552,11 +544,33 @@ export default {
         } else if (this.globalFilter === 'month') {
           return orderDate.getMonth() === now.getMonth() && 
                  orderDate.getFullYear() === now.getFullYear()
+        } else if (this.globalFilter === 'custom') {
+          // Custom date range filtering
+          if (!this.customStartDate || !this.customEndDate) {
+            return true
+          }
+          const startDate = new Date(this.customStartDate)
+          startDate.setHours(0, 0, 0, 0)
+          const endDate = new Date(this.customEndDate)
+          endDate.setHours(23, 59, 59, 999)
+          
+          const orderDateOnly = new Date(orderDate)
+          orderDateOnly.setHours(0, 0, 0, 0)
+          
+          return orderDateOnly >= startDate && orderDateOnly <= endDate
         }
         return true
       })
       
-      
+      // If the selected filter returns no results, fall back to showing all orders
+      // (this prevents charts from rendering "no data" on first load when there are
+      // orders but none match today's filter). Keep the console trace for debugging.
+      if (filtered.length === 0 && this.allOrders.length > 0) {
+        console.log(`📊 Filter: ${this.globalFilter}, Total Orders: ${this.allOrders.length}, Filtered: 0 -> falling back to allOrders (${this.allOrders.length})`)
+        return this.allOrders
+      }
+
+      console.log(`📊 Filter: ${this.globalFilter}, Total Orders: ${this.allOrders.length}, Filtered: ${filtered.length}`)
       return filtered
     },
 
@@ -577,6 +591,7 @@ export default {
       
       const totalSales = orders.reduce((sum, order) => {
         if (!order.items || !Array.isArray(order.items)) {
+          console.warn('Order has no items array:', order)
           return sum
         }
         const orderTotal = order.items.reduce((itemSum, item) => {
@@ -589,7 +604,7 @@ export default {
       
       const totalOrders = orders.length
       
-      
+      console.log(`💰 Total Sales (${this.globalFilter}): $${totalSales.toFixed(2)}, Orders: ${totalOrders}`)
       
       // Calculate peak hour
       const hourCounts = {}
@@ -690,7 +705,7 @@ export default {
       
       orders.forEach((order, index) => {
         if (!order.items || !Array.isArray(order.items)) {
-          
+          console.warn('Order has no items:', order)
           return
         }
         
@@ -734,7 +749,7 @@ export default {
         }
       })
       
-      
+      console.log('Sales by period:', periods)
       
       return {
         labels: labels.length > 0 ? labels : ['No Data'],
@@ -769,7 +784,7 @@ export default {
         }
       })
       
-      
+      console.log('Peak hours data:', hourCounts)
       
       return {
         labels: hours.map(h => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`),
@@ -809,6 +824,18 @@ export default {
       }
     },
 
+    // Common options used for charts where we want to hide the legend
+    noLegendOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true }
+        }
+      }
+    },
+
     donutOptions() {
       return {
         plugins: { 
@@ -833,8 +860,10 @@ export default {
     // Fetch hawker profile information
     async fetchHawkerProfile() {
       try {
+        console.log('📋 Fetching hawker profile for user:', this.currentHawkerId)
         
         if (!this.currentHawkerId) {
+          console.error('❌ No current hawker ID')
           return
         }
         
@@ -844,6 +873,7 @@ export default {
         const querySnapshot = await getDocs(q)
         
         if (querySnapshot.empty) {
+          console.warn('⚠️ No hawker listing found for this user')
           this.hawkerName = 'Hawker'
           this.hawkerOpeningHours = 'Hours not available'
           this.hawkerRating = 0
@@ -861,7 +891,8 @@ export default {
   // Store the hawker owner's userId (used when navigating to buyer-view-stall/:userId)
   this.hawkerOwnerId = hawkerData.userId || null
         
-        
+        console.log('📦 Hawker listing found:', hawkerListingId)
+        console.log('📦 Hawker data:', hawkerData)
         
         // Use hawkerName from hawkerListings collection
         this.hawkerName = hawkerData.hawkerName || hawkerData.name || hawkerData.stallName || 'Hawker'
@@ -879,14 +910,10 @@ export default {
           this.hawkerOpeningHours = 'Hours not specified'
         }
         
-        
-        
-        // Fetch todos and calendar events from Firebase
-        await this.fetchTodos()
-        await this.fetchCalendarEvents()
+        console.log('✅ Hawker profile loaded:', this.hawkerName, '|', this.hawkerOpeningHours)
         
         // Fetch reviews from the hawkerListings document (not subcollection)
-        
+        console.log('🔍 Fetching reviews from hawker document...')
         try {
           if (hawkerData.reviews) {
             const reviews = hawkerData.reviews
@@ -895,7 +922,7 @@ export default {
             if (reviews.stallRating !== undefined && reviews.stallRating !== null) {
               this.hawkerRating = reviews.stallRating
               this.hawkerReviewCount = reviews.userRatings ? reviews.userRatings.length : 0
-              
+              console.log(`✅ Reviews loaded: ${this.hawkerReviewCount} reviews, avg rating: ${this.hawkerRating.toFixed(1)}`)
             } else if (reviews.userRatings && reviews.userRatings.length > 0) {
               // Calculate rating from userRatings array
               const totalRating = reviews.userRatings.reduce((sum, review) => {
@@ -903,23 +930,25 @@ export default {
               }, 0)
               this.hawkerRating = totalRating / reviews.userRatings.length
               this.hawkerReviewCount = reviews.userRatings.length
-              
+              console.log(`✅ Reviews calculated: ${this.hawkerReviewCount} reviews, avg rating: ${this.hawkerRating.toFixed(1)}`)
             } else {
               this.hawkerRating = 0
               this.hawkerReviewCount = 0
-              
+              console.log('⚠️ No reviews found')
             }
           } else {
-            
+            console.log('⚠️ No reviews object in hawker document')
             this.hawkerRating = 0
             this.hawkerReviewCount = 0
           }
         } catch (reviewError) {
-          
+          console.error('❌ Error fetching reviews:', reviewError)
           this.hawkerRating = 0
           this.hawkerReviewCount = 0
         }
       } catch (error) {
+        console.error('❌ Error fetching hawker profile:', error)
+        console.error('Error details:', error.message)
         this.hawkerName = 'Hawker'
         this.hawkerOpeningHours = 'Not available'
       }
@@ -930,6 +959,7 @@ export default {
       // Try timestamp first (your actual field), then createdAt, then date
       const timestamp = order.timestamp || order.createdAt || order.date
       if (!timestamp) {
+        console.warn('Order has no timestamp:', order)
         return new Date()
       }
       
@@ -961,14 +991,17 @@ export default {
     async fetchHawkerOrders() {
       try {
         this.loading = true
+        console.log('🔍 Starting to fetch orders...')
+        console.log('Current Hawker ID:', this.currentHawkerId)
         
         if (!this.currentHawkerId) {
+          console.error('❌ No hawker ID available')
           this.loading = false
           return
         }
         
         const ordersRef = collection(db, 'orders')
-        
+        console.log('📦 Orders collection reference created')
         
         // Try with orderBy first (requires index)
         let querySnapshot
@@ -978,9 +1011,13 @@ export default {
             where('hawkerId', '==', this.currentHawkerId),
             orderBy('timestamp', 'desc')
           )
-          
+          console.log('🔎 Query created with filters:', {
+            hawkerId: this.currentHawkerId,
+            orderBy: 'timestamp desc'
+          })
           
           querySnapshot = await getDocs(q)
+          console.log('📊 Query executed, documents found:', querySnapshot.size)
           
           this.allOrders = querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -988,7 +1025,12 @@ export default {
           }))
         } catch (indexError) {
           if (indexError.code === 'failed-precondition' || indexError.code === 9) {
+            console.warn('⚠️ Index not found, using simple query without orderBy')
             const indexUrl = indexError.message.match(/https:\/\/[^\s]+/)?.[0]
+            if (indexUrl) {
+              console.warn('🔗 Create index at:', indexUrl)
+            }
+            console.warn('💡 Or use the firestore.indexes.json file and deploy: firebase deploy --only firestore:indexes')
             
             // Fallback: query without orderBy
             const simpleQuery = query(
@@ -996,6 +1038,7 @@ export default {
               where('hawkerId', '==', this.currentHawkerId)
             )
             querySnapshot = await getDocs(simpleQuery)
+            console.log('📊 Simple query executed, documents found:', querySnapshot.size)
             
             this.allOrders = querySnapshot.docs.map(doc => ({
               id: doc.id,
@@ -1013,17 +1056,48 @@ export default {
           }
         }
         
-        
+        console.log('✅ Loaded orders:', this.allOrders.length)
+        if (this.allOrders.length > 0) {
+          console.log('📄 Sample order:', this.allOrders[0])
+        } else {
+          console.log('⚠️ No orders found for this hawker')
+        }
       } catch (error) {
+        console.error('❌ Error fetching orders:', error)
+        console.error('Error code:', error.code)
+        console.error('Error message:', error.message)
         this.allOrders = []
       } finally {
         this.loading = false
+        console.log('🏁 Fetch complete. Loading state:', this.loading)
       }
     },
 
     setGlobalFilter(filter) {
       this.globalFilter = filter
+      this.showDatePicker = false
     },
+    
+    toggleDatePicker() {
+      this.showDatePicker = !this.showDatePicker
+    },
+    
+    applyCustomDateFilter() {
+      if (this.customStartDate && this.customEndDate) {
+        this.globalFilter = 'custom'
+        this.showDatePicker = false
+        console.log(`📅 Custom date filter applied: ${this.customStartDate} to ${this.customEndDate}`)
+      }
+    },
+    
+    clearCustomDateFilter() {
+      this.customStartDate = ''
+      this.customEndDate = ''
+      this.globalFilter = 'month'
+      this.showDatePicker = false
+      console.log('🗑️ Custom date filter cleared')
+    },
+    
     generatePDF() {
       window.print()
     },
@@ -1034,179 +1108,15 @@ export default {
       localStorage.setItem('hawker-theme', this.isDarkTheme ? 'dark' : 'light')
     },
     
-    // Todo List Methods - Connected to Firebase
-    async fetchTodos() {
-      if (!this.hawkerListingId) return
-      
-      try {
-        const todosRef = collection(db, 'hawkerListings', this.hawkerListingId, 'toDoList')
-        const todosSnapshot = await getDocs(todosRef)
-        
-        this.todoList = todosSnapshot.docs.map(doc => ({
-          id: doc.id,
-          text: doc.data().toDoItem || '',
-          done: doc.data().completed || false
-        }))
-      } catch (error) {
-      }
-    },
-    
-    async addTodo(text) {
-      if (!this.hawkerListingId) return
-      
-      try {
-        const todosRef = collection(db, 'hawkerListings', this.hawkerListingId, 'toDoList')
-        const docRef = await addDoc(todosRef, {
-          toDoItem: text,
-          completed: false,
-          dateCreated: new Date()
-        })
-        
-        this.todoList.push({ id: docRef.id, text, done: false })
-      } catch (error) {
-      }
-    },
-    
-    async toggleTodo(idx) {
-      const todo = this.todoList[idx]
-      if (!this.hawkerListingId || !todo.id) return
-      
-      try {
-        const todoRef = doc(db, 'hawkerListings', this.hawkerListingId, 'toDoList', todo.id)
-        await updateDoc(todoRef, {
-          completed: !todo.done
-        })
-        
-        this.todoList[idx].done = !this.todoList[idx].done
-      } catch (error) {
-      }
-    },
-    
-    async deleteTodo(idx) {
-      const todo = this.todoList[idx]
-      if (!this.hawkerListingId || !todo.id) return
-      
-      try {
-        const todoRef = doc(db, 'hawkerListings', this.hawkerListingId, 'toDoList', todo.id)
-        await deleteDoc(todoRef)
-        
-        this.todoList.splice(idx, 1)
-      } catch (error) {
-      }
-    },
-    
-    clearAllTodos() {
-      if (!this.hawkerListingId) return
-      
-      // Show the confirmation modal
-      const modal = new bootstrap.Modal(document.getElementById('clearTodosModal'))
-      modal.show()
-    },
-    
-    async confirmClearTodos() {
-      try {
-        const todosRef = collection(db, 'hawkerListings', this.hawkerListingId, 'toDoList')
-        const todosSnapshot = await getDocs(todosRef)
-        
-        const deletePromises = todosSnapshot.docs.map(doc => deleteDoc(doc.ref))
-        await Promise.all(deletePromises)
-        
-        this.todoList = []
-        
-        // Hide the modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('clearTodosModal'))
-        modal.hide()
-      } catch (error) {
-        alert('Failed to clear todos. Please try again.')
-      }
-    },
-    
-    // Calendar Event Methods - Connected to Firebase
-    async fetchCalendarEvents() {
-      if (!this.hawkerListingId) return
-      
-      try {
-        const eventsRef = collection(db, 'hawkerListings', this.hawkerListingId, 'calendarEvents')
-        const eventsSnapshot = await getDocs(eventsRef)
-        
-        this.customEvents = eventsSnapshot.docs.map(doc => {
-          const data = doc.data()
-          return {
-            id: doc.id,
-            title: data.title || '',
-            date: data.date || ''
-          }
-        })
-      } catch (error) {
-      }
-    },
-    
-    showAddEventModal() {
-      this.newEvent = { title: '', date: '', id: null }
-      new bootstrap.Modal(document.getElementById('addEventModal')).show()
-    },
-    
-    async addEvent() {
-      if (!this.hawkerListingId || !this.newEvent.title || !this.newEvent.date) return
-      
-      try {
-        const eventsRef = collection(db, 'hawkerListings', this.hawkerListingId, 'calendarEvents')
-        const docRef = await addDoc(eventsRef, {
-          title: this.newEvent.title,
-          date: this.newEvent.date,
-          dateCreated: new Date()
-        })
-        
-        this.customEvents.push({ 
-          id: docRef.id, 
-          title: this.newEvent.title, 
-          date: this.newEvent.date 
-        })
-        
-        bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide()
-      } catch (error) {
-      }
-    },
-    
-    async removeEvent(id) {
-      if (!this.hawkerListingId) return
-      
-      try {
-        const eventRef = doc(db, 'hawkerListings', this.hawkerListingId, 'calendarEvents', id)
-        await deleteDoc(eventRef)
-        
-        this.customEvents = this.customEvents.filter(e => e.id !== id)
-      } catch (error) {
-      }
-    },
-    
-    clearAllEvents() {
-      if (!this.hawkerListingId) return
-      
-      // Show the confirmation modal
-      const modal = new bootstrap.Modal(document.getElementById('clearEventsModal'))
-      modal.show()
-    },
-    
-    async confirmClearEvents() {
-      try {
-        const eventsRef = collection(db, 'hawkerListings', this.hawkerListingId, 'calendarEvents')
-        const eventsSnapshot = await getDocs(eventsRef)
-        
-        const deletePromises = eventsSnapshot.docs.map(doc => deleteDoc(doc.ref))
-        await Promise.all(deletePromises)
-        
-        this.customEvents = []
-        
-        // Hide the modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('clearEventsModal'))
-        modal.hide()
-      } catch (error) {
-        alert('Failed to clear events. Please try again.')
+    handleClickOutside(event) {
+      const datePickerContainer = event.target.closest('.position-relative')
+      if (!datePickerContainer && this.showDatePicker) {
+        this.showDatePicker = false
       }
     }
   },
   mounted() {
+    console.log('🎬 HawkerAnalytics component mounted')
     
     // Load theme preference
     const savedTheme = localStorage.getItem('hawker-theme')
@@ -1217,16 +1127,32 @@ export default {
     }
 
     // Get current hawker and fetch orders
+    console.log('🔐 Setting up authentication listener...')
     const auth = getAuth()
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log('✅ User authenticated:', {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName
+        })
         this.currentHawkerId = user.uid
+        console.log('👤 Current Hawker ID set to:', this.currentHawkerId)
         this.fetchHawkerProfile()
         this.fetchHawkerOrders()
       } else {
+        console.error('❌ No authenticated user')
         this.loading = false
       }
     })
+    
+    // Close date picker when clicking outside
+    document.addEventListener('click', this.handleClickOutside)
+  },
+  
+  beforeUnmount() {
+    // Clean up event listener
+    document.removeEventListener('click', this.handleClickOutside)
   }
 }
 </script>
@@ -1240,4 +1166,96 @@ export default {
 @import '@/assets/css/hawker-analytics.css';
 @import '@/assets/css/hawker-analytics-print.css';
 @import '@/assets/css/hawker-analytics-responsive.css';
+
+/* Custom Date Range Picker Styles */
+.date-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  min-width: 320px;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+.date-picker-dropdown.dark-theme {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.date-picker-dropdown .input-group-text {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px 0 0 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.date-picker-dropdown .dark-theme .input-group-text,
+.date-picker-dropdown.dark-theme .input-group-text {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.date-picker-dropdown .form-control {
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.date-picker-dropdown .form-control:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+}
+
+.dark-input {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-input:focus {
+  background-color: #0f172a !important;
+  border-color: #10b981 !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15) !important;
+}
+
+.date-picker-dropdown .btn-success {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+.date-picker-dropdown .btn-success:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.date-picker-dropdown .btn-success:disabled {
+  background-color: #9ca3af;
+  border-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.date-picker-dropdown label i {
+  font-size: 0.875rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Close date picker when clicking outside */
+.position-relative {
+  position: relative;
+}
 </style>
