@@ -453,7 +453,7 @@ import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue'
 
 export default {
   name: 'HawkerAnalytics',
-  components: { ChartCard, LoadingSpinner },
+  components: { ChartCard, LoadingSpinner, HawkerNavTabs },
   data() {
     return {
       isDarkTheme: false,
