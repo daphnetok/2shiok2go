@@ -31,6 +31,10 @@ export default {
     const sortOrder = ref('desc');
     const isStatusFilterOpen = ref(false);
     const activeStatusFilters = ref([]);
+    const dateFilter = ref({
+      startDate: '',
+      endDate: ''
+    });
 
     // Alert or Confirmation boxes
     const alert = ref({
@@ -136,7 +140,34 @@ export default {
 
 
     const sortedHistory = computed(() => {
-      return [...historyOrders.value].sort((a, b) => {
+      let orders = [...historyOrders.value];
+      
+      // Apply date filter
+      if (dateFilter.value.startDate || dateFilter.value.endDate) {
+        orders = orders.filter(order => {
+          if (!order.timestamp) return false;
+          
+          const orderDate = order.timestamp.toDate();
+          orderDate.setHours(0, 0, 0, 0);
+          
+          if (dateFilter.value.startDate) {
+            const startDate = new Date(dateFilter.value.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            if (orderDate < startDate) return false;
+          }
+          
+          if (dateFilter.value.endDate) {
+            const endDate = new Date(dateFilter.value.endDate);
+            endDate.setHours(23, 59, 59, 999);
+            if (orderDate > endDate) return false;
+          }
+          
+          return true;
+        });
+      }
+      
+      // Apply sorting
+      return orders.sort((a, b) => {
         const timeA = a.timestamp?.toMillis() || 0;
         const timeB = b.timestamp?.toMillis() || 0;
         return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB;
@@ -426,6 +457,10 @@ export default {
         selectedOrders.value = [];
       }
     };
+    const clearDateFilter = () => {
+      dateFilter.value.startDate = '';
+      dateFilter.value.endDate = '';
+    };
 
     //  Wait for Firebase Auth to load
     onMounted(() => {
@@ -487,6 +522,8 @@ export default {
       closeAlert,
       confirmationConfirm,
       confirmationCancel,
+      dateFilter,
+      clearDateFilter,
     };
     
   }

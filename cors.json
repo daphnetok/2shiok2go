@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:5174", "https://test-25bd6.web.app", "https://test-25bd6.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "x-goog-meta-*"],
+    "maxAgeSeconds": 3600
+  }
+]
