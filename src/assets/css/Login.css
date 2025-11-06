@@ -1,0 +1,315 @@
+.login-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .video-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+  
+  /* Make the YouTube iframe behave like background-cover */
+  .video-iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.15);
+    /* Default for wider screens: width fills, height derived from 16:9 */
+    width: 100vw;
+    height: 56.25vw; /* 9/16 = 0.5625 */
+    min-width: 100%;
+    min-height: 100%;
+    pointer-events: none;
+  }
+  
+  /* If viewport is taller (portrait), expand based on height to cover */
+  @media (max-aspect-ratio: 16/9) {
+    .video-iframe {
+      width: 177.78vh; /* 16/9 = 1.7778 */
+      height: 100vh;
+    }
+  }
+  
+  .video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45));
+    z-index: 1;
+  }
+  
+  .content-wrapper {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-content {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 36px;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  width: min(1100px, 92%);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  }
+
+/* Grid layout: hero + form */
+.login-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  grid-template-areas:
+    "hero"
+    "form";
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 900px) {
+  .login-grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 8px;
+    align-items: center;
+    grid-template-areas: "hero form";
+  }
+  /* default already vertical (grid) */
+}
+
+/* Below 900px: horizontal, wrapping tags */
+@media (max-width: 900px) {
+  .login-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+}
+
+.login-hero { grid-area: hero; text-align: left; }
+.login-form { grid-area: form; }
+
+.login-hero h1 {
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.login-hero .subtitle { text-align: left; }
+
+.login-highlights { justify-items: start; }
+.login-highlights li { justify-content: flex-start; }
+
+.login-hero .subtitle {
+  margin: 0 0 20px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.login-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;            /* horizontal at all sizes */
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.login-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: loginItemIn 0.6s ease forwards;
+}
+
+.login-highlights .emoji {
+  display: inline-block;
+  width: 1.25em;
+  text-align: center;
+  font-size: 1.05em;
+}
+
+/* Staggered animation for highlight items */
+.login-highlights li:nth-child(1) { animation-delay: 0.1s; }
+.login-highlights li:nth-child(2) { animation-delay: 0.25s; }
+.login-highlights li:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loginItemIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Left-side flowing green that fades into content */
+.login-content::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 56%;
+  background: linear-gradient(90deg,
+    rgba(122,203,106,0.28) 0%,
+    rgba(104,186,95,0.18) 35%,
+    rgba(0,0,0,0) 100%);
+  filter: blur(0px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle drifting blob layered on top of the left fade */
+.login-content::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 420px;
+  height: 420px;
+  transform: translate(-35%, -50%) scale(1);
+  background: radial-gradient(closest-side,
+    rgba(122, 203, 106, 0.30) 0%,
+    rgba(94, 178, 91, 0.14) 40%,
+    rgba(0, 0, 0, 0) 70%);
+  filter: blur(36px);
+  pointer-events: none;
+  z-index: 0;
+  animation: containerGlowDrift 16s ease-in-out infinite;
+}
+
+@keyframes containerGlowDrift {
+  0%   { transform: translate(-35%, -50%) scale(1); }
+  50%  { transform: translate(-28%, -52%) scale(1.04); }
+  100% { transform: translate(-35%, -50%) scale(1); }
+}
+
+/* Foresty hero styling and subtle motion */
+.login-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 0 4px 0;
+}
+
+/* Animated soft green light blobs for a natural vibe */
+.login-hero::before,
+.login-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto auto auto auto;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.12;
+}
+
+.login-hero::before {
+  width: 220px;
+  height: 220px;
+  left: -120px;
+  top: -60px;
+  background: radial-gradient(closest-side, #7acb6a 0%, #5eb25b 38%, transparent 70%);
+  animation: heroFloatA 14s ease-in-out infinite;
+}
+
+.login-hero::after {
+  width: 260px;
+  height: 260px;
+  right: -140px;
+  bottom: -100px;
+  background: radial-gradient(closest-side, #a9e8c7 0%, #7dd6b2 35%, transparent 70%);
+  animation: heroFloatB 18s ease-in-out infinite;
+}
+
+@keyframes heroFloatA {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(12px, 10px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes heroFloatB {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-14px, -12px) scale(1.07); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Lush gradient title text */
+.login-hero h1 {
+  background: linear-gradient(90deg, #1b5e20, #2e7d32, #43a047);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Decorative underline under the title */
+.login-hero h1::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: 60%;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #1b5e20, #2e7d32, #7acb6a);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: underlineReveal 720ms ease-out 120ms forwards;
+}
+
+/* Slight entrance for subtitle */
+.login-hero .subtitle {
+  animation: heroSubtitleIn 600ms ease 120ms both;
+}
+
+@keyframes heroSubtitleIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Underline reveal from left to right to 65% width */
+@keyframes underlineReveal {
+  0% { transform: scaleX(0); opacity: 0.7; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+/* Desktop balance between hero and form */
+@media (min-width: 900px) {
+  .login-hero { padding-right: 16px; }
+  .login-form {
+    padding-left: 16px;
+    border-left: 1px solid rgba(0,0,0,0.06);
+  }
+}
+  
+  

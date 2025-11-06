@@ -166,16 +166,37 @@ input[type="file"] {
 .remove-btn {
   position: absolute;
   font-size: 15px;
-  top: 5px;
-  right: 5px;
-  background-color: #eee;
+  top: 8px;
+  right: 8px;
+  background-color: #dc2626; /* red */
+  color: #fff;
   border-radius: 50%;
-  padding: 5px 8px;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  border: none;
+  transition: background-color 0.2s ease;
 }
 
 .remove-btn:hover {
-  background-color: #ddd;
+  background-color: #b91c1c; /* darker red */
+  transform: scale(1.05);
+}
+
+/* ensure icon inside red button is white */
+.remove-btn svg,
+.remove-btn i,
+.remove-btn .fa-lg {
+  color: #fff !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 .green {
@@ -189,22 +210,23 @@ input[type="file"] {
 .price-range-options {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-top: 8px;
   width: 75%;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0; /* align block to the left of its container */
+  margin-right: 0;
+  text-align: left;
 }
 
 label.radio-option {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* This pushes label left, radio right */
+  justify-content: flex-start; /* keep text left aligned */
   cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 4px;
+  padding: 8px 44px 8px 0; /* reserve space on right for radio */
+  border-radius: 6px;
   transition: background-color 0.2s;
-  line-height: 1;
+  line-height: 1.2;
   position: relative;
 }
 
@@ -213,22 +235,41 @@ label.radio-option {
 }
 
 .radio-option input[type="radio"] {
-  margin-left: 10px;
   cursor: pointer;
-  flex-shrink: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-  position: absolute; /* NEW: Absolute positioning */
-  right: 15px; /* NEW: Fixed distance from right edge */
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .radio-option span {
   font-weight: 500;
-  line-height: 1;
   margin: 0;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   vertical-align: middle;
-  flex-grow: 1; /* NEW: Takes up available space */
+  flex-grow: 1;
+}
+
+/* Emphasize the dollar symbols */
+.radio-option .dollar {
+  font-weight: 700;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.radio-option .price-text {
+  color: #1f2937;
+}
+
+/* Remove intrusive focus outlines on the row */
+.radio-option:focus-within {
+  outline: none;
+  box-shadow: none;
 }
 
 .toast-notification {
