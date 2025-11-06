@@ -114,12 +114,50 @@ export default {
   },
   computed: {
     stallImages() {
-      // If hawker has multiple images, use them; otherwise use the single imageUrl
-      if (this.hawker.images && Array.isArray(this.hawker.images) && this.hawker.images.length > 0) {
-        return this.hawker.images;
+      // Get the stall's main image (should be the first/main image)
+      const stallImageUrl = this.hawker.imageUrl;
+      
+      // Check for hawkerListing.images first (array of objects with url property)
+      let imagesArray = null;
+      
+      if (this.hawker.hawkerListing?.images && Array.isArray(this.hawker.hawkerListing.images) && this.hawker.hawkerListing.images.length > 0) {
+        imagesArray = this.hawker.hawkerListing.images;
+      } else if (this.hawker.images && Array.isArray(this.hawker.images) && this.hawker.images.length > 0) {
+        imagesArray = this.hawker.images;
       }
-      // Fallback to single image
-      return [this.hawker.imageUrl];
+      
+      if (imagesArray) {
+        // Extract URLs from image objects and sort by order
+        const imageUrls = imagesArray
+          .filter(img => img && (img.url || img.path))
+          .map(img => ({
+            url: img.url || img.path,
+            order: img.order !== undefined ? img.order : 999,
+            isMain: img.main === true
+          }))
+          .sort((a, b) => {
+            // Main images first, then by order
+            if (a.isMain && !b.isMain) return -1;
+            if (!a.isMain && b.isMain) return 1;
+            return a.order - b.order;
+          })
+          .map(img => img.url);
+        
+        // Ensure stall image is the first/main image
+        if (stallImageUrl) {
+          // Remove stall image from array if it exists elsewhere
+          const filteredUrls = imageUrls.filter(url => url !== stallImageUrl);
+          // Put stall image at the beginning
+          return [stallImageUrl, ...filteredUrls];
+        }
+        
+        if (imageUrls.length > 0) {
+          return imageUrls;
+        }
+      }
+      
+      // Fallback to single imageUrl
+      return stallImageUrl ? [stallImageUrl] : [];
     }
   },
   mounted() {
@@ -170,18 +208,26 @@ export default {
   display: flex;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
+  width: 100%;
 }
 
 .carousel-slide {
   min-width: 100%;
+  width: 100%;
   flex-shrink: 0;
   height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-slide :deep(.card-img-top) {
   height: 100%;
   width: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 /* Carousel Dots */
@@ -197,6 +243,11 @@ export default {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 20px;
   backdrop-filter: blur(4px);
+  transition: z-index 0s;
+}
+
+.card:hover .carousel-dots {
+  z-index: 1;
 }
 
 .dot {

@@ -8,7 +8,9 @@
          <div v-if="showToast" class="toast-notification ">
             <div class="toast-content">
                 <p class="toast-message">{{ successMsg }}</p>
-                <button class="btn btn-ok" @click="closeToast">OK</button>
+                <router-link to="/hawker-dashboard">
+                    <button class="btn btn-ok">OK</button>
+                </router-link>
             </div>
         </div>
 

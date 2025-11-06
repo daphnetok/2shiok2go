@@ -21,8 +21,8 @@
   <div class="navbar-nav-desktop d-none d-md-flex ms-auto" :class="{ 'has-logout': currentUser }">
   <router-link v-if="isHomePage" class="nav-link-desktop" to="/">Home</router-link>
   
-          <!-- Show Listing link to all users (customers can browse) -->
-          <router-link class="nav-link-desktop" to="/buyer-listings">Listing</router-link>
+          <!-- Show Listing link - hawkers see their own stall, buyers see all listings -->
+          <router-link class="nav-link-desktop" :to="listingRoute">Listing</router-link>
           
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
@@ -64,7 +64,7 @@
   <div class="offcanvas-body">
   <ul class="nav flex-column">
   <li v-if="isHomePage" class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/buyer-listings">Listing</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" :to="listingRoute">Listing</router-link></li>
   
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
@@ -117,6 +117,14 @@
      // Check if current page is home page
      const isHomePage = computed(() => route.path === '/');
   
+     // Computed property for listing route based on user role
+     const listingRoute = computed(() => {
+       if (currentUser.value && userRole.value === 'hawker') {
+         return `/buyer-view-stall/${currentUser.value.uid}`;
+       }
+       return '/buyer-listings';
+     });
+  
      // Fetch user role from Firestore
      const fetchUserRole = async (uid) => {
        try {
@@ -166,7 +174,8 @@
        userRole,
        isLoading,
        handleLogout,
-       isHomePage
+       isHomePage,
+       listingRoute
      };
    }
   };

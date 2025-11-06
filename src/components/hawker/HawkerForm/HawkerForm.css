@@ -623,6 +623,10 @@ input[type="file"] {
   display: block;
 }
 
+.router {
+  background: none !important;
+  background-color: none !important;
+}
 
 
 .toast-notification {
