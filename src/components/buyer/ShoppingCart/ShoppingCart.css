@@ -1434,6 +1434,104 @@
   }
 }
 
+.saved-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.saved-current-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.saved-current-btn .caret {
+  margin-left: auto;
+  color: #888;
+}
+
+.saved-card-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.saved-card-row.selected {
+  border-color: #c8e6c9;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+.saved-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.saved-card-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.saved-card-mask {
+  font-weight: 700;
+}
+
+.saved-card-name {
+  color: #666;
+}
+
+.saved-card-exp {
+  color: #888;
+  font-size: 12px;
+}
+
+.saved-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-action {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.card-action.delete {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+.modal-footer.inline {
+  flex-direction: row;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;

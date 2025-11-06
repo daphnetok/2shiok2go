@@ -35,9 +35,9 @@ export default {
     }
 ,
 
-    isStallOpen() {
+    getStallStatus() {
       if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
-        return true; // Default to open if no time specified
+        return 'unknown'; // Unknown status if no time specified
       }
       
       const now = new Date();
@@ -49,7 +49,67 @@ export default {
       const openingTimeInMinutes = openHour * 60 + openMin;
       const closingTimeInMinutes = closeHour * 60 + closeMin;
       
-      return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
+      // Handle overnight stalls (e.g., 18:00 to 02:00)
+      if (closingTimeInMinutes < openingTimeInMinutes) {
+        // Stall operates overnight
+        if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
+          // Currently open
+          let minutesUntilClose;
+          if (currentTime >= openingTimeInMinutes) {
+            // Evening: time until midnight + time from midnight to closing
+            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
+          } else {
+            // Morning: time until closing
+            minutesUntilClose = closingTimeInMinutes - currentTime;
+          }
+          if (minutesUntilClose <= 30) {
+            return 'closing-soon';
+          }
+          return 'open';
+        } else {
+          // Currently closed - we're between closingTime and openingTime
+          // Calculate minutes until next opening
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30 && minutesUntilOpen > 0) {
+            return 'opening-soon';
+          }
+          return 'closed';
+        }
+      } else {
+        // Normal operating hours (e.g., 09:00 to 21:00)
+        if (currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes) {
+          // Currently open
+          const minutesUntilClose = closingTimeInMinutes - currentTime;
+          if (minutesUntilClose <= 30) {
+            return 'closing-soon';
+          }
+          return 'open';
+        } else if (currentTime < openingTimeInMinutes) {
+          // Before opening
+          const minutesUntilOpen = openingTimeInMinutes - currentTime;
+          if (minutesUntilOpen <= 30) {
+            return 'opening-soon';
+          }
+          return 'closed';
+        } else {
+          // After closing
+          return 'closed';
+        }
+      }
+    },
+    
+    isStallOpen() {
+      const status = this.getStallStatus();
+      return status === 'open' || status === 'closing-soon';
+    },
+    
+    getStatusText() {
+      const status = this.getStallStatus();
+      if (status === 'closed') return 'Closed';
+      if (status === 'closing-soon') return 'Closing Soon';
+      if (status === 'opening-soon') return 'Opening Soon';
+      if (status === 'open') return 'Open Now';
+      return 'Unknown';
     },
   },
   setup(props, { emit }) {

@@ -42,7 +42,7 @@ export default {
       expiryDate: '',
       cvv: ''
     });
-
+    
     // Card validation state
     const cardNumberError = ref(null);
     const fieldErrors = ref({

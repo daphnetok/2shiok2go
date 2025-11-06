@@ -1,133 +1,41 @@
 <template>
   <div class="homepage">
-    <!-- Hero Section -->
-    <div class="hero">
-      <div class="hero-content">
-        <div class="action">
-          <i class="fa-solid fa-leaf"></i> Join the Green Movement
-        </div>
-        <h1 class="headline">Save More, Waste Less.</h1>
-        <h1 class="headline2">Discover Discounted Hawker Meals Near You!</h1>
-        <p class="subheading">Join the Movement to Reduce Food Waste While Enjoying Affordable Local Food</p>
-        
-        <div class="buttons">
-          <router-link class="router" to="/login">
-            <button class="btn-primary">Start Saving Today <span class="arrow">➜</span></button>
-          </router-link>
-          <router-link class="router" to="/buyer-listings">
-            <button class="btn-secondary">Browse Deals</button>
-          </router-link>
-        </div>
-        
-        <div class="stats">
-          <div class="stat" v-for="(stat, index) in stats" :key="index">
-            <h2>{{ stat.value }}</h2>
-            <p>{{ stat.label }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Key Benefits Section -->
-    <section class="benefits">
-      <h2>Why Choose <span>2Shiok2Go</span>?</h2>
-      <div class="benefits-grid">
-        <div class="benefit" v-for="(benefit, index) in benefits" :key="index">
-          <div class="benefit-icon">
-            <i :class="benefit.icon"></i>
-          </div>
-          <h3>{{ benefit.title }}</h3>
-          <p>{{ benefit.text }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- About Us Section -->
-    <section class="about">
-      <div class="about-content">
-        <div class="about-icon">
-          <i class="fa-solid fa-leaf"></i>
-        </div>
-        <h2>Our Mission: Reducing Food Waste, <span>One Meal at a Time</span></h2>
-        <p>At 2Shiok2Go, we're passionate about reducing food wastage in Singapore's vibrant hawker culture. Our platform connects you to unsold, still-fresh hawker meals at discounted prices. By buying from hawkers near you, you're helping reduce food waste and support the community at the same time.</p>
-      </div>
-    </section>
-
-    <!-- Reviews Section -->
-    <section class="testimonials">
-      <h2>What Our <span class="user">Users</span> Are Saying</h2>
-      <div class="testimonial-container">
-        <div class="testimonial-track">
-          <div class="testimonial" v-for="(testimonial, index) in testimonials" :key="'first-' + index">
-            <div class="stars">
-              <i v-for="star in 5" :key="star" class="fa-solid fa-star"></i>
-            </div>
-            <p class="review">{{ testimonial.review }}</p>
-            <p class="name">{{ testimonial.user }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="cta">
-      <div class="cta-content">
-        <h2>Start Saving Today!</h2>
-        <p>Browse through the latest deals near you and start supporting your favorite hawkers while cutting down on food waste!</p>
-        <button @click="startSaving" class="cta-button">
-          Join the Movement – Sign Up Now!
-        </button>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3 class="footer-tagline">Eat Good. Do Good.</h3>
-          <p class="footer-description">Join us in reducing food waste while enjoying delicious local meals at great prices.</p>
-        </div>
-        
-        <div class="footer-section">
-          <h4 class="footer-title">Contact Us</h4>
-          <div class="footer-email">
-            <i class="fa-solid fa-envelope"></i>
-            <a href="mailto:2shiok2go@gmail.com" class="router">2shiok2go@gmail.com</a>
-          </div>
-        </div>
-        
-        <div class="footer-section">
-          <h4 class="footer-title">Follow Us</h4>
-          <div class="social-links">
-            <a href="https://facebook.com/2shiok2go/" class="social-link facebook" aria-label="Facebook">
-              <i class="fa-brands fa-facebook-f"></i>
-            </a>
-            <a href="https://www.instagram.com/2shiok2go/" class="social-link instagram" aria-label="Instagram">
-              <i class="fa-brands fa-instagram"></i>
-            </a>
-            <a href="https://x.com/2shiok2go/" class="social-link twitter" aria-label="X (Twitter)">
-              <i class="fa-brands fa-twitter"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 2Shiok2Go. All rights reserved.</p>
-      </div>
-    </footer>
+    <HeroSection />
+    <StatsSection :stats="stats" />
+    <BenefitsSection :benefits="benefits" />
+    <AboutSection />
+    <TestimonialsSection :testimonials="testimonials" />
+    <CTASection />
+    <FooterSection />
   </div>
 </template>
 
 <script>
+import HeroSection from '@/components/Home/Hero/HeroSection.vue';
+import StatsSection from '@/components/Home/Stats/StatsSection.vue';
+import BenefitsSection from '@/components/Home/Benefits/BenefitsSection.vue';
+import AboutSection from '@/components/Home/About/AboutSection.vue';
+import TestimonialsSection from '@/components/Home/Testimonials/TestimonialsSection.vue';
+import CTASection from '@/components/Home/CTA/CTASection.vue';
+import FooterSection from '@/components/Home/Footer/FooterSection.vue';
+
 export default {
   name: 'HomePage',
+  components: {
+    HeroSection,
+    StatsSection,
+    BenefitsSection,
+    AboutSection,
+    TestimonialsSection,
+    CTASection,
+    FooterSection
+  },
   data() {
     return {
       stats: [
-        { value: '5000+', label: 'Meals Saved' },
-        { value: '200+', label: 'Hawkers Participating' },
-        { value: '30%', label: 'Average Savings' }
+        { value: '5000', label: 'Meals Saved', suffix: '+', emoji: '🍽️' },
+        { value: '200', label: 'Hawkers Participating', suffix: '+', emoji: '🏪' },
+        { value: '30', label: 'Average Savings', suffix: '%', emoji: '💰' }
       ],
       benefits: [
         {
@@ -183,9 +91,33 @@ export default {
       ]
     };
   },
+  mounted() {
+    this.setupScrollAnimations();
+  },
   methods: {
-    startSaving() {
-      this.$router.push('/login');
+    setupScrollAnimations() {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      // Observe all scroll-triggered elements
+      document.querySelectorAll('[data-scroll-item]').forEach(el => {
+        observer.observe(el);
+      });
+
+      document.querySelectorAll('[data-scroll-section]').forEach(el => {
+        observer.observe(el);
+      });
     }
   }
 };

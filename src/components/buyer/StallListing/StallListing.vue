@@ -20,10 +20,9 @@
         </div>
         <div class="col-md-6 col-12">
           <div>
-            <p class="stall-status" :class="{ 'closed': !isStallOpen() }">
+            <p class="stall-status" :class="getStallStatus()">
               <i class="fa-solid fa-clock"></i> 
-              <span v-if="isStallOpen()">Open Now</span>
-              <span v-else>Closed</span>
+              <span>{{ getStatusText() }}</span>
               <span class="opening-hours">
                 ({{ hawker.openingTime }} - {{ hawker.closingTime }})
               </span>

@@ -1,7 +1,7 @@
 <template>
   <div class="listings-container">
     <div class="header-with-location clickable" @click="toggleModal">
-      <h2>{{ searchQuery ? 'Search Results' : 'Near Me' }}</h2>
+      <h2>{{ headerText }}</h2>
       <h3 v-if="isLoadingAddress" class="location-text loading">
         Loading Address...
       </h3>
