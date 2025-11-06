@@ -32,6 +32,90 @@
       </div>
       <hr />
 
+      <!-- Order Status -->
+      <div class="mb-3 mb-md-4">
+        <h6 class="fw-semibold mb-2 text-success">Order Status</h6>
+        <div
+          v-if="order"
+          class="order-status-box d-flex align-items-center justify-content-between bg-light rounded-3 p-3 border border-success border-opacity-25 position-relative"
+        >
+          <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <!-- Dynamic icon -->
+            <i
+              v-if="order.status === 'preparing'"
+              class="bi bi-clock text-warning fs-5"
+            ></i>
+            <i
+              v-else-if="order.status === 'ready'"
+              class="bi bi-check-circle-fill text-success fs-5"
+            ></i>
+            <i
+              v-else-if="order.status === 'collected'"
+              class="bi bi-bag-check-fill text-secondary fs-5"
+            ></i>
+            <i
+              v-else
+              class="bi bi-hourglass-split text-muted fs-5"
+            ></i>
+
+            <!-- Status text -->
+            <div>
+              <p class="mb-0 fw-bold text-success">
+                <span v-if="order.status === 'preparing'" class="text-dark fw-bold">Preparing</span>
+                <span v-else-if="order.status === 'ready'" class="text-dark">Ready for Collection</span>
+                <span v-else-if="order.status === 'collected'" class="text-dark">Collected</span>
+                <span v-else class="text-muted">Pending Confirmation</span>
+              </p>
+              <p class="mb-0 small text-muted" v-if="order.status === 'ready'">
+                Your order is ready for pickup at the stall.
+              </p>
+              <p class="mb-0 small text-muted" v-else-if="order.status === 'collected'">
+                You have collected your order.
+              </p>
+              <p class="mb-0 small text-muted" v-else>
+                Your food is being prepared by the hawker...
+              </p>
+            </div>
+          </div>
+
+          <div class="order-action-container position-relative">
+            <!-- Status Display or Action Button -->
+            <div
+              v-if="order && order.status === 'preparing'"
+              class="order-status-text preparing d-flex align-items-center text-white fw-semibold"
+            >
+              <i class="bi bi-clock me-2"></i>
+              Preparing...
+            </div>
+
+            <button
+              v-else-if="order && order.status === 'ready'"
+              @click="markOrderCollected"
+              class="btn btn-success order-action-btn d-flex align-items-center justify-content-center"
+              :disabled="isUpdating"
+            >
+              <span class="text-white fw-semibold">
+                {{ isUpdating ? 'Updating...' : 'Mark Order as Collected' }}
+              </span>
+              
+            </button>
+
+            <div
+              v-else-if="order && order.status === 'collected'"
+              class="order-status-text collected d-flex align-items-center text-success fw-semibold"
+            >
+              Collected
+            </div>
+
+          </div>
+        </div>
+
+        <div v-else class="text-center text-muted small py-2">
+          Loading order status...
+        </div>
+      </div>
+
+
       <!-- Collection Details -->
       <div class="mb-3 mb-md-4">
         <h6 class="fw-semibold mb-2 text-success">Collection Details</h6>
@@ -164,24 +248,7 @@
           <i class="bi bi-download me-2"></i>
           <span>Download Receipt</span>
         </button>
-        <!-- Status Display or Action Button -->
-        <div v-if="order && order.status === 'preparing'" class="order-status-text preparing">
-          <i class="bi bi-clock me-2"></i>
-          Preparing...
-        </div>
-        <button 
-          v-else-if="order && order.status === 'ready'"
-          @click="markOrderCollected" 
-          class="btn btn-success d-flex align-items-center justify-content-center"
-          :disabled="isUpdating"
-        >
-          <i class="bi bi-house-door me-2"></i>
-          <span>Order Collected</span>
-        </button>
-        <div v-else-if="order && order.status === 'collected'" class="order-status-text collected">
-          <i class="bi bi-check-circle me-2"></i>
-          Collected
-        </div>
+        
       </div>
     </div>
 
@@ -776,6 +843,19 @@ onUnmounted(() => {
   white-space: nowrap;
   transition: all 0.3s ease;
 }
+
+/* Order Status */
+/* --- Common styling --- */
+.order-status-box {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.order-status-box:hover {
+  background-color: #f9fefb;
+  border-color: #198754;
+}
+
+
+
 
 /* ===== Responsive Breakpoints ===== */
 

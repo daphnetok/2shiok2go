@@ -2,34 +2,7 @@
   <div class="hawker-analytics" :class="{ 'dark-theme': isDarkTheme }" style="min-height: 100vh; transition: all 0.3s ease;">
     <!-- Navigation Tabs -->
     <div class="container-fluid px-3 px-md-4">
-      <nav class="tabs-nav">
-        <ul class="tabs-list">
-          <li class="tab-item" style="padding:0">
-            <router-link to="/hawker-dashboard" class="tab-link">
-              <i class="fas fa-home"></i>
-              <span>My Listings</span>
-            </router-link>
-          </li>
-          <li class="tab-item" style="padding:0">
-            <router-link to="/orders-table" class="tab-link">
-              <i class="fas fa-clipboard-list"></i>
-              <span>Orders Management</span>
-            </router-link>
-          </li>
-          <li class="tab-item active" style="padding:0">
-            <a href="#" class="tab-link">
-              <i class="fas fa-chart-simple"></i>
-              <span>Analytics</span>
-            </a>
-          </li>
-          <li class="tab-item" style="padding:0">
-            <router-link to="/edit-form" class="tab-link">
-              <i class="fas fa-file-edit"></i>
-              <span>Edit Stall Info</span>
-            </router-link>
-          </li>
-        </ul>
-      </nav>
+      <HawkerNavTabs/>
     </div>
 
     <div class="container-fluid px-3 px-md-4 py-2 py-md-3">
@@ -476,6 +449,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
+import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue'
 
 export default {
   name: 'HawkerAnalytics',

@@ -1,11 +1,9 @@
 /* Container */
-.dashboard-container {
-  margin: 0 -1.5rem;
+.listings-container {
   padding: 20px;
-  /* background: #f8f9fa; */
-  background: linear-gradient(120deg, #e8f5e9 60%, #c8e6c9 100%);
+  background: linear-gradient(120deg, #f3fef5 20%, #ddf5de 60%);
   transition: all 0.3s ease;
-  min-height: 100vh;
+  min-height: 60vh;
   border-radius: 20px;
   border: 1px solid #ffff;
 }
@@ -308,7 +306,7 @@
 }
 
 /* Stats Section */
-.stats-section {
+.card-stock-section {
   display: flex;
   gap: 16px;
 }

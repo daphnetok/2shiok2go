@@ -961,27 +961,24 @@ export default {
     //   });
     // };
 
-    // Track daily order sequence in memory
-    let dailyOrderCount = 0;
-    let lastOrderDate = null;
 
     const getNextOrderID = () => {
     const now = new Date();
-    const year = now.getFullYear();
+    const year = String(now.getFullYear());
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    const today = `${year}${month}${day}`;
+    const today = `${month}${day}${year.slice(-2)}`;
 
-    // Use HHmmss but only keep last 4 digits (minute + second)
+    // Use HHmmss (6 digits)
     const timePart = String(now.getHours()).padStart(2, '0') +
                     String(now.getMinutes()).padStart(2, '0') +
                     String(now.getSeconds()).padStart(2, '0');
 
-    // Add just 2 random digits instead of 3
+    // Add 2 random digits 
     const randomPart = Math.floor(Math.random() * 90 + 10); // 10–99
 
     // Combine
-    return `${today}-${timePart.slice(-4)}${randomPart}`;
+    return `${today}-${timePart}${randomPart}`;
   };
 
 
@@ -1146,7 +1143,7 @@ export default {
             timestamp: timestamp, // Use same timestamp for all orders
             createdAt: timestamp, // Add createdAt field
             paymentMethod: paymentMethod,
-            status: 'pending', 
+            status: 'preparing', 
             userId: userId.value,
             hawkerId: hawkerId,
             hawkerName: hawkerGroup.hawkerName,
