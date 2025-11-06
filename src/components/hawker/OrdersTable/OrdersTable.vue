@@ -74,7 +74,7 @@
                 @click="activeTab = 'history'"
               >
                 <i class="fas fa-history"></i>
-                <span>Order History</span>
+                <span>Completed Order History</span>
               </button>
             </div>
   
@@ -289,9 +289,10 @@
                   v-if="order.status === 'ready'"
                   class="btn-action complete"
                   @click="markOrderCollected(order)"
+                  disabled
                 >
                   <i class="fas fa-check-circle"></i>
-                  Collected
+                  Waiting for Collection
                 </button>
   
                 <!-- <button 
@@ -326,7 +327,7 @@
               @click="activeTab = 'history'"
             >
               <i class="fas fa-history"></i>
-              <span>Order History</span>
+              <span>Completed Order History</span>
             </button>
           </div>
   
@@ -407,11 +408,16 @@
                 <span class="col-date">{{ formatDate(order.timestamp) }}</span>
                 <span class="col-time">{{ formatTime(order.timestamp) }}</span>
     
-                <td>
+                <!-- <td>
                   <p v-for="i in order.items" :key="i.itemName" class="col-items">
                     {{ i.itemName }}
                   </p>
-                </td>
+                </td> -->
+                <span class="col-items">
+                  <p v-for="i in order.items" :key="i.itemName">
+                    {{ i.itemName }}
+                  </p>
+                </span>
     
                 <span class="col-total">${{ order.orderTotal?.toFixed(2) }}</span>
               </div>

@@ -16,7 +16,7 @@
           :disabled="isGenerating"
         ></textarea>
         
-          <button
+        <button
           type="button"
           class="generate-btn m-0"
           id="generateDescBtn"
@@ -32,7 +32,6 @@
       <transition name="slide-fade">
         <div v-if="showAiPreview" class="ai-preview-section">
           <div class="ai-preview-card">
-            <!-- Loading State -->
             <div v-if="isGenerating" class="ai-preview-loading">
               <LoadingSpinner 
                 message="AI is crafting your description..." 
@@ -41,7 +40,6 @@
               />
             </div>
 
-            <!-- Generated Content -->
             <div v-else class="ai-preview-content">
               <div class="ai-preview-header">
                 <div class="ai-badge">
@@ -100,11 +98,16 @@ import { ref, computed, watch } from "vue";
 import { GoogleGenAI } from "@google/genai";
 import LoadingSpinner from "@/components/shared/LoadingSpinner.vue";
 
+// Firebase Storage SDK
+import { getStorage, ref as storageRef, getBlob } from "firebase/storage";
+
+
+
 const props = defineProps({
   selectedFile: File,
+  imageUrl: String,
   foodName: String,
   description: String,
-  imageUrl: String
 });
 const emit = defineEmits(["update:description"]);
 
@@ -113,14 +116,8 @@ const generatedText = ref("");
 const showAiPreview = ref(false);
 const isGenerating = ref(false);
 
-const canGenerate = ref(false);
-watch(
-  () => [props.foodName, props.selectedFile, props.imageUrl],
-  ([newName, newFile, newImage]) => {
-    canGenerate.value = !!newName && (!!newFile || !!newImage);
-  },
-  { immediate: true }
-);
+// Button enabled if user has a file or existing image URL AND food name
+const canGenerate = computed(() => (props.selectedFile || props.imageUrl) && props.foodName?.trim().length > 0);
 
 const updateParent = () => emit("update:description", localDescription.value);
 
@@ -134,7 +131,7 @@ const convertImageToBase64 = (file) =>
 
 const generateDescription = async () => {
   if (!canGenerate.value) return;
-  
+
   showAiPreview.value = true;
   isGenerating.value = true;
   generatedText.value = "";
@@ -144,43 +141,92 @@ const generateDescription = async () => {
       apiKey: import.meta.env.VITE_GEMINI_API_KEY,
     });
 
-    const base64Image = await convertImageToBase64(props.selectedFile);
+    let base64Image = "";
 
-    const contents = [
-      {
+    // Helper: convert a Blob or File to base64
+    const convertToBase64 = (blob) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+      });
+
+    // 🕓 Timeout wrapper — fallback after 8 seconds
+    const withTimeout = (promise, ms = 8000) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), ms)
+        ),
+      ]);
+
+    // --- Determine source of image ---
+    if (props.selectedFile instanceof Blob) {
+      // User uploaded a new image
+      base64Image = await convertToBase64(props.selectedFile);
+    } else if (props.imageUrl) {
+      try {
+        const storage = getStorage();
+        const path = props.imageUrl.includes("/o/")
+          ? decodeURIComponent(props.imageUrl.split("/o/")[1].split("?")[0])
+          : props.imageUrl;
+
+        const imageRef = storageRef(storage, path);
+
+        // ⏳ Attempt to fetch image with timeout
+        const blob = await withTimeout(getBlob(imageRef), 10000);
+        base64Image = await convertToBase64(blob);
+      } catch (err) {
+        if (err.message === "timeout") {
+          console.warn("⏰ Image fetch timed out after 8s — using text-only mode");
+        } else {
+          console.warn("⚠️ Could not load image from Firebase Storage:", err);
+        }
+        base64Image = null; // fall back to text-only
+      }
+    }
+
+    // --- Build Gemini prompt ---
+    const contents = [];
+
+    if (base64Image) {
+      contents.push({
         inlineData: {
           mimeType: "image/jpeg",
           data: base64Image,
         },
-      },
-      {
-        text: `You are a professional food menu writer. The dish is called "${props.foodName}". 
-          Analyze the image and write an appetizing description in 2-3 sentences that:
-          1. Describes the key ingredients visible in the photo
-          2. Mentions the cooking style or preparation method
-          3. Highlights what makes this dish appealing and delicious
-          4. Appeals to Singaporeans
+      });
+    }
 
-          Keep the total description under 200 characters. Make it sound delicious and inviting.`,
-      },
-    ];
+    contents.push({
+      text: `You are a professional food menu writer. The dish is called "${props.foodName}". 
+        ${base64Image ? "Analyze the image and" : "Based only on the dish name,"} 
+        write an appetizing description in 2-3 sentences that:
+        1. Describes key ingredients (if known)
+        2. Mentions cooking style or preparation
+        3. Highlights what makes it appealing
+        4. Appeals to Singaporeans
+        Keep it under 200 characters and make it sound delicious.`,
+    });
 
+    // --- Generate description ---
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents,
     });
 
-    generatedText.value = response.text;
-    console.log("Successful generation of food description");
-    console.log(response.text);
+    generatedText.value = response.text?.trim() || "No description generated.";
+    console.log("✅ Generated food description:", generatedText.value);
   } catch (err) {
-    console.error("Error generating:", err);
+    console.error("Error generating AI description:", err);
     alert("Error generating description. Please try again.");
     showAiPreview.value = false;
   } finally {
     isGenerating.value = false;
   }
 };
+
 
 const useAiDescription = () => {
   localDescription.value = generatedText.value;
@@ -191,8 +237,6 @@ const useAiDescription = () => {
 const closeAiPreview = () => {
   showAiPreview.value = false;
 };
-
-// generateDescription(props.selectedFile)
 </script>
 
 <style scoped>

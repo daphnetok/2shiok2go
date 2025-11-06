@@ -194,26 +194,32 @@ export default {
       }
     };
 
-    watch(
+    //  Duplicate item name check (case-insensitive + trimmed)
+     watch(
       () => form.itemName,
       async (newName) => {
-        itemNameError.value = ""; // clear previous error
+        itemNameError.value = "";
 
         if (!newName || !currentUser.value) return;
 
-        const trimmedName = newName.trim();
-        if (!trimmedName) return;
+        // Trim and lowercase user input
+        const trimmedLowerName = newName.trim().toLowerCase();
+        if (!trimmedLowerName) return;
 
         try {
           const listingsRef = collection(db, "itemListings");
-          const q = query(
-            listingsRef,
-            where("userId", "==", currentUser.value.uid),
-            where("itemName", "==", trimmedName)
-          );
+          const q = query(listingsRef, where("userId", "==", currentUser.value.uid));
           const snapshot = await getDocs(q);
 
-          if (!snapshot.empty) {
+          let duplicateFound = false;
+          snapshot.forEach((doc) => {
+            const dbName = (doc.data().itemName || "").trim().toLowerCase();
+            if (dbName === trimmedLowerName) {
+              duplicateFound = true;
+            }
+          });
+
+          if (duplicateFound) {
             itemNameError.value = "This food item name already exists. Please choose a different name.";
           }
         } catch (error) {
