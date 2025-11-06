@@ -8,8 +8,8 @@
         <button class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" @click="$emit('customize')">
           <i class="fas fa-palette"></i> Customize
         </button>
-        <button class="btn btn-sm btn-success" style="border-radius: 8px;" @click="handleFeed">
-          <i class="fas fa-cookie-bite"></i> Feed ({{ treatsCount }})
+        <button class="btn btn-sm btn-success" style="border-radius: 8px;" @click="$emit('feed')">
+          <i class="fas fa-cookie-bite"></i> Feed ({{ pet.treats }})
         </button>
       </div>
     </div>
@@ -207,45 +207,12 @@ export default {
     message: { type: String, default: '' },
     messageType: { type: String, default: 'info' }
   },
-  emits: ['click', 'customize', 'feed', 'play', 'dragover', 'drop', 'update-treats', 'treats-changed'],
-  data() {
-    return {
-      // Local treats counter so we can update UI immediately without mutating prop
-      treatsCount: (this.pet && typeof this.pet.treats === 'number') ? this.pet.treats : 0
-    }
-  },
-  watch: {
-    // Keep local count in sync if parent updates pet.treats
-    'pet.treats'(val) {
-      this.treatsCount = typeof val === 'number' ? val : 0
-    }
-  },
+  emits: ['click', 'customize', 'feed', 'play', 'dragover', 'drop'],
   computed: {
     isNightTheme() {
       if (!this.pet.avatar || !this.pet.avatar.background) return false;
       const bg = this.pet.avatar.background.toLowerCase();
       return bg.includes('#1a1a2e') || bg.includes('#16213e') || bg.includes('1a1a2e') || bg.includes('16213e');
-    }
-  }
-  ,
-  methods: {
-    // Called when the Feed button is clicked
-    handleFeed() {
-      // Prevent negative treats
-      if (this.treatsCount > 0) {
-        this.treatsCount = Math.max(0, this.treatsCount - 1)
-          // Emit single authoritative update so parent can persist the change
-          this.$emit('update-treats', this.treatsCount)
-        }
-    },
-
-    // Public method parent can call (via $refs) when a new order is created
-    // to decrement treat count by 1
-    handleNewOrder() {
-      if (this.treatsCount > 0) {
-        this.treatsCount = Math.max(0, this.treatsCount - 1)
-        this.$emit('update-treats', this.treatsCount)
-      }
     }
   }
 }
@@ -263,13 +230,6 @@ export default {
 /* Enhanced Progress Bars */
 .stat-item {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-label {
-  text-align: center;
 }
 
 .progress-container {

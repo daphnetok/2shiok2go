@@ -1,7 +1,7 @@
 <template>
   <div class="listings-container">
     <div class="header-with-location clickable" @click="toggleModal">
-      <h2>{{ headerText }}</h2>
+      <h2>{{ searchQuery ? 'Search Results' : 'Near Me' }}</h2>
       <h3 v-if="isLoadingAddress" class="location-text loading">
         Loading Address...
       </h3>
@@ -41,9 +41,8 @@
     </div>
     
     <!-- Listings grid -->
-    <div v-else class="listing-grid container-flex">
-      <div class="row">
-        <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper col-md-6">
+    <div v-else class="listing-grid">
+      <div v-for="hawker in filteredHawkers" :key="hawker.id" class="hawker-result-wrapper">
         <ListingCard 
           :hawker="hawker"
         />
@@ -68,7 +67,6 @@
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   </div>

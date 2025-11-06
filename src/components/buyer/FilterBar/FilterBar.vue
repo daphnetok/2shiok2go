@@ -38,7 +38,7 @@
               <div class="filter-title">
                 <i class="fas fa-tag"></i>
                 <span>Price</span>
-                <span v-if="priceOrder || priceMax !== 4" class="active-indicator"></span>
+                <span v-if="priceOrder" class="active-indicator"></span>
               </div>
               <i class="fas" :class="isPriceExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
             </button>
@@ -65,19 +65,7 @@
                 </div>
                 <div class="slider-container">
                   <label class="slider-label">Price Range</label>
-                  <Slider 
-                    v-model="priceMax" 
-                    :minValue="1" 
-                    :maxValue="4" 
-                    :interval="1"
-                    @update:modelValue="emitFilters" 
-                  />
-                  <p class="price-range-text">
-                    <span v-if="priceMax === 1">Showing <span class="value">$</span> only</span>
-                    <span v-else-if="priceMax === 2">Showing <span class="value">$ - $$</span></span>
-                    <span v-else-if="priceMax === 3">Showing <span class="value">$ - $$$</span></span>
-                    <span v-else>Showing <span class="value">$ - $$$$</span></span>
-                  </p>
+                  <Slider v-model="priceMax" :minValue="1" :maxValue="20" @update:modelValue="emitFilters" />
                 </div>
               </div>
             </transition>
@@ -191,14 +179,14 @@ export default {
       isStatusExpanded: false,
       isDietaryExpanded: false,
       priceOrder: null,
-      priceMax: 4,
+      priceMax: 20,
       status: [],
       dietary: []
     };
   },
   computed: {
     hasActiveFilters() {
-      return this.priceOrder !== null || this.priceMax !== 4 || this.status.length > 0 || this.dietary.length > 0;
+      return this.priceOrder !== null || this.priceMax !== 20 || this.status.length > 0 || this.dietary.length > 0;
     }
   },
   methods: {
@@ -217,7 +205,7 @@ export default {
     },
     clearAllFilters() {
       this.priceOrder = null;
-      this.priceMax = 4;
+      this.priceMax = 20;
       this.status = [];
       this.dietary = [];
       this.emitFilters();
@@ -260,18 +248,5 @@ export default {
   gap: 8px;
   margin-bottom: 4px;
   width: 100%;
-}
-
-.price-range-text {
-  margin-top: 0.5rem;
-  margin-bottom: 0;
-  text-align: center;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.price-range-text .value {
-  color: #509180;
-  font-weight: bold;
 }
 </style>

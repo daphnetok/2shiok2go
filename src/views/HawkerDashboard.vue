@@ -1,5 +1,5 @@
 <template>
-  <!-- <div> -->
+  <div class="hawker-dashboard-container">
     <!-- <h2>Hawker Dashboard</h2> -->
 
     <!-- loading state -->
@@ -7,17 +7,14 @@
 
     <!-- show form if hawker hasn't registered -->
     <div v-else-if="!hasRegisteredStall">
-      <div class="form-container">
-        <h2>Stall Registration</h2>
-        <HawkerStallForm @stallCreated="onStallCreated"/>
-      </div>
+      <HawkerStallForm @stallCreated="onStallCreated"/>
     </div>
 
-    <div v-else class="hawker-dashboard-container"  style="min-height: 100vh; transition: all 0.3s ease;">
+    <div v-else>
       <!-- <p>Monitor orders, view analytics, and track unsold inventory.</p> -->
       <HawkerListings/>
     </div>
-  <!-- </div> -->
+  </div>
 </template>
 
 <script>

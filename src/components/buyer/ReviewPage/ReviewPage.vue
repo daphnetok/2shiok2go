@@ -481,51 +481,77 @@ export default {
       }
     };
 
-    // Fetch order and hawker data
+    // Fetch order and hawker data. Accepts either a numeric `orderId` (query) or a `docId` fallback.
     const fetchOrderData = async () => {
       try {
         loadingOrder.value = true;
-        const orderId = route.query.orderId;
 
-        if (!orderId) {
-          console.log('No order ID in query params');
-          loadingOrder.value = false;
-          return;
+        const orderIdParam = route.query.orderId
+        const docIdParam = route.query.docId
+
+        if (!orderIdParam && !docIdParam) {
+          // No params provided
+          loadingOrder.value = false
+          return
         }
 
-        // Fetch order
-        const ordersQuery = query(
-          collection(db, 'orders'),
-          where('orderID', '==', parseInt(orderId))
-        );
+        let orderDocSnap = null
 
-        const ordersSnapshot = await getDocs(ordersQuery);
-
-        if (!ordersSnapshot.empty) {
-          const orderDoc = ordersSnapshot.docs[0];
-          const orderData = orderDoc.data();
-          currentOrderData.value = orderData;
-          stallName.value = orderData.hawkerName || 'this stall';
-
-          // Fetch hawker image and store reference
-          if (orderData.hawkerId) {
-            const hawkerQuery = query(
-              collection(db, 'hawkerListings'),
-              where('userId', '==', orderData.hawkerId)
-            );
-
-            const hawkerSnapshot = await getDocs(hawkerQuery);
-            if (!hawkerSnapshot.empty) {
-              hawkerDocRef.value = doc(db, 'hawkerListings', hawkerSnapshot.docs[0].id);
-              const hawkerData = hawkerSnapshot.docs[0].data();
-              hawkerImage.value = hawkerData.imageUrl || null;
+        // Try numeric orderID first when provided
+        if (orderIdParam) {
+          const parsed = parseInt(orderIdParam)
+          if (!isNaN(parsed)) {
+            const ordersQuery = query(
+              collection(db, 'orders'),
+              where('orderID', '==', parsed)
+            )
+            const ordersSnapshot = await getDocs(ordersQuery)
+            if (!ordersSnapshot.empty) {
+              orderDocSnap = ordersSnapshot.docs[0]
             }
+          } else {
+            // orderIdParam might actually be a document id — try fetching by doc id
+            const possibleRef = doc(db, 'orders', orderIdParam)
+            const possibleSnap = await getDoc(possibleRef)
+            if (possibleSnap.exists()) orderDocSnap = possibleSnap
+          }
+        }
+
+        // If still not found, try docId param
+        if (!orderDocSnap && docIdParam) {
+          const refByDoc = doc(db, 'orders', docIdParam)
+          const snapByDoc = await getDoc(refByDoc)
+          if (snapByDoc.exists()) orderDocSnap = snapByDoc
+        }
+
+        if (!orderDocSnap) {
+          // Couldn't find the order using provided params
+          loadingOrder.value = false
+          return
+        }
+
+        const orderData = orderDocSnap.data()
+        currentOrderData.value = orderData
+        stallName.value = orderData.hawkerName || 'this stall'
+
+        // Fetch hawker image and store reference
+        if (orderData.hawkerId) {
+          const hawkerQuery = query(
+            collection(db, 'hawkerListings'),
+            where('userId', '==', orderData.hawkerId)
+          )
+
+          const hawkerSnapshot = await getDocs(hawkerQuery)
+          if (!hawkerSnapshot.empty) {
+            hawkerDocRef.value = doc(db, 'hawkerListings', hawkerSnapshot.docs[0].id)
+            const hawkerData = hawkerSnapshot.docs[0].data()
+            hawkerImage.value = hawkerData.imageUrl || null
           }
         }
       } catch (error) {
-        console.error('Error fetching order data:', error);
+        console.error('Error fetching order data:', error)
       } finally {
-        loadingOrder.value = false;
+        loadingOrder.value = false
       }
     };
 
@@ -547,36 +573,68 @@ export default {
           return;
         }
 
-        const orderId = route.query.orderId;
-        if (!orderId) {
-          alert('Order ID is missing.');
+        // Resolve the order document either by numeric orderId or docId
+        const orderIdParam = route.query.orderId
+        const docIdParam = route.query.docId
+
+        if (!orderIdParam && !docIdParam) {
+          alert('Order identifier is missing.');
           isSubmitting.value = false;
           return;
         }
 
-        // Fetch order data
-        const orderQuery = query(
-          collection(db, 'orders'),
-          where('orderID', '==', parseInt(orderId))
-        );
-        const orderSnapshot = await getDocs(orderQuery);
+        let orderData = null
+        let orderDocRef = null
 
-        if (orderSnapshot.empty) {
-          alert('Order not found.');
+        if (orderIdParam) {
+          const parsed = parseInt(orderIdParam)
+          if (!isNaN(parsed)) {
+            const orderQuery = query(
+              collection(db, 'orders'),
+              where('orderID', '==', parsed)
+            )
+            const orderSnapshot = await getDocs(orderQuery)
+            if (orderSnapshot.empty) {
+              // not found by numeric ID, try by doc id fallback
+              const refByDoc = doc(db, 'orders', orderIdParam)
+              const snapByDoc = await getDoc(refByDoc)
+              if (!snapByDoc.exists()) {
+                alert('Order not found.');
+                isSubmitting.value = false;
+                return;
+              }
+              orderData = snapByDoc.data()
+            } else {
+              orderData = orderSnapshot.docs[0].data()
+            }
+          } else {
+            // orderIdParam is not numeric, try as doc id
+            const snap = await getDoc(doc(db, 'orders', orderIdParam))
+            if (!snap.exists()) {
+              alert('Order not found.');
+              isSubmitting.value = false;
+              return;
+            }
+            orderData = snap.data()
+          }
+        } else if (docIdParam) {
+          const snap = await getDoc(doc(db, 'orders', docIdParam))
+          if (!snap.exists()) {
+            alert('Order not found.');
+            isSubmitting.value = false;
+            return;
+          }
+          orderData = snap.data()
+        }
+        
+        // Ensure order is completed before allowing review
+        if (orderData.status && orderData.status !== 'completed') {
+          alert('Only completed orders can be reviewed.');
           isSubmitting.value = false;
           return;
         }
-
-        const orderData = orderSnapshot.docs[0].data();
         
-        // Debug: Log order data to see what fields exist
-        console.log('Order data:', orderData);
-        console.log('Current user UID:', user.uid);
-        console.log('Order buyerId:', orderData.buyerId);
-        console.log('Order userId:', orderData.userId);
-        console.log('Order customerId:', orderData.customerId);
-        
-        // Verify the current user is the one who made the order
+  // Verify the current user is the one who made the order
         // Check multiple possible field names for buyer ID
         const orderBuyerId = orderData.buyerId || orderData.userId || orderData.customerId;
         

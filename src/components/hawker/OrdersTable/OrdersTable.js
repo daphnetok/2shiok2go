@@ -14,11 +14,10 @@ import {
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
-import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue';
 
 export default {
   name: 'OrdersManagement',
-  components: { LoadingSpinner, ImageWithLoader, HawkerNavTabs },
+  components: { LoadingSpinner, ImageWithLoader },
   setup() {
     const auth = getAuth();
     const activeTab = ref('today');
@@ -31,45 +30,6 @@ export default {
     const sortOrder = ref('desc');
     const isStatusFilterOpen = ref(false);
     const activeStatusFilters = ref([]);
-
-    // Alert or Confirmation boxes
-    const alert = ref({
-      show: false,
-      type: '',
-      message: '',
-      actionType: '',
-      onConfirm: null,
-      onCancel: null
-    });
-    const showAlert = (type, message) => {
-      alert.value = {
-        show: true,
-        type,
-        message
-      };
-    };
-    const showConfirmation = (message, actionType, onConfirm, onCancel) => {
-      alert.value = {
-        show: true,
-        type: 'confirmation',
-        message,
-        actionType,
-        onConfirm,
-        onCancel
-      };
-    };
-    const closeAlert = () => {
-      alert.value.show = false;
-    };
-    const confirmationConfirm = () => {
-      if (alert.value.onConfirm) alert.value.onConfirm();
-      alert.value.show = false;
-    };
-    const confirmationCancel = () => {
-      if (alert.value.onCancel) alert.value.onCancel();
-      alert.value.show = false;
-    };
-
 
     let unsubscribeToday = null;
     let unsubscribeHistory = null;
@@ -217,7 +177,7 @@ export default {
         await updateDoc(orderRef, { status: 'preparing' });
       } catch (error) {
         console.error('Error accepting order:', error);
-        showAlert('error', 'Failed to accept order.');
+        alert('Failed to accept order');
       }
     };
 
@@ -227,7 +187,7 @@ export default {
         await updateDoc(orderRef, { status: 'ready' });
       } catch (error) {
         console.error('Error marking order ready:', error);
-        showAlert('error', 'Failed to mark order as ready.');
+        alert('Failed to mark order as ready');
       }
     };
 
@@ -240,7 +200,7 @@ export default {
         });
       } catch (error) {
         console.error('Error marking order collected:', error);
-        showAlert('error', 'Failed to mark order as collected');
+        alert('Failed to mark order as collected');
       }
     };
 
@@ -251,29 +211,24 @@ export default {
       );
       if (pendingOrders.length === 0) return;
 
-      showConfirmation(
-        `Accept ${pendingOrders.length} pending order(s)?`,
-        'Accept',
-        async () => {
-          try {
-            const promises = pendingOrders.map(order => {
-              const orderRef = doc(db, 'orders', order.id);
-              return updateDoc(orderRef, { status: 'preparing' });
-            });
-            await Promise.all(promises);
-            showAlert('success', `${pendingOrders.length} order(s) accepted.`);
-          } catch (error) {
-            console.error(error);
-            showAlert('error', 'Failed to accept selected orders.');
-          } finally {
-            selectedOrders.value = [];
-            selectAll.value = false;
-          }
-        },
-        () => { /* cancelled */ }
-      );
-    };
+      if (!confirm(`Accept ${pendingOrders.length} pending order(s)?`)) return;
 
+      try {
+        const promises = pendingOrders.map(order => {
+          const orderRef = doc(db, 'orders', order.id);
+          return updateDoc(orderRef, { status: 'preparing' });
+        });
+
+        await Promise.all(promises);
+        alert(`${pendingOrders.length} order(s) accepted.`);
+      } catch (error) {
+        console.error('Error accepting orders:', error);
+        alert('Failed to accept selected orders');
+      } finally {
+        selectedOrders.value = [];
+        selectAll.value = false;
+      }
+    };
 
     const markSelectedReady = async () => {
       const preparingOrders = todayOrders.value.filter(
@@ -281,49 +236,24 @@ export default {
       );
       if (preparingOrders.length === 0) return;
 
-      // if (!confirm(`Mark ${preparingOrders.length} order(s) as ready?`)) return;
+      if (!confirm(`Mark ${preparingOrders.length} order(s) as ready?`)) return;
 
-      showConfirmation(
-        `Mark ${preparingOrders.length} order(s) as ready?`,
-        'Accept',
-        async () => {
-          try {
-            const promises = preparingOrders.map(order => {
-              const orderRef = doc(db, 'orders', order.id);
-              return updateDoc(orderRef, { status: 'ready' });
-            });
-            await Promise.all(promises);
-            showAlert('success', `${preparingOrders.length} order(s) marked as ready.`);
-          } catch (error) {
-            console.error(error);
-            showAlert('error', 'Failed to mark selected orders as ready.');
-          } finally {
-            selectedOrders.value = [];
-            selectAll.value = false;
-          }
-        },
-        () => { /* cancelled */ }
-      );
+      try {
+        const promises = preparingOrders.map(order => {
+          const orderRef = doc(db, 'orders', order.id);
+          return updateDoc(orderRef, { status: 'ready' });
+        });
+
+        await Promise.all(promises);
+        alert(`${preparingOrders.length} order(s) marked as ready.`);
+      } catch (error) {
+        console.error('Error marking ready orders:', error);
+        alert('Failed to mark selected orders as ready');
+      } finally {
+        selectedOrders.value = [];
+        selectAll.value = false;
+      }
     };
-
-    //   try {
-    //     const promises = preparingOrders.map(order => {
-    //       const orderRef = doc(db, 'orders', order.id);
-    //       console.log("Order " + order.id + " marked as ready to collect");
-    //       return updateDoc(orderRef, { status: 'ready' });
-    //     });
-
-    //     await Promise.all(promises);
-    //     alert(`${preparingOrders.length} order(s) marked as ready.`);
-    //   } catch (error) {
-    //     console.error('Error marking ready orders:', error);
-    //     alert('Failed to mark selected orders as ready');
-    //   } finally {
-    //     selectedOrders.value = [];
-    //     selectAll.value = false;
-    //   }
-    // };
-
 
     // Utility functions
     const toggleSelectAll = () => {
@@ -378,46 +308,23 @@ export default {
 
     const deleteSelectedOrders = async () => {
       if (selectedOrders.value.length === 0) return;
-      // if (!confirm(`Delete ${selectedOrders.value.length} order(s)? This cannot be undone.`)) return;
+      if (!confirm(`Delete ${selectedOrders.value.length} order(s)? This cannot be undone.`)) return;
 
-      showConfirmation(
-        `Delete ${selectedOrders.value.length} order(s)? This cannot be undone.`,
-        'Delete',
-        async () => {
-          try {
-            const promises = selectedOrders.value.map(orderId => {
-              const orderRef = doc(db, 'orders', orderId);
-              return deleteDoc(orderRef);
-            });
-            await Promise.all(promises);
-            showAlert('success', `${selectedOrders.value.length} order(s) deleted successfully.`);
-             selectedOrders.value = [];
-            selectAll.value = false;
-          } catch (error) {
-            console.error(error);
-            console.error('Error deleting orders:', error);
-            showAlert('error', 'Failed to delete selected orders');
-          } 
-        },
-        () => { /* cancelled */ }
-      );
+      try {
+        const promises = selectedOrders.value.map(orderId => {
+          const orderRef = doc(db, 'orders', orderId);
+          return deleteDoc(orderRef);
+        });
+
+        await Promise.all(promises);
+        alert(`${selectedOrders.value.length} order(s) deleted successfully.`);
+        selectedOrders.value = [];
+        selectAll.value = false;
+      } catch (error) {
+        console.error('Error deleting orders:', error);
+        alert('Failed to delete selected orders');
+      }
     };
-
-    //   try {
-    //     const promises = selectedOrders.value.map(orderId => {
-    //       const orderRef = doc(db, 'orders', orderId);
-    //       return deleteDoc(orderRef);
-    //     });
-
-    //     await Promise.all(promises);
-    //     alert(`${selectedOrders.value.length} order(s) deleted successfully.`);
-    //     selectedOrders.value = [];
-    //     selectAll.value = false;
-    //   } catch (error) {
-    //     console.error('Error deleting orders:', error);
-    //     alert('Failed to delete selected orders');
-    //   }
-    // };
 
     const toggleSelectAllHistory = () => {
       if (selectAll.value) {
@@ -480,14 +387,7 @@ export default {
       deleteSelectedOrders,
       toggleSelectAllHistory,
       selectedPendingCount,
-      selectedPreparingCount,
-      alert,
-      showAlert,
-      showConfirmation,
-      closeAlert,
-      confirmationConfirm,
-      confirmationCancel,
+      selectedPreparingCount
     };
-    
   }
 };

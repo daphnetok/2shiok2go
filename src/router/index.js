@@ -19,7 +19,6 @@ import OrdersTable from '../components/hawker/OrdersTable/OrdersTable.vue'
 import ReviewPage from '../components/buyer/ReviewPage/ReviewPage.vue'
 import AllReviews from '../views/AllReviews.vue'
 import ContactSupport from '../views/ContactSupport.vue'
-import EditForm from '../views/EditForm.vue'
 import LocationForm from '../components/buyer/LocationForm/LocationMap.vue';
 
 const routes = [
@@ -60,11 +59,6 @@ const routes = [
     name: 'ContactSupport',
     component: ContactSupport,
     props: route => ({ orderId: route.query.orderId })
-  },
-  {
-    path: '/edit-form',
-    name: 'EditForm',
-    component: EditForm
   },
   { path: '/add-location', component: LocationForm }
 ]

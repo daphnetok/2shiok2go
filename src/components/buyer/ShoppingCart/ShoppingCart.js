@@ -1,21 +1,13 @@
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
 import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
 import { runTransaction } from 'firebase/firestore';
-import ItemModal from '@/components/buyer/StallListing/ItemModal.vue';
-import CartHeader from './CartHeader/CartHeader.vue';
-import EmptyCart from './EmptyCart/EmptyCart.vue';
 
 export default {
   name: 'ShoppingCart',
-  components: {
-    ItemModal,
-    CartHeader,
-    EmptyCart
-  },
   setup() {
     const router = useRouter();
     const auth = getAuth();
@@ -29,25 +21,12 @@ export default {
     const editMode = ref(false);
     const selectedItems = ref([]);
     const showClosedStallsModal = ref(false);
-    const showValidationModal = ref(false);
-    const validationMessage = ref('');
-    const showSavedCardsModal = ref(false);
-    // Delete confirmation modal state
-    const showDeleteModal = ref(false);
-    const deleteMode = ref(null); // 'single' | 'selected' | 'clear'
-    const deleteTargetItem = ref(null);
-
-    // Item modal state
-    const showItemModal = ref(false);
-    const selectedCartItem = ref(null);
-
     
     // Card information state
     const savedCards = ref([]);
     const cardSelection = ref('new');
     const selectedCardIndex = ref(0);
     const saveCardForFuture = ref(false);
-    // editing removed
     const newCard = ref({
       cardholderName: '',
       cardNumber: '',
@@ -55,53 +34,16 @@ export default {
       cvv: ''
     });
     
-    // Card validation state
-    const cardNumberError = ref(null);
-    const fieldErrors = ref({
-      cardholderName: '',
-      cardNumber: '',
-      expiryDate: '',
-      cvv: ''
-    });
-    const touchedFields = ref({
-      cardholderName: false,
-      cardNumber: false,
-      expiryDate: false,
-      cvv: false
-    });
-    const cardBrand = computed(() => {
-      const digits = newCard.value.cardNumber.replace(/\s/g, '');
-      if (!digits) return null;
-      if (digits.startsWith('4')) return 'visa';
-      if (digits.startsWith('5')) return 'mastercard';
-      return null;
-    });
-        
-    
     // Helper function to parse price from various formats
     const parsePrice = (price) => {
       if (typeof price === 'number') {
-        return isNaN(price) || !isFinite(price) ? 0 : price;
+        return price;
       }
       if (typeof price === 'string') {
         // Remove '$' and any whitespace, then parse
-        const cleaned = price.replace(/[$\s]/g, '');
-        const parsed = parseFloat(cleaned);
-        return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
+        return parseFloat(price.replace(/[$\s]/g, '')) || 0;
       }
       return 0;
-    };
-    
-    // Helper function to safely parse number (for quantity, discount, etc.)
-    const safeParseNumber = (value, defaultValue = 0) => {
-      if (typeof value === 'number') {
-        return isNaN(value) || !isFinite(value) ? defaultValue : value;
-      }
-      if (typeof value === 'string') {
-        const parsed = parseFloat(value);
-        return isNaN(parsed) || !isFinite(parsed) ? defaultValue : parsed;
-      }
-      return defaultValue;
     };
     
     // Helper function to format price for display
@@ -110,8 +52,7 @@ export default {
         return price;
       }
       const numPrice = parsePrice(price);
-      const safePrice = isNaN(numPrice) || !isFinite(numPrice) ? 0 : numPrice;
-      return `$${safePrice.toFixed(2)}`;
+      return `$${numPrice.toFixed(2)}`;
     };
     
     // Helper function to check if stall is closed
@@ -183,25 +124,11 @@ export default {
       }
     };
     
-    // Format card number with spaces and validate first digit (Visa/MasterCard)
+    // Format card number with spaces
     const formatCardNumber = (event) => {
-      let value = event.target.value.replace(/\D/g, '');
-      const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+      let value = event.target.value.replace(/\s/g, '');
+      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
       newCard.value.cardNumber = formattedValue;
-       
-      // Live validation of starting digit
-      if (value.length === 0) {
-        cardNumberError.value = null;
-      } else if (!(value.startsWith('4') || value.startsWith('5'))) {
-        cardNumberError.value = 'Invalid Card Number: Use Visa or MasterCard';
-      } else {
-        cardNumberError.value = null;
-      }
-      
-      // Clear error when user starts typing
-      if (value.length > 0) {
-        fieldErrors.value.cardNumber = '';
-      }
     };
 
     // Format expiry date
@@ -211,84 +138,11 @@ export default {
         value = value.slice(0, 2) + '/' + value.slice(2, 4);
       }
       newCard.value.expiryDate = value;
-      
-      // Clear error when user starts typing
-      if (value.length > 0) {
-        fieldErrors.value.expiryDate = '';
-      }
     };
 
     // Format CVV (numbers only)
     const formatCVV = (event) => {
       newCard.value.cvv = event.target.value.replace(/\D/g, '');
-      
-      // Clear error when user starts typing
-      if (newCard.value.cvv.length > 0) {
-        fieldErrors.value.cvv = '';
-      }
-    };
-
-    // Validate individual fields on blur
-    const validateCardholderName = () => {
-      touchedFields.value.cardholderName = true;
-      if (!newCard.value.cardholderName.trim()) {
-        fieldErrors.value.cardholderName = 'Please enter cardholder name';
-      } else {
-        fieldErrors.value.cardholderName = '';
-      }
-    };
-
-    const validateCardNumber = () => {
-      touchedFields.value.cardNumber = true;
-      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
-      
-      if (cardNumber.length === 0) {
-        fieldErrors.value.cardNumber = 'Please enter a card number';
-      } else if (cardNumber.length < 13 || cardNumber.length > 19) {
-        fieldErrors.value.cardNumber = 'Please enter a valid card number (13-19 digits)';
-      } else if (!(cardNumber.startsWith('4') || cardNumber.startsWith('5'))) {
-        fieldErrors.value.cardNumber = 'Invalid card: Use Visa or MasterCard';
-      } else {
-        fieldErrors.value.cardNumber = '';
-      }
-    };
-
-    const validateExpiryDate = () => {
-      touchedFields.value.expiryDate = true;
-      const expiryDate = newCard.value.expiryDate;
-      const expiryParts = expiryDate.split('/');
-      
-      if (expiryDate.length === 0) {
-        fieldErrors.value.expiryDate = 'Please enter an expiry date';
-      } else if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
-        fieldErrors.value.expiryDate = 'Please enter a valid expiry date (MM/YY)';
-      } else {
-        const month = parseInt(expiryParts[0], 10);
-        const year = 2000 + parseInt(expiryParts[1], 10);
-        if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
-          fieldErrors.value.expiryDate = 'Please enter a valid expiry month (01-12)';
-        } else {
-          const now = new Date();
-          const currentYear = now.getFullYear();
-          const currentMonth = now.getMonth() + 1;
-          if (year < currentYear || (year === currentYear && month <= currentMonth)) {
-            fieldErrors.value.expiryDate = 'Card has expired. Use a future expiry date.';
-          } else {
-            fieldErrors.value.expiryDate = '';
-          }
-        }
-      }
-    };
-
-    const validateCVV = () => {
-      touchedFields.value.cvv = true;
-      if (newCard.value.cvv.length === 0) {
-        fieldErrors.value.cvv = 'Please enter a CVV';
-      } else if (newCard.value.cvv.length !== 3) {
-        fieldErrors.value.cvv = 'Please enter a valid CVV (3 digits)';
-      } else {
-        fieldErrors.value.cvv = '';
-      }
     };
 
     // Fetch saved cards from Firebase
@@ -324,7 +178,6 @@ export default {
           cardholderName: newCard.value.cardholderName,
           lastFour: newCard.value.cardNumber.replace(/\s/g, '').slice(-4),
           expiryDate: newCard.value.expiryDate,
-          brand: cardBrand.value,
           addedAt: new Date()
         };
         
@@ -356,79 +209,33 @@ export default {
       }
     };
 
-    const deleteSavedCard = async (index) => {
-      if (!userId.value) return;
-      try {
-        const userRef = doc(db, 'users', userId.value);
-        const userSnap = await getDoc(userRef);
-        let currentCards = [];
-        if (userSnap.exists()) {
-          currentCards = userSnap.data().cardInfo || [];
-        }
-        currentCards.splice(index, 1);
-        await updateDoc(userRef, { cardInfo: currentCards }).catch(async () => {
-          await setDoc(userRef, { cardInfo: currentCards }, { merge: true });
-        });
-        savedCards.value = currentCards;
-        if (selectedCardIndex.value >= currentCards.length) {
-          selectedCardIndex.value = 0;
-        }
-      } catch (err) {
-        console.error('Error deleting saved card:', err);
-        validationMessage.value = 'Failed to delete saved card. Please try again.';
-        showValidationModal.value = true;
-      }
-    };
-
-    // edit card flow removed
-
-    const openSavedCardsModal = () => {
-      showSavedCardsModal.value = true;
-    };
-
-    const closeSavedCardsModal = () => {
-      showSavedCardsModal.value = false;
-    };
-
-    const applySavedCardSelection = () => {
-      // Keep selectedCardIndex as chosen in the modal
-      cardSelection.value = 'saved';
-      showSavedCardsModal.value = false;
-    };
-
     // Validate card information
     const validateCardInfo = () => {
       if (cardSelection.value === 'saved') {
-        // Using saved card: basic presence check
-        if (savedCards.value.length === 0) {
-          validationMessage.value = 'Please select a saved card or add a new card.';
-          showValidationModal.value = true;
-          return false;
-        }
-        return true;
+        return savedCards.value.length > 0;
       }
       
-      // Mark all fields as touched to show errors
-      touchedFields.value.cardholderName = true;
-      touchedFields.value.cardNumber = true;
-      touchedFields.value.expiryDate = true;
-      touchedFields.value.cvv = true;
+      // Validate new card
+      const cardNumber = newCard.value.cardNumber.replace(/\s/g, '');
+      const expiryParts = newCard.value.expiryDate.split('/');
       
-      // Validate all fields
-      validateCardholderName();
-      validateCardNumber();
-      validateExpiryDate();
-      validateCVV();
+      if (!newCard.value.cardholderName.trim()) {
+        alert('Please enter cardholder name');
+        return false;
+      }
       
-      // Check if there are any errors
-      const hasErrors = Object.values(fieldErrors.value).some(error => error !== '');
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        alert('Please enter a valid card number');
+        return false;
+      }
       
-      if (hasErrors) {
-        // Scroll to first error field
-        const firstErrorField = document.querySelector('.field-error');
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+        alert('Please enter a valid expiry date (MM/YY)');
+        return false;
+      }
+      
+      if (newCard.value.cvv.length !== 3) {
+        alert('Please enter a valid CVV');
         return false;
       }
       
@@ -504,21 +311,12 @@ export default {
                   console.log('No hawker uid found in item data');
                 }
                 
-                // Update item with current stock level, sold-out and closed status
-                const currentQty = parseInt(itemData.itemQty || 0);
-                const isSoldOut = currentQty <= 0;
+                // Update item with current stock level and closed status
                 return {
                   ...item,
-                  // Update price information from database
-                  itemPrice: itemData.itemPrice || item.itemPrice,
-                  discount: itemData.discount || item.discount || 0,
-                  discountedPrice: itemData.discountedPrice || item.discountedPrice,
-                  discountTime: itemData.discountTime || item.discountTime,
-                  // Update stock and availability
-                  itemQty: currentQty,
-                  qty: isSoldOut ? 0 : Math.min(parseInt(item.qty || 0), currentQty),
+                  itemQty: itemData.itemQty,
+                  qty: Math.min(item.qty, itemData.itemQty),
                   isClosed: isClosed,
-                  isSoldOut: isSoldOut,
                   openingTime: openingTime,
                   closingTime: closingTime
                 };
@@ -533,7 +331,7 @@ export default {
           cartItems.value = updatedItems;
           console.log('Cart items loaded with current stock levels and stall status:', cartItems.value);
           
-          // If any quantities were adjusted (including sold-out -> 0), update the cart
+          // If any quantities were adjusted, update the cart
           if (updatedItems.some((item, i) => item.qty !== items[i].qty)) {
             await updateCartInFirebase(updatedItems);
           }
@@ -551,31 +349,14 @@ export default {
     
     // Computed properties
     const cartCount = computed(() => {
-      return cartItems.value.reduce((total, item) => {
-        const qty = safeParseNumber(item.qty, 0);
-        return total + qty;
-      }, 0);
+      return cartItems.value.reduce((total, item) => total + item.qty, 0);
     });
     
     const cartTotal = computed(() => {
       return cartItems.value.reduce((total, item) => {
         const itemPrice = parsePrice(item.itemPrice);
-        const discount = safeParseNumber(item.discount, 0);
-        const qty = safeParseNumber(item.qty, 0);
-        
-        // Check if discount should be applied based on discount time
-        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-        
-        let price;
-        if (shouldApplyDiscount) {
-          price = itemPrice * ((100 - discount) / 100);
-        } else {
-          price = itemPrice;
-        }
-        
-        const itemTotal = price * qty;
-        const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-        return total + finalTotal;
+        const price = itemPrice * ((100 - item.discount) / 100);
+        return total + (price * item.qty);
       }, 0);
     });
 
@@ -587,109 +368,23 @@ export default {
       return cartItems.value.filter(item => item.isClosed);
     });
 
-    const hasSoldOutItems = computed(() => {
-      return cartItems.value.some(item => item.isSoldOut);
-    });
-
-    const soldOutItems = computed(() => {
-      return cartItems.value.filter(item => item.isSoldOut);
-    });
-
     const closedStallsTotal = computed(() => {
       return closedStallItems.value.reduce((total, item) => {
         const itemPrice = parsePrice(item.itemPrice);
-        const discount = safeParseNumber(item.discount, 0);
-        const qty = safeParseNumber(item.qty, 0);
-        
-        // Check if discount should be applied based on discount time
-        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-        
-        let price;
-        if (shouldApplyDiscount) {
-          price = itemPrice * ((100 - discount) / 100);
-        } else {
-          price = itemPrice;
-        }
-        
-        const itemTotal = price * qty;
-        const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-        return total + finalTotal;
-      }, 0);
-    });
-
-    // Unavailable = closed or sold-out
-    const hasUnavailableItems = computed(() => {
-      return cartItems.value.some(item => item.isClosed || item.isSoldOut);
-    });
-
-    const unavailableItems = computed(() => {
-      return cartItems.value.filter(item => item.isClosed || item.isSoldOut);
-    });
-
-    const unavailableTotal = computed(() => {
-      return unavailableItems.value.reduce((total, item) => {
-        const itemPrice = parsePrice(item.itemPrice);
-        const discount = safeParseNumber(item.discount, 0);
-        const qty = safeParseNumber(item.qty, 0);
-        
-        // Check if discount should be applied based on discount time
-        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-        
-        let price;
-        if (shouldApplyDiscount) {
-          price = itemPrice * ((100 - discount) / 100);
-        } else {
-          price = itemPrice;
-        }
-        
-        const itemTotal = price * qty;
-        const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-        return total + finalTotal;
+        const price = itemPrice * ((100 - item.discount) / 100);
+        return total + (price * item.qty);
       }, 0);
     });
 
     const availableTotal = computed(() => {
-      const cart = isNaN(cartTotal.value) || !isFinite(cartTotal.value) ? 0 : cartTotal.value;
-      const unavailable = isNaN(unavailableTotal.value) || !isFinite(unavailableTotal.value) ? 0 : unavailableTotal.value;
-      const result = cart - unavailable;
-      return isNaN(result) || !isFinite(result) ? 0 : result;
+      return cartTotal.value - closedStallsTotal.value;
     });
-
-    // Calculate discounted price for a single item (checking discount time)
-    const calculateDiscountedPrice = (item) => {
-      const itemPrice = parsePrice(item.itemPrice);
-      const discount = safeParseNumber(item.discount, 0);
-      
-      // Check if discount should be applied based on discount time
-      const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-      
-      if (shouldApplyDiscount) {
-        const discountedPrice = itemPrice * ((100 - discount) / 100);
-        return isNaN(discountedPrice) || !isFinite(discountedPrice) ? itemPrice : discountedPrice;
-      }
-      
-      return itemPrice;
-    };
 
     // Calculate individual item total
     const calculateItemTotal = (item) => {
       const itemPrice = parsePrice(item.itemPrice);
-      const discount = safeParseNumber(item.discount, 0);
-      const qty = safeParseNumber(item.qty, 0);
-      
-      // Check if discount should be applied based on discount time
-      const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-      
-      let price;
-      if (shouldApplyDiscount) {
-        price = itemPrice * ((100 - discount) / 100);
-      } else {
-        price = itemPrice;
-      }
-      
-      const itemTotal = price * qty;
-      const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-      return finalTotal.toFixed(2);
+      const price = itemPrice * ((100 - item.discount) / 100);
+      return (price * item.qty).toFixed(2);
     };
 
     
@@ -727,10 +422,10 @@ export default {
     
     // Validate and update quantity
     const validateQuantity = (item) => {
-      let qty = safeParseNumber(item.qty, 1);
-      const maxQty = safeParseNumber(item.itemQty, 0);
+      let qty = parseInt(item.qty);
+      const maxQty = item.itemQty || 0;
       
-      if (qty < 1) {
+      if (isNaN(qty) || qty < 1) {
         item.qty = 1;
       } else if (maxQty > 0 && qty > maxQty) {
         item.qty = maxQty;
@@ -744,7 +439,7 @@ export default {
       validateQuantity(item);
       const updatedItems = cartItems.value.map(cartItem => {
         if (cartItem.itemId === item.itemId) {
-          return { ...cartItem, qty: safeParseNumber(item.qty, 1) };
+          return { ...cartItem, qty: parseInt(item.qty) };
         }
         return cartItem;
       });
@@ -753,13 +448,12 @@ export default {
 
     // Increment item quantity
     const incrementItem = async (item) => {
-      const maxQty = safeParseNumber(item.itemQty, 99);
-      const currentQty = safeParseNumber(item.qty, 0);
-      if (currentQty >= maxQty) return;
+      const maxQty = item.itemQty || 99;
+      if (item.qty >= maxQty) return;
       
       const updatedItems = cartItems.value.map(cartItem => {
         if (cartItem.itemId === item.itemId) {
-          const newQty = safeParseNumber(cartItem.qty, 0) + 1;
+          const newQty = parseInt(cartItem.qty || 0) + 1;
           return { ...cartItem, qty: Math.min(newQty, maxQty) };
         }
         return cartItem;
@@ -769,12 +463,12 @@ export default {
     
     // Decrement item quantity
     const decrementItem = async (item) => {
-      const currentQty = safeParseNumber(item.qty, 0);
+      const currentQty = parseInt(item.qty || 0);
       if (currentQty <= 1) return;
       
       const updatedItems = cartItems.value.map(cartItem => {
         if (cartItem.itemId === item.itemId) {
-          const newQty = safeParseNumber(cartItem.qty, 0) - 1;
+          const newQty = parseInt(cartItem.qty || 0) - 1;
           return { ...cartItem, qty: Math.max(newQty, 1) };
         }
         return cartItem;
@@ -803,65 +497,60 @@ export default {
       }
     };
     
-    const deleteSelected = () => {
+    const deleteSelected = async () => {
       if (selectedItems.value.length === 0) return;
-      deleteMode.value = 'selected';
-      deleteTargetItem.value = null;
-      showDeleteModal.value = true;
+      
+      const itemCount = selectedItems.value.length;
+      const confirmMessage = itemCount === 1 
+        ? 'Are you sure you want to delete this item?' 
+        : `Are you sure you want to delete ${itemCount} items?`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+      
+      const updatedItems = cartItems.value.filter(
+        item => !selectedItems.value.includes(item.itemId)
+      );
+      
+      await updateCartInFirebase(updatedItems);
+      
+      // Exit edit mode and clear selections
+      editMode.value = false;
+      selectedItems.value = [];
     };
     
     // Remove item from cart
-    const removeItem = (item) => {
-      deleteMode.value = 'single';
-      deleteTargetItem.value = item;
-      showDeleteModal.value = true;
+    const removeItem = async (item) => {
+      if (!confirm(`Remove ${item.itemName} from cart?`)) {
+        return;
+      }
+      
+      const updatedItems = cartItems.value.filter(cartItem => cartItem.itemId !== item.itemId);
+      await updateCartInFirebase(updatedItems);
     };
     
     // Clear all items
-    const clearAllItems = () => {
-      deleteMode.value = 'clear';
-      deleteTargetItem.value = null;
-      showDeleteModal.value = true;
-    };
-
-    // Perform delete after confirmation
-    const confirmDelete = async () => {
-      try {
-        if (deleteMode.value === 'single' && deleteTargetItem.value) {
-          const updatedItems = cartItems.value.filter(cartItem => cartItem.itemId !== deleteTargetItem.value.itemId);
-          await updateCartInFirebase(updatedItems);
-        } else if (deleteMode.value === 'selected') {
-          const updatedItems = cartItems.value.filter(
-            item => !selectedItems.value.includes(item.itemId)
-          );
-          await updateCartInFirebase(updatedItems);
-          editMode.value = false;
-          selectedItems.value = [];
-        } else if (deleteMode.value === 'clear') {
-          if (!userId.value) return;
-          updating.value = true;
-          try {
-            const cartRef = doc(db, 'cart', userId.value);
-            await deleteDoc(cartRef);
-            cartItems.value = [];
-          } finally {
-            updating.value = false;
-          }
-        }
-      } catch (err) {
-        console.error('Error performing delete:', err);
-        errorMsg.value = 'Failed to delete items. Please try again.';
-      } finally {
-        showDeleteModal.value = false;
-        deleteMode.value = null;
-        deleteTargetItem.value = null;
+    const clearAllItems = async () => {
+      if (!confirm('Are you sure you want to clear your cart?')) {
+        return;
       }
-    };
-
-    const cancelDelete = () => {
-      showDeleteModal.value = false;
-      deleteMode.value = null;
-      deleteTargetItem.value = null;
+      
+      if (!userId.value) return;
+      
+      updating.value = true;
+      
+      try {
+        const cartRef = doc(db, 'cart', userId.value);
+        await deleteDoc(cartRef);
+        cartItems.value = [];
+        console.log('Cart cleared');
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+        errorMsg.value = 'Failed to clear cart. Please try again.';
+      } finally {
+        updating.value = false;
+      }
     };
     
     // Navigation
@@ -874,74 +563,10 @@ export default {
       showClosedStallsModal.value = false;
     };
 
-    // Item modal functions
-    const openItemModal = (item) => {
-      if (editMode.value) return; // Don't open modal in edit mode
-      
-      // Convert cart item to format expected by ItemModal
-      const modalItem = {
-        id: item.itemId,
-        itemName: item.itemName,
-        itemPrice: item.itemPrice,
-        itemQty: item.itemQty || 0,
-        discount: item.discount || 0,
-        discountTime: item.discountTime || null,
-        imageUrl: item.imageUrl || '',
-        description: item.description || '',
-        count: item.qty || 0,
-        notes: item.notes || '',
-        isClosed: item.isClosed || false,
-        isSoldOut: item.isSoldOut || false
-      };
-      
-      selectedCartItem.value = modalItem;
-      showItemModal.value = true;
-    };
-
-    const closeItemModal = () => {
-      showItemModal.value = false;
-      selectedCartItem.value = null;
-    };
-
-    const handleCartItemUpdate = async (data) => {
-      if (!data || !data.item || data.quantity === 0) {
-        // If quantity is 0, remove from cart
-        const updatedItems = cartItems.value.filter(cartItem => cartItem.itemId !== data.item.id);
-        await updateCartInFirebase(updatedItems);
-        closeItemModal();
-        return;
-      }
-
-      // Update cart item with new quantity and notes
-      const updatedItems = cartItems.value.map(cartItem => {
-        if (cartItem.itemId === data.item.id) {
-          return {
-            ...cartItem,
-            qty: data.quantity,
-            notes: data.notes || ''
-          };
-        }
-        return cartItem;
-      });
-
-      await updateCartInFirebase(updatedItems);
-      closeItemModal();
-    };
-
-    // Check if discount is applied for an item (used by ItemModal)
-    const isDiscountApplied = (item) => {
-      if (!item || !item.discountTime) return false;
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      const [hours, minutes] = item.discountTime.split(':');
-      const discountStart = parseInt(hours) * 60 + parseInt(minutes);
-      return currentTime >= discountStart;
-    };
-
     const proceedWithAvailable = async () => {
       showClosedStallsModal.value = false;
-      // Remove unavailable items from cart
-      const availableItems = cartItems.value.filter(item => !item.isClosed && !item.isSoldOut);
+      // Remove closed stall items from cart
+      const availableItems = cartItems.value.filter(item => !item.isClosed);
       await updateCartInFirebase(availableItems);
       
       // Update cartItems to reflect available items only
@@ -952,42 +577,51 @@ export default {
     };
     
     // Get next order ID
+    const getNextOrderID = async () => {
+      const counterRef = doc(db, 'meta', 'orderCounter');
+      return await runTransaction(db, async (transaction) => {
+        const counterSnap = await transaction.get(counterRef);
+        let newOrderID = 1;
+        if (counterSnap.exists()) {
+          newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
+          transaction.update(counterRef, { lastOrderID: newOrderID });
+        } else {
+          transaction.set(counterRef, { lastOrderID: 1 });
+        }
+        return newOrderID;
+      });
+    };
+        // Get next order ID
     // const getNextOrderID = async () => {
-    //   const counterRef = doc(db, 'meta', 'orderCounter');
-    //   return await runTransaction(db, async (transaction) => {
-    //     const counterSnap = await transaction.get(counterRef);
-    //     let newOrderID = 1;
-    //     if (counterSnap.exists()) {
-    //       newOrderID = (counterSnap.data().lastOrderID || 0) + 1;
-    //       transaction.update(counterRef, { lastOrderID: newOrderID });
-    //     } else {
-    //       transaction.set(counterRef, { lastOrderID: 1 });
+    //   try {
+    //     const ordersRef = collection(db, 'orders');
+    //     const q = query(ordersRef, orderBy('orderID', 'desc'), limit(1));
+    //     const querySnapshot = await getDocs(q);
+        
+    //     if (querySnapshot.empty) {
+    //       return 1;
     //     }
-    //     return newOrderID;
-    //   });
+        
+    //     const lastOrder = querySnapshot.docs[0].data();
+    //     return (lastOrder.orderID || 0) + 1;
+    //   } catch (error) {
+    //     console.error('Error getting next order ID:', error);
+    //     // Fallback: try without orderBy if index doesn't exist
+    //     try {
+    //       const ordersRef = collection(db, 'orders');
+    //       const querySnapshot = await getDocs(ordersRef);
+    //       if (querySnapshot.empty) {
+    //         return 1;
+    //       }
+    //       const orders = querySnapshot.docs.map(doc => doc.data());
+    //       const maxOrderID = Math.max(...orders.map(o => o.orderID || 0), 0);
+    //       return maxOrderID + 1;
+    //     } catch (fallbackError) {
+    //       console.error('Error in fallback order ID query:', fallbackError);
+    //       return 1;
+    //     }
+    //   }
     // };
-
-
-    const getNextOrderID = () => {
-    const now = new Date();
-    const year = String(now.getFullYear());
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const today = `${month}${day}${year.slice(-2)}`;
-
-    // Use HHmmss (6 digits)
-    const timePart = String(now.getHours()).padStart(2, '0') +
-                    String(now.getMinutes()).padStart(2, '0') +
-                    String(now.getSeconds()).padStart(2, '0');
-
-    // Add 2 random digits 
-    const randomPart = Math.floor(Math.random() * 90 + 10); // 10–99
-
-    // Combine
-    return `${today}-${timePart}${randomPart}`;
-  };
-
-
 
     // Get hawker address from hawkerListings
     const getHawkerAddress = async (hawkerId) => {
@@ -1020,28 +654,26 @@ export default {
     // Checkout
     const checkout = async () => {
       if (cartItems.value.length === 0) {
-        validationMessage.value = 'Your cart is empty!';
-        showValidationModal.value = true;
+        alert('Your cart is empty!');
         return;
       }
       
-      // Validate card information FIRST (before checking unavailable items)
-      if (!validateCardInfo()) {
-        return;
-      }
-      
-      // Check if there are unavailable (closed or sold-out) items AFTER card validation
-      if (hasUnavailableItems.value) {
+      // Check if there are closed stalls
+      if (hasClosedStalls.value) {
         showClosedStallsModal.value = true;
         return;
       }
       
-      // Filter out unavailable items
-      const availableItems = cartItems.value.filter(item => !item.isClosed && !item.isSoldOut);
+      // Filter out closed stall items
+      const availableItems = cartItems.value.filter(item => !item.isClosed);
       
       if (availableItems.length === 0) {
-        validationMessage.value = 'No available items to order. Please check back when stalls are open.';
-        showValidationModal.value = true;
+        alert('No available items to order. Please check back when stalls are open.');
+        return;
+      }
+      
+      // Validate card information
+      if (!validateCardInfo()) {
         return;
       }
       
@@ -1077,18 +709,13 @@ export default {
         const timestamp = new Date();
         
         // Get starting order ID
-        // let currentOrderID = await getNextOrderID();
-        // Generate timestamp-based order ID
-        let currentOrderID = getNextOrderID();
+        let currentOrderID = await getNextOrderID();
         
         // Create all orders
         const orderPromises = [];
         const createdOrderIds = []; // Track created order document IDs
         
         for (const hawkerId in itemsByHawker) {
-          // Generate a unique order ID for each hawker group
-          currentOrderID = getNextOrderID();
-
           const hawkerGroup = itemsByHawker[hawkerId];
           const hawkerItems = hawkerGroup.items;
           
@@ -1101,44 +728,26 @@ export default {
           let totalDiscount = 0;
           
           const orderItems = hawkerItems.map(item => {
-            const itemPrice = parsePrice(item.itemPrice);
-            const discount = safeParseNumber(item.discount, 0);
-            const qty = safeParseNumber(item.qty, 1);
-            
-            // Check if discount should be applied based on discount time
-            const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
-            
-            let discountedPrice;
-            if (shouldApplyDiscount) {
-              discountedPrice = itemPrice * ((100 - discount) / 100);
-            } else {
-              discountedPrice = itemPrice;
-            }
-            
+            const itemPrice = parseFloat(item.itemPrice);
+            const discount = item.discount || 0;
+            const qty = parseInt(item.qty) || 1;
+            const discountedPrice = itemPrice * ((100 - discount) / 100);
             const itemTotal = discountedPrice * qty;
             
-            const safeItemPrice = isNaN(itemPrice) || !isFinite(itemPrice) ? 0 : itemPrice;
-            const safeQty = isNaN(qty) || !isFinite(qty) ? 1 : qty;
-            const safeDiscountedPrice = isNaN(discountedPrice) || !isFinite(discountedPrice) ? safeItemPrice : discountedPrice;
-            const safeItemTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? safeItemPrice * safeQty : itemTotal;
-            
-            subtotalBeforeDiscount += safeItemPrice * safeQty;
-            totalDiscount += (safeItemPrice * safeQty) - safeItemTotal;
+            subtotalBeforeDiscount += itemPrice * qty;
+            totalDiscount += (itemPrice * qty) - itemTotal;
             
             return {
               itemName: item.itemName,
-              itemPrice: safeItemPrice,
-              discountedPrice: safeDiscountedPrice,
-              qty: safeQty,
+              itemPrice: itemPrice,
+              discountedPrice: discountedPrice,
+              qty: qty,
               imageUrl: item.imageUrl || '',
-              itemTotal: safeItemTotal,
-              requirements: item.notes || ''
+              itemTotal: itemTotal
             };
           });
           
-          const safeSubtotal = isNaN(subtotalBeforeDiscount) || !isFinite(subtotalBeforeDiscount) ? 0 : subtotalBeforeDiscount;
-          const safeDiscount = isNaN(totalDiscount) || !isFinite(totalDiscount) ? 0 : totalDiscount;
-          const orderTotal = safeSubtotal - safeDiscount;
+          const orderTotal = subtotalBeforeDiscount - totalDiscount;
           
           // Create order document
           const orderData = {
@@ -1149,16 +758,15 @@ export default {
             timestamp: timestamp, // Use same timestamp for all orders
             createdAt: timestamp, // Add createdAt field
             paymentMethod: paymentMethod,
-            status: 'preparing', 
+            status: 'pending', 
             userId: userId.value,
             hawkerId: hawkerId,
             hawkerName: hawkerGroup.hawkerName,
             hawkerAddress: formattedAddress,
             items: orderItems,
-            subtotalBeforeDiscount: safeSubtotal,
-            discount: safeDiscount,
-            orderTotal: isNaN(orderTotal) || !isFinite(orderTotal) ? 0 : orderTotal,
-            // notes: item.notes || '',
+            subtotalBeforeDiscount: subtotalBeforeDiscount,
+            discount: totalDiscount,
+            orderTotal: orderTotal
           };
           
           // Add to order creation promises
@@ -1174,9 +782,7 @@ export default {
           console.log('Order created with ID:', orderDocRef.id, 'OrderID:', orderData.orderID);
           
           // Increment for next hawker's order
-          // currentOrderID++;
-          currentOrderID = getNextOrderID();
-
+          currentOrderID++;
         }
         
         // Wait for all stock updates to complete
@@ -1199,24 +805,11 @@ export default {
       } catch (error) {
         console.error('Error creating order:', error);
         errorMsg.value = 'Failed to create order. Please try again.';
-        validationMessage.value = `Failed to create order: ${error.message}`;
-        showValidationModal.value = true;
+        alert(`Failed to create order: ${error.message}`);
       } finally {
         updating.value = false;
       }
     };
-
-    // Watch for modal visibility to lock/unlock body scroll
-    watch([showItemModal, showClosedStallsModal, showValidationModal, showSavedCardsModal, showDeleteModal], 
-      ([itemModal, closedModal, validationModal, savedCardsModal, deleteModal]) => {
-        const anyModalOpen = itemModal || closedModal || validationModal || savedCardsModal || deleteModal;
-        if (anyModalOpen) {
-          document.body.style.overflow = 'hidden';
-        } else {
-          document.body.style.overflow = 'auto';
-        }
-      }
-    );
 
     // Initialize on mount
     onMounted(() => {
@@ -1254,9 +847,6 @@ export default {
     
     // Cleanup on unmount
     onUnmounted(() => {
-      // Restore body scroll in case modal was still open
-      document.body.style.overflow = 'auto';
-      
       if (authUnsubscribe.value) {
         authUnsubscribe.value();
       }
@@ -1271,8 +861,6 @@ export default {
       editMode,
       selectedItems,
       showClosedStallsModal,
-      showValidationModal,
-      validationMessage,
       
       // Card state
       savedCards,
@@ -1288,11 +876,6 @@ export default {
       closedStallItems,
       closedStallsTotal,
       availableTotal,
-      hasSoldOutItems,
-      soldOutItems,
-      hasUnavailableItems,
-      unavailableItems,
-      unavailableTotal,
       
       // Methods
       goBack,
@@ -1302,86 +885,18 @@ export default {
       clearAllItems,
       checkout,
       calculateItemTotal,
-      calculateDiscountedPrice,
       formatPrice,
-      parsePrice,
       validateQuantity,
       updateItemQuantity,
-      safeParseNumber,
-      // Helper function for template calculations
-      safeCalculateOriginalPrice: () => {
-        return cartItems.value.reduce((total, item) => {
-          const itemPrice = parsePrice(item.itemPrice);
-          const qty = safeParseNumber(item.qty, 0);
-          const itemTotal = itemPrice * qty;
-          const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-          return total + finalTotal;
-        }, 0);
-      },
-      safeCalculateDiscount: () => {
-        const original = cartItems.value.reduce((total, item) => {
-          const itemPrice = parsePrice(item.itemPrice);
-          const qty = safeParseNumber(item.qty, 0);
-          const itemTotal = itemPrice * qty;
-          const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
-          return total + finalTotal;
-        }, 0);
-        const cart = isNaN(cartTotal.value) || !isFinite(cartTotal.value) ? 0 : cartTotal.value;
-        const discount = original - cart;
-        return isNaN(discount) || !isFinite(discount) ? 0 : discount;
-      },
-      // Safe toFixed wrapper
-      safeToFixed: (value, decimals = 2) => {
-        const num = typeof value === 'number' ? value : parsePrice(value);
-        const safeNum = isNaN(num) || !isFinite(num) ? 0 : num;
-        return safeNum.toFixed(decimals);
-      },
       enterEditMode,
       cancelEditMode,
       selectAll,
       deleteSelected,
       closeModal,
       proceedWithAvailable,
-      // Delete confirmation modal
-      showDeleteModal,
-      deleteMode,
-      deleteTargetItem,
-      confirmDelete,
-      cancelDelete,
       formatCardNumber,
       formatExpiryDate,
-      formatCVV,
-      validateCardholderName,
-      validateCardNumber,
-      validateExpiryDate,
-      validateCVV,
-      fieldErrors,
-      touchedFields,
-      cardBrand,
-      cardNumberError,
-      // Saved card CRUD
-      deleteSavedCard,
-      // Saved card modal
-      showSavedCardsModal,
-      openSavedCardsModal,
-      closeSavedCardsModal,
-      applySavedCardSelection,
-      // Validation modal
-      showValidationModal,
-      validationMessage,
-      // Delete confirmation modal
-      showDeleteModal,
-      deleteMode,
-      deleteTargetItem,
-      confirmDelete,
-      cancelDelete,
-      // Item modal
-      showItemModal,
-      selectedCartItem,
-      openItemModal,
-      closeItemModal,
-      handleCartItemUpdate,
-      isDiscountApplied
+      formatCVV
     };
   }
 };
