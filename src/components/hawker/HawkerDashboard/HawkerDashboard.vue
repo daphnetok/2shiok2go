@@ -84,9 +84,7 @@
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
-        <h1 class="page-title">{{ hawkerName }}
-          <h6>Listings</h6>
-        </h1>
+        <h1 class="page-title">{{ hawkerName }}'s Listings</h1>
         <router-link to="/create-listing" class="btn-create">
           <i class="fas fa-plus"></i>
           <span>Create New Listing</span>
