@@ -14,8 +14,7 @@ import router from '@/router';
 
 export default {
   name: 'AuthComponent',
-  emits: ['mode-change'],  // Add this line
-  setup(props, { emit }) {  // Add { emit } parameter
+  setup() {
     const user = ref(null);
     const isLogin = ref(true);
     const loading = ref(false);
@@ -54,7 +53,6 @@ export default {
       successMessage.value = '';
       successView.value = false;
       password.value = '';
-      emit('mode-change', isLogin.value);  // Add this line
     };
 
     // toggle to log in page upon successful sign up

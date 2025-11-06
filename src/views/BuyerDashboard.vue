@@ -54,7 +54,6 @@
                 <div class="stat-content">
                   <h3 class="stat-value">{{ stats.moneySaved }}</h3>
                   <p class="stat-label">$ Saved This Month</p>
-                  <p class="stat-detail">(avg. {{ stats.avgDiscount }}% off)</p>
                 </div>
               </div>
             </div>
@@ -64,7 +63,6 @@
                 <div class="stat-content">
                   <h3 class="stat-value">{{ stats.foodRescued }}</h3>
                   <p class="stat-label">Food Rescued</p>
-                  <p class="stat-detail">({{ stats.mealsCount }} meals)</p>
                 </div>
               </div>
             </div>
@@ -74,7 +72,6 @@
                 <div class="stat-content">
                   <h3 class="stat-value">{{ stats.orderStreak }} {{ stats.orderStreak === 1 ? 'day' : 'days' }}</h3>
                   <p class="stat-label">Order Streak</p>
-                  <p class="stat-detail">🎯 Keep it going!</p>
                 </div>
               </div>
             </div>
@@ -123,7 +120,8 @@
                 <div class="highlight-body">
                   <PetPlayground :pet="petData" :animation="petAnimation" :message="petMessage"
                     :message-type="petMessageType" @click="petClick" @customize="showCustomization = !showCustomization"
-                    @feed="feedPet" @play="playWithPet" @dragover="handleDragOver" @drop="handleDrop" />
+                    @play="playWithPet" @dragover="handleDragOver" @drop="handleDrop"
+                    @update-treats="onUpdateTreats" />
                   <div class="pet-progress mt-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                       <div>
@@ -293,7 +291,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, orderBy, limit, runTransaction } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import Card from '@/components/shared/Card.vue'
 import ChartCard from '@/components/dashboard/ChartCard.vue'
@@ -556,7 +554,8 @@ export default {
           stats.value.orderStreak = calculateOrderStreak(orders)
           
           // Update the display count (this is shown in the welcome message)
-          rescuedMealsCount.value = totalMeals
+          // Use number of orders in the current month (not total item quantities)
+          rescuedMealsCount.value = currentMonthOrders.length
           
           // Don't update pet here - let the caller handle it
           // This prevents overwriting saved data during initialization
@@ -725,8 +724,78 @@ export default {
       }
     }
 
-    // Listen to auth state changes and fetch all data
-    let ordersUnsubscribe = null // Store unsubscribe function
+    // Helper: fetch order IDs for the given user (tries userId then buyerId)
+    const fetchOrderIdsForUser = async (uid) => {
+      try {
+        const ordersRef = collection(db, 'orders')
+        let snapshot = null
+        try {
+          const q = query(ordersRef, where('userId', '==', uid))
+          snapshot = await getDocs(q)
+        } catch (e) {
+          // fallback to buyerId if userId yields none or index error
+          const fallbackQ = query(ordersRef, where('buyerId', '==', uid))
+          snapshot = await getDocs(fallbackQ)
+        }
+
+        if (!snapshot) return []
+        return snapshot.docs.map(d => d.id)
+      } catch (err) {
+        console.error('❌ Error fetching order IDs for user:', err)
+        return []
+      }
+    }
+
+    // Helper: award treats for specific order IDs transactionally to avoid race conditions/duplicates
+    // This writes a small processedOrders map inside the pet doc so multiple clients won't award the same order twice.
+    const awardTreats = async (orderIds = []) => {
+      if (!currentUserId.value) return false
+      if (!orderIds || orderIds.length === 0) return false
+
+      try {
+        const petRef = doc(db, 'users', currentUserId.value, 'pet', 'customization')
+        let awardedCount = 0
+
+        await runTransaction(db, async (tx) => {
+          const petSnap = await tx.get(petRef)
+          const serverData = petSnap.exists() ? petSnap.data() : {}
+          const serverTreats = serverData.treats || 0
+          const processed = serverData.processedOrders || {}
+
+          // Determine which orderIds are new (not processed yet)
+          const newOrderIds = orderIds.filter(id => !processed || !processed[id])
+          if (newOrderIds.length === 0) {
+            awardedCount = 0
+            return
+          }
+
+          // Mark them as processed and increment treats
+          newOrderIds.forEach(id => { processed[id] = true })
+          const newTreats = serverTreats + newOrderIds.length
+
+          tx.set(petRef, { treats: newTreats, processedOrders: processed, lastUpdated: new Date() }, { merge: true })
+          awardedCount = newOrderIds.length
+        })
+
+        // Update local state after successful transaction
+        if (awardedCount > 0) {
+          petData.value.treats = (Number(petData.value.treats) || 0) + awardedCount
+          console.log(`🍪 Awarded ${awardedCount} treat(s) for orders:`, orderIds)
+        } else {
+          console.log('🍪 No unprocessed orders found to award')
+        }
+
+        return awardedCount > 0
+      } catch (err) {
+        console.error('❌ Error awarding treats transactionally:', err)
+        return false
+      }
+    }
+
+  // Listen to auth state changes and fetch all data
+  let ordersPollHandle = null // Store polling interval handle
+  const POLL_INTERVAL_MS = 15000 // 15s polling for new orders
+  const lastKnownOrderIds = ref(new Set())
     
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -748,62 +817,67 @@ export default {
         console.log('✅ All data loaded successfully')
         
         // Set up real-time listener for orders
-        console.log('👂 Setting up real-time orders listener...')
-        const ordersRef = collection(db, 'orders')
-        const ordersQuery = query(ordersRef, where('userId', '==', user.uid))
-        
-        ordersUnsubscribe = onSnapshot(ordersQuery, async (snapshot) => {
-          console.log('🔔 Orders changed! New order detected...')
-          
-          // Re-fetch orders to get new count
-          await fetchOrdersData(user.uid)
-          
-          // Calculate new stats
-          const newTotalMeals = rescuedMealsCount.value
-          const newCalculatedStats = await updatePetFromMeals(newTotalMeals)
-          
-          // Always update treats when orders change (each meal = 1 treat)
-          const treatsEarned = newTotalMeals - (petData.value.treats || 0)
-          if (treatsEarned > 0) {
-            petData.value.treats = newTotalMeals // Set treats to total meals
-            console.log(`🍪 Treats updated! +${treatsEarned} treats earned. Total: ${petData.value.treats}`)
+        console.log('👂 Setting up periodic orders check (no snapshot)')
+
+        // Initialize baseline of known orders so we only award treats for NEW orders
+        const initializeOrdersBaseline = async () => {
+          try {
+            const ids = await fetchOrderIdsForUser(user.uid)
+            lastKnownOrderIds.value = new Set(ids)
+            console.log('🔁 Orders baseline initialized with', ids.length, 'orders')
+          } catch (err) {
+            console.error('❌ Error initializing orders baseline:', err)
           }
-          
-          // Update level if it increased (from new orders)
-          if (newCalculatedStats.calculatedLevel > petData.value.level) {
-            const oldLevel = petData.value.level
-            petData.value.level = newCalculatedStats.calculatedLevel
-            petData.value.progress = newCalculatedStats.calculatedProgress
-            petData.value.mealsToLevelUp = 10 - newCalculatedStats.mealsInCurrentLevel
-            
-            showMessage(`🎉 Level Up! Now Level ${newCalculatedStats.calculatedLevel}!`, 'success')
-          } else if (treatsEarned > 0) {
-            // Show message for treats earned (when not leveling up)
-            showMessage(`� +${treatsEarned} treat${treatsEarned > 1 ? 's' : ''} earned!`, 'success')
+        }
+
+        // Check for new orders by fetching current order ids and comparing to baseline
+        const checkForNewOrders = async () => {
+          try {
+            const currentIds = await fetchOrderIdsForUser(user.uid)
+            const newIds = currentIds.filter(id => !lastKnownOrderIds.value.has(id))
+            if (newIds.length > 0) {
+              console.log('🔔 Detected new orders:', newIds)
+              // Award treats for these specific order IDs using a transaction to avoid races/duplicates
+              const awarded = await awardTreats(newIds)
+              // Update baseline to include the new IDs (regardless of whether transaction awarded)
+              newIds.forEach(id => lastKnownOrderIds.value.add(id))
+              // Recompute stats for UI
+              await fetchOrdersData(user.uid)
+              showMessage(`+${newIds.length} treat${newIds.length > 1 ? 's' : ''} earned!`, 'success')
+            }
+          } catch (err) {
+            console.error('❌ Error checking for new orders:', err)
           }
-          
-          // Always save updated pet data when orders change
-          await savePetData()
-        }, (error) => {
-          console.error('❌ Error listening to orders:', error)
-        })
+        }
+
+        // Start baseline and polling
+        await initializeOrdersBaseline()
+        // Immediate check to pick up any orders between initial load and baseline
+        await checkForNewOrders()
+        // Start periodic polling
+        if (ordersPollHandle) {
+          clearInterval(ordersPollHandle)
+          ordersPollHandle = null
+        }
+        ordersPollHandle = setInterval(checkForNewOrders, POLL_INTERVAL_MS)
       } else {
         username.value = 'Guest'
         currentUserId.value = null
         
-        // Clean up listener if user logs out
-        if (ordersUnsubscribe) {
-          ordersUnsubscribe()
-          ordersUnsubscribe = null
+        // Clean up polling if user logs out
+        if (ordersPollHandle) {
+          clearInterval(ordersPollHandle)
+          ordersPollHandle = null
         }
       }
     })
     
-    // Clean up listener on component unmount
+    // Clean up polling on component unmount
     onUnmounted(() => {
-      if (ordersUnsubscribe) {
-        console.log('🧹 Cleaning up orders listener...')
-        ordersUnsubscribe()
+      if (ordersPollHandle) {
+        console.log('🧹 Cleaning up orders polling...')
+        clearInterval(ordersPollHandle)
+        ordersPollHandle = null
       }
     })
 
@@ -1330,6 +1404,22 @@ export default {
       }
     }
 
+    // Handler when child component emits updated treats count
+    const onUpdateTreats = async (newCount) => {
+      try {
+        const parsed = Number(newCount)
+        if (!isNaN(parsed)) {
+          petData.value.treats = parsed
+          console.log('🍪 onUpdateTreats received, persisting new treats:', parsed)
+          await savePetData()
+        } else {
+          console.warn('onUpdateTreats received non-numeric value:', newCount)
+        }
+      } catch (err) {
+        console.error('Error in onUpdateTreats:', err)
+      }
+    }
+
     const playWithPet = async () => {
       if (petData.value.energy >= 10) {
         petData.value.energy -= 10
@@ -1410,7 +1500,7 @@ export default {
       petData, timeFilters, orderFilters,
       foodRescuedChartData, savingsComparisonChartData,
       updateFoodRescuedFilter, updateSavingsFilter,
-      toggleTheme, feedPet, playWithPet, petClick, handleDragOver, handleDrop,
+  toggleTheme, feedPet, playWithPet, petClick, handleDragOver, handleDrop, onUpdateTreats,
       orderTopDish,
       animalTypes, colorPalette, backgrounds, accessories, accessoryColors,
       isUnlocked, selectAnimal, selectColor, selectBackground, selectAccessory,
@@ -1571,8 +1661,11 @@ export default {
   border-radius: 16px;
   padding: 1.75rem;
   display: flex;
+  /* Use column layout so icon sits above the main value and labels are centered
+     This ensures consistent vertical alignment across different card sizes */
+  flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border: 1px solid transparent;
@@ -1621,10 +1714,15 @@ export default {
 .stat-icon {
   font-size: 3rem;
   line-height: 1;
+  display: block;
+  margin-bottom: 0.25rem;
 }
 
 .stat-content {
-  flex: 1;
+  /* keep content full-width and centered inside the card */
+  flex: none;
+  width: 100%;
+  text-align: center;
 }
 
 .stat-value {
@@ -1643,6 +1741,11 @@ export default {
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.25rem;
+}
+
+.stat-label,
+.stat-detail {
+  text-align: center;
 }
 
 .dark-theme .stat-label {
