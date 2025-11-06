@@ -21,8 +21,8 @@
   <div class="navbar-nav-desktop d-none d-md-flex ms-auto" :class="{ 'has-logout': currentUser }">
   <router-link v-if="isHomePage" class="nav-link-desktop" to="/">Home</router-link>
   
-          <!-- Show Listing link to all users (customers can browse) -->
-          <router-link class="nav-link-desktop" to="/buyer-listings">Listing</router-link>
+          <!-- Show Listing link - hawkers see their own stall, buyers see all listings -->
+          <router-link class="nav-link-desktop" :to="listingRoute">Listing</router-link>
           
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
@@ -64,7 +64,7 @@
   <div class="offcanvas-body">
   <ul class="nav flex-column">
   <li v-if="isHomePage" class="nav-item"><router-link class="nav-link" to="/">Home</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/buyer-listings">Listing</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" :to="listingRoute">Listing</router-link></li>
   
   <!-- Buyers see these links -->
   <template v-if="currentUser && userRole === 'buyer'">
@@ -117,6 +117,14 @@
      // Check if current page is home page
      const isHomePage = computed(() => route.path === '/');
   
+     // Computed property for listing route based on user role
+     const listingRoute = computed(() => {
+       if (currentUser.value && userRole.value === 'hawker') {
+         return `/buyer-view-stall/${currentUser.value.uid}`;
+       }
+       return '/buyer-listings';
+     });
+  
      // Fetch user role from Firestore
      const fetchUserRole = async (uid) => {
        try {
@@ -166,7 +174,8 @@
        userRole,
        isLoading,
        handleLogout,
-       isHomePage
+       isHomePage,
+       listingRoute
      };
    }
   };
@@ -210,6 +219,9 @@
     border-radius: 8px;
     transition: all 0.3s ease;
     background: transparent;
+    flex-shrink: 0;
+    width: auto;
+    min-width: auto;
   }
   
   .btn-outline-success:hover {
@@ -551,6 +563,26 @@
     
     .container-fluid {
       padding: 0 1rem;
+    }
+  }
+  
+  /* Prevent hamburger button from taking full width on small screens */
+  @media (max-width: 576px) {
+    .btn-outline-success {
+      width: auto !important;
+      flex: 0 0 auto !important;
+      max-width: none !important;
+    }
+    
+    .container-fluid {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .navbar-brand {
+      flex: 1;
+      min-width: 0;
     }
   }
   

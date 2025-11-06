@@ -242,7 +242,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db, storage } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -573,6 +573,33 @@ export default {
       }
     };
 
+    // Reset form fields
+    const resetForm = () => {
+      foodQuality.value = 0;
+      storeService.value = 0;
+      valueForMoney.value = 0;
+      reviewText.value = '';
+      uploadedPhotos.value = [];
+      uploadedVideos.value = [];
+      hawkerImage.value = null;
+      stallName.value = 'this stall';
+      hawkerDocRef.value = null;
+      currentOrderData.value = null;
+      selectedImage.value = null;
+      videoProgress.value = {};
+      videoFullscreen.value = {};
+      videoDuration.value = {};
+      activeVideoRef.value = null;
+      
+      // Reset file inputs
+      if (photoInput.value) {
+        photoInput.value.value = '';
+      }
+      if (videoInput.value) {
+        videoInput.value.value = '';
+      }
+    };
+
     // Fetch order and hawker data
     const fetchOrderData = async () => {
       try {
@@ -771,8 +798,53 @@ export default {
           reviews: reviewsUpdate
         });
 
+        // Mark order as review completed
+        await updateDoc(orderDocRef, {
+          reviewPending: false,
+          reviewCompleted: true
+        });
+
         showAlert('success', 'Review submitted successfully!');
-        router.push('/buyer-listings');
+        
+        // Wait a moment for user to see success message, then check for next order
+        setTimeout(async () => {
+          // Check if there are more orders to review
+          const allOrderIds = route.query.allOrderIds;
+          if (allOrderIds) {
+            const orderIdsArray = allOrderIds.split(',').filter(id => id.trim());
+            const currentOrderIndex = orderIdsArray.findIndex(id => id === orderId);
+            
+            // Find next order that needs review
+            if (currentOrderIndex !== -1 && currentOrderIndex < orderIdsArray.length - 1) {
+              // Get next order ID
+              const nextOrderId = orderIdsArray[currentOrderIndex + 1];
+              
+              // Fetch next order to get hawkerId
+              const nextOrderQuery = query(
+                collection(db, 'orders'),
+                where('orderID', '==', nextOrderId)
+              );
+              const nextOrderSnapshot = await getDocs(nextOrderQuery);
+              
+              if (!nextOrderSnapshot.empty) {
+                const nextOrderData = nextOrderSnapshot.docs[0].data();
+                // Redirect to next order's review
+                router.push({
+                  path: '/reviews',
+                  query: {
+                    orderId: nextOrderId,
+                    hawkerId: nextOrderData.hawkerId,
+                    allOrderIds: allOrderIds
+                  }
+                });
+                return;
+              }
+            }
+          }
+          
+          // No more orders to review, go to buyer listings
+          router.push('/buyer-listings');
+        }, 2000); // Wait 2 seconds to show success message
       } catch (error) {
         console.error('Error submitting review:', error);
         console.error('Error code:', error.code);
@@ -806,12 +878,57 @@ export default {
           });
         }
         
+        // Check if there are more orders to review
+        const allOrderIds = route.query.allOrderIds;
+        if (allOrderIds) {
+          const orderIdsArray = allOrderIds.split(',').filter(id => id.trim());
+          const currentOrderIndex = orderIdsArray.findIndex(id => id === orderId);
+          
+          // Find next order that needs review
+          if (currentOrderIndex !== -1 && currentOrderIndex < orderIdsArray.length - 1) {
+            // Get next order ID
+            const nextOrderId = orderIdsArray[currentOrderIndex + 1];
+            
+            // Fetch next order to get hawkerId
+            const nextOrderQuery = query(
+              collection(db, 'orders'),
+              where('orderID', '==', nextOrderId)
+            );
+            const nextOrderSnapshot = await getDocs(nextOrderQuery);
+            
+            if (!nextOrderSnapshot.empty) {
+              const nextOrderData = nextOrderSnapshot.docs[0].data();
+              // Redirect to next order's review
+              router.push({
+                path: '/reviews',
+                query: {
+                  orderId: nextOrderId,
+                  hawkerId: nextOrderData.hawkerId,
+                  allOrderIds: allOrderIds
+                }
+              });
+              return;
+            }
+          }
+        }
+        
+        // No more orders to review, go to buyer listings
         router.push('/buyer-listings');
       } catch (error) {
         console.error('Error marking order for review:', error);
         router.push('/buyer-listings');
       }
     };
+
+    // Watch for orderId changes to reset form and fetch new data
+    watch(() => route.query.orderId, (newOrderId, oldOrderId) => {
+      if (newOrderId && newOrderId !== oldOrderId) {
+        // Reset form when orderId changes
+        resetForm();
+        // Fetch new order data
+        fetchOrderData();
+      }
+    }, { immediate: false });
 
     onMounted(() => {
       fetchOrderData();

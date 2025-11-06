@@ -31,6 +31,7 @@ export default {
     const password = ref('');
     const displayName = ref('');
     const role = ref('');
+    const showPassword = ref(false);
     
     // fetch user role from firestore
     const fetchUserRole = async (uid) => {
@@ -190,6 +191,7 @@ export default {
       password,
       displayName,
       role,
+      showPassword,
       userRole,
       showRoleModal,
       tempUser,

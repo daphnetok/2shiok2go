@@ -9,16 +9,49 @@
     style="text-decoration: none; color: inherit;"
   >
     <div class="card mb-3">
-      <!-- Image Container with Overlay -->
+      <!-- Image Carousel Container with Overlay -->
       <div class="image-container">
-        <ImageWithLoader 
-          :src="hawker.imageUrl" 
-          :alt="hawker.hawkerName"
-          image-class="card-img-top"
-        />
+        <div class="carousel-wrapper" v-if="stallImages && stallImages.length > 0">
+          <div 
+            class="carousel-track"
+            :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+          >
+            <div 
+              v-for="(image, index) in stallImages" 
+              :key="index"
+              class="carousel-slide"
+            >
+              <ImageWithLoader 
+                :src="image" 
+                :alt="`${hawker.hawkerName} - Image ${index + 1}`"
+                image-class="card-img-top"
+              />
+            </div>
+          </div>
+        </div>
+        <div v-else class="carousel-wrapper">
+          <ImageWithLoader 
+            :src="hawker.imageUrl || ''" 
+            :alt="hawker.hawkerName"
+            image-class="card-img-top"
+          />
+        </div>
+        
         <div class="image-overlay">
           <span class="view-menu-badge">View Menu</span>
         </div>
+        
+        <!-- Carousel Dots -->
+        <div v-if="stallImages.length > 1" class="carousel-dots">
+          <button
+            v-for="(image, index) in stallImages"
+            :key="index"
+            :class="['dot', { active: currentImageIndex === index }]"
+            @click.prevent="goToSlide(index)"
+            :aria-label="`Go to image ${index + 1}`"
+          ></button>
+        </div>
+        
         <!-- Status Badge -->
         <StallStatus
           :opening-time="hawker.openingTime"
@@ -79,10 +112,186 @@ export default {
       type: Object,
       required: true
     }
+  },
+  data() {
+    return {
+      currentImageIndex: 0,
+      autoScrollInterval: null
+    }
+  },
+  computed: {
+    stallImages() {
+      // Check for images array from hawkerListings collection
+      // Structure: hawker.hawkerListing.images (array of objects with url, path, main, order, name)
+      let imagesArray = null;
+      
+      // Debug: Log the structure
+      console.log('ListingCard - Checking images:', {
+        hawkerName: this.hawker.hawkerName,
+        hasHawkerListing: !!this.hawker.hawkerListing,
+        hawkerListingImages: this.hawker.hawkerListing?.images,
+        hasDirectImages: !!this.hawker.images,
+        directImages: this.hawker.images,
+        hawkerKeys: Object.keys(this.hawker)
+      });
+      
+      // Priority 1: Check hawker.hawkerListing.images (nested structure - correct path)
+      if (this.hawker.hawkerListing?.images && Array.isArray(this.hawker.hawkerListing.images) && this.hawker.hawkerListing.images.length > 0) {
+        imagesArray = this.hawker.hawkerListing.images;
+        console.log('✅ Found images in hawker.hawkerListing.images:', imagesArray);
+      } 
+      // Priority 2: Check hawker.images (direct on hawker object)
+      else if (this.hawker.images && Array.isArray(this.hawker.images) && this.hawker.images.length > 0) {
+        imagesArray = this.hawker.images;
+        console.log('✅ Found images in hawker.images:', imagesArray);
+      } else {
+        console.log('❌ No images array found');
+      }
+      
+      if (imagesArray) {
+        // Extract URLs from image objects and sort by order and main flag
+        const imageUrls = imagesArray
+          .filter(img => img && (img.url || img.path))
+          .map(img => ({
+            url: img.url || img.path,
+            order: img.order !== undefined ? img.order : 999,
+            isMain: img.main === true
+          }))
+          .sort((a, b) => {
+            // Main images first, then by order
+            if (a.isMain && !b.isMain) return -1;
+            if (!a.isMain && b.isMain) return 1;
+            return a.order - b.order;
+          })
+          .map(img => img.url);
+        
+        if (imageUrls.length > 0) {
+          return imageUrls;
+        }
+      }
+      
+      // Fallback to single imageUrl
+      const stallImageUrl = this.hawker.imageUrl;
+      return stallImageUrl ? [stallImageUrl] : [];
+    }
+  },
+  mounted() {
+    this.startAutoScroll();
+  },
+  beforeUnmount() {
+    this.stopAutoScroll();
+  },
+  methods: {
+    startAutoScroll() {
+      if (this.stallImages.length > 1) {
+        this.autoScrollInterval = setInterval(() => {
+          this.nextSlide();
+        }, 3500); // Change image every 3.5 seconds
+      }
+    },
+    stopAutoScroll() {
+      if (this.autoScrollInterval) {
+        clearInterval(this.autoScrollInterval);
+        this.autoScrollInterval = null;
+      }
+    },
+    nextSlide() {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.stallImages.length;
+    },
+    goToSlide(index) {
+      this.currentImageIndex = index;
+      // Reset auto-scroll timer when manually changing slides
+      this.stopAutoScroll();
+      this.startAutoScroll();
+    }
   }
 }
 </script>
 
-<style>
-  @import './ListingCard.css';  
+<style scoped>
+@import './ListingCard.css';
+
+/* Carousel Specific Styles */
+.carousel-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  width: 100%;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  width: 100%;
+  flex-shrink: 0;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-slide :deep(.card-img-top) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Carousel Dots */
+.carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  transition: z-index 0s;
+}
+
+.card:hover .carousel-dots {
+  z-index: 1;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+.dot.active {
+  background: white;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Ensure image-container has proper positioning */
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
 </style>

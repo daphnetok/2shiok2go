@@ -199,6 +199,7 @@ export default {
         discountedPrice: parseFloat(discountedPrice.value),
         images: uploaded,
         primaryImageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '',
+        imageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '', // Keep for backward compatibility
         orders: 0,
         hawkerName: currentUser.value.displayName,
         userId: currentUser.value.uid,
@@ -232,7 +233,7 @@ export default {
       images.value = [];
       form.description = "";
       if (fileInput.value) {
-        fileInput.value = "";
+        fileInput.value.value = "";
       }
     };
 

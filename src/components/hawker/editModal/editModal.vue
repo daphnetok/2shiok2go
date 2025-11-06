@@ -19,40 +19,57 @@
               <!-- Image Upload Section -->
               <div class="form-section">
                 <div class="row mb-3">
-                  <div class="col-md-4 p-0 p-md-3">
-                    <!-- Image Preview -->
-                    <div id="img-container" class="mb-3 w-100" v-if="previewImageUrl">
-                      <img :src="previewImageUrl" alt="Preview" id="preview-image">
-                      <span class="remove-btn" @click="removeNewImage">
-                        <i class="fas fa-times"></i>
-                      </span>
+                  <div class="col-12 mb-3">
+                    <label class="form-label">Item Images</label>
+                    <div class="uploader-card">
+                      <div class="uploader-drop" 
+                          @click="$refs.fileInput.click()" 
+                          @dragover.prevent 
+                          @drop.prevent="onFileDrop">
+                          <i class="fas fa-cloud-upload-alt"></i>
+                          <p class="m-0"><b>Upload Photos</b> (max 5)</p>
+                          <small>Click to browse or drag files here. Drag thumbnails to reorder.</small>
+                          <input 
+                              type="file" 
+                              accept="image/jpeg, image/png, image/jpg"
+                              multiple
+                              @change="onFileSelected" 
+                              ref="fileInput"
+                              style="display: none;">
+                      </div>
+                      <small v-if="imageError" class="text-danger d-block mt-2">{{ imageError }}</small>
                     </div>
 
-                    <!-- Upload Button -->
-                    <div 
-                      id="uploadImg" 
-                      @click="$refs.fileInput.click()" 
-                      class="mb-4 w-100"
-                    >
-                      <label class="text-secondary">
-                        <i class="fas fa-upload fa-lg"></i>
-                        <span v-if="!previewImageUrl"><b>Upload Photo</b></span>
-                        <span v-else><b>Change Photo</b></span>
-                        <br>
-                        <small>Click here to browse or drag and drop</small>
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/jpeg, image/png, image/jpg"
-                        @change="onFileSelected"
-                        ref="fileInput"
-                        style="display: none;"
-                      />
+                    <div class="photos-region mt-3" v-if="images && images.length">
+                      <div class="photos-region-header">
+                        <span class="photos-title">Your Photos</span>
+                        <small class="photos-hint">Drag to reorder. Star a photo to set as main.</small>
+                      </div>
+                      <div class="thumbs-grid">
+                        <div
+                          v-for="(img, idx) in images"
+                          :key="idx"
+                          class="thumb-item"
+                          draggable="true"
+                          @dragstart="onDragStart(idx)"
+                          @dragover.prevent="onDragOver"
+                          @drop.prevent="onDrop($event, idx)"
+                        >
+                          <img :src="img.existing ? img.existingData.url : img.previewUrl" alt="preview">
+                          <button type="button" class="thumb-remove" @click="removeImageAt(idx)">
+                            ×
+                          </button>
+                          <button type="button" class="thumb-star" :class="{ active: img.main }" @click="setMainImage(idx)" title="Set as main">
+                            <i class="fas" :class="img.main ? 'fa-star' : 'fa-star-half-alt'"></i>
+                          </button>
+                          <span class="thumb-badge" v-if="img.main">Main</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   <!-- Item Name & Description -->
-                  <div class="col-md-8 p-0">
+                  <div class="col-12 p-0">
                     <!-- Item Name -->
                     <div class="mb-3">
                       <label for="itemName" class="form-label">Item Name</label>
@@ -69,9 +86,9 @@
                     <!-- AI Description Component -->
                     <AIFoodDescription
                       v-model:description="editForm.description"
-                      :selectedFile="newImageFile"
+                      :selectedFile="mainImageFile"
                       :foodName="editForm.itemName"
-                      :imageUrl="previewImageUrl"
+                      :imageUrl="mainImageUrl"
                     />
                   </div>
                 </div>
@@ -320,4 +337,5 @@
 <style scoped src="./editModal.css">
 @import '/src/assets/css/CreateListing.css';
 @import '/src/components/hawker/CreateListing/CreateListing.css';
+@import '/src/components/hawker/HawkerForm/HawkerForm.css';
 </style>
