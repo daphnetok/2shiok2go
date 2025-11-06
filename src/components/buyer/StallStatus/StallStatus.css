@@ -1,0 +1,173 @@
+/* Base Stall Status Styles */
+.stall-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+/* Badge Variant (for ListingCard) */
+.stall-status.badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.stall-status.badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Inline Variant (for StallListing) */
+.stall-status.inline {
+  font-size: 1em;
+  margin: 8px 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.stall-status.inline i {
+  font-size: 1em;
+}
+
+.opening-hours {
+  font-weight: 500;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* Status Dot */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.stall-status.badge .status-dot {
+  width: 6px;
+  height: 6px;
+}
+
+/* Status Classes - Badge Variant */
+.stall-status.badge.open {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.98) 0%, rgba(22, 163, 74, 0.98) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stall-status.badge.open .status-dot {
+  background: white;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+}
+
+.stall-status.badge.closing-soon {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.98) 0%, rgba(217, 119, 6, 0.98) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stall-status.badge.closing-soon .status-dot {
+  background: white;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.8);
+  animation: pulse-warning 1.5s infinite;
+}
+
+.stall-status.badge.closed {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.98) 0%, rgba(220, 38, 38, 0.98) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stall-status.badge.closed .status-dot {
+  background: white;
+  animation: none;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);
+}
+
+.stall-status.badge.opening-soon {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.98) 0%, rgba(37, 99, 235, 0.98) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stall-status.badge.opening-soon .status-dot {
+  background: white;
+  animation: none;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+}
+
+.stall-status.badge.unknown {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.98) 0%, rgba(75, 85, 99, 0.98) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stall-status.badge.unknown .status-dot {
+  background: white;
+  animation: none;
+  box-shadow: 0 0 4px rgba(107, 114, 128, 0.6);
+}
+
+/* Status Classes - Inline Variant */
+.stall-status.inline.open {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #059669;
+}
+
+.stall-status.inline.closed {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+}
+
+.stall-status.inline.closing-soon {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #d97706;
+}
+
+.stall-status.inline.opening-soon {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #2563eb;
+}
+
+.stall-status.inline.unknown {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}

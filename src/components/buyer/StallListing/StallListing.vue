@@ -20,13 +20,13 @@
         </div>
         <div class="col-md-6 col-12">
           <div>
-            <p class="stall-status" :class="getStallStatus()">
-              <i class="fa-solid fa-clock"></i> 
-              <span>{{ getStatusText() }}</span>
-              <span class="opening-hours">
-                ({{ hawker.openingTime }} - {{ hawker.closingTime }})
-              </span>
-            </p>
+            <StallStatus
+              :opening-time="hawker.openingTime"
+              :closing-time="hawker.closingTime"
+              variant="inline"
+              :show-icon="true"
+              :show-hours="true"
+            />
             <div class="stall-header">
             <h1>{{ hawker.hawkerName || 'Stall Name' }}</h1>
           </div>
@@ -116,64 +116,13 @@
 
         <div v-else class="row">
           <div v-for="item in filteredFoodItems" :key="item.id" class="col-md-4 col-sm-6 col-12 ">
-            <div class="listing-card" @click="isStallOpen() && item.itemQty > 0 ? openItemModal(item) : null" :class="{ 'disabled': !isStallOpen() || item.itemQty === 0 }">
-              <div class="img-container">
-                <ImageWithLoader 
-                  :src="item.imageUrl" 
-                  :alt="item.itemName"
-                  image-class="foodImg"
-                  error-icon="fas fa-utensils"
-                />
-                <div v-if="item.itemQty === 0" class="sold-out-overlay">
-                  <span class="sold-out-text">SOLD OUT</span>
-                </div>
-                <div v-else class="counter-btn"
-                  :class="{ 'square': item.count > 0, 'disabled': !isStallOpen() }"
-                  @mouseenter="item.hover = true"
-                  @mouseleave="item.hover = false"
-                  @click.stop="isStallOpen() ? increment(item) : null">
-
-                  <template v-if="item.count === 0">+</template>
-                  <template v-else>
-                    <div v-if="item.hover" class="hover-controls">
-                      <button @click.stop="decrement(item)">-</button>
-                      {{ item.count }}
-                      <button @click.stop="increment(item)" :disabled="item.count >= item.itemQty">+</button>
-                    </div>
-                    <div v-else>
-                      {{ item.count }}
-                    </div>
-                  </template>
-                </div>
-              </div>
-
-              <div class="card-content">
-                <div class="d-flex flex-column w-100">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="item-name">{{ item.itemName }}</span>
-                    <!-- show original price if discount applied -->
-                    <span class="original-price" v-if="isDiscountApplied(item)">${{ item.itemPrice }}</span>
-                  </div>
-                  
-                  <!-- Tags and Allergens -->
-                  <div class="tags-container mt-2">
-                    <span v-for="tag in item.tags" :key="tag" class="tag dietary-tag">
-                      {{ tag }}
-                    </span>
-                    <span v-for="allergen in item.allergens" :key="allergen" class="tag allergen-tag">
-                      <i class="fa-solid fa-triangle-exclamation"></i> {{ allergen }}
-                    </span>
-                  </div>
-                  
-                  <div class="d-flex justify-content-between align-items-center mt-2">
-                    <span class="item-stock">Quantity left: <span :class="{ 'low-stock': item.itemQty <= 5 }">{{ item.itemQty }}</span></span>
-                    <span class="discounted-price">${{ isDiscountApplied(item) 
-                                                        ? (item.discountedPrice).toFixed(2)
-                                                        : item.itemPrice.toFixed(2) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ItemCard
+              :item="item"
+              :is-stall-open="isStallOpen()"
+              @increment="increment"
+              @decrement="decrement"
+              @open-modal="openItemModal"
+            />
           </div>
         </div>
       </div>
@@ -183,109 +132,14 @@
     </div>
 
     <!-- Item Details Modal -->
-    <transition name="modal-fade">
-    <div v-if="showModal" class="modal-overlay" @click="closeModal">
-      <div class="modal-container" @click.stop>
-        <button class="modal-close" @click="closeModal">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-        
-        <div class="modal-content-wrapper">
-          <!-- Left Side: Image -->
-          <div class="modal-image-section">
-            <ImageWithLoader 
-              :src="selectedItem.imageUrl" 
-              :alt="selectedItem.itemName" 
-              image-class="modal-image"
-              error-icon="fas fa-utensils"
-            />
-          </div>
-
-          <!-- Right Side: Info -->
-          <div class="modal-info-section">
-            <!-- Title and Price -->
-            <div class="modal-header">
-              <h2 class="modal-title">{{ selectedItem.itemName }}</h2>
-              
-              <div class="modal-price-section">
-                <span v-if="isDiscountApplied(selectedItem)" class="modal-original-price">
-                  ${{ selectedItem.itemPrice }}
-                </span>
-                <span class="modal-current-price">
-                  ${{ isDiscountApplied(selectedItem) 
-                      ? (selectedItem.itemPrice * ((100 - selectedItem.discount) / 100)).toFixed(2)
-                      : selectedItem.itemPrice }}
-                </span>
-                <span v-if="isDiscountApplied(selectedItem)" class="discount-badge">
-                  -{{ selectedItem.discount }}%
-                </span>
-              </div>
-            </div>
-            
-            <!-- Stock Info -->
-            <div class="modal-stock-info">
-              <i class="fa-solid fa-box"></i>
-              <span :class="{ 'low-stock': selectedItem.itemQty <= 5 }">
-                {{ selectedItem.itemQty }} available
-              </span>
-            </div>
-            
-            <!-- Description -->
-            <div v-if="selectedItem.description" class="modal-description">
-              <h3 class="section-title">Description</h3>
-              <p>{{ selectedItem.description }}</p>
-            </div>
-            
-            <!-- Special Instructions -->
-            <div class="modal-notes-section">
-              <h3 class="section-title">Special Instructions</h3>
-              <textarea 
-                id="buyer-notes"
-                v-model="buyerNotes"
-                class="notes-textarea"
-                placeholder="Add any special requests or dietary requirements..."
-                rows="3"
-                maxlength="200"
-              ></textarea>
-              <span class="char-count">{{ buyerNotes.length }}/200</span>
-            </div>
-
-            <!-- Quantity Controls -->
-            <div class="modal-quantity-section">
-              <h3 class="section-title">Quantity</h3>
-              <div class="quantity-controls">
-                <button 
-                  class="qty-btn" 
-                  @click="decrementModal"
-                  :disabled="modalQuantity <= 0">
-                  <i class="fa-solid fa-minus"></i>
-                </button>
-                <span class="qty-display">{{ modalQuantity }}</span>
-                <button 
-                  class="qty-btn" 
-                  @click="incrementModal"
-                  :disabled="modalQuantity >= selectedItem.itemQty">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="modal-actions">
-              <button class="btn-cancel" @click="closeModal">Cancel</button>
-              <button 
-                class="btn-add-to-cart" 
-                @click="addToCartFromModal"
-                :disabled="modalQuantity === 0 || !isStallOpen()">
-                <i class="fa-solid fa-cart-plus"></i>
-                Add to Cart
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </transition>
+    <ItemModal
+      :visible="showModal"
+      :item="selectedItem"
+      :is-discount-applied="selectedItem ? isDiscountApplied(selectedItem) : false"
+      :is-stall-open="isStallOpen()"
+      @close="closeModal"
+      @add-to-cart="handleAddToCart"
+    />
 
     <!-- Toast Notification -->
     <transition name="slide-up">
