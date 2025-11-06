@@ -157,7 +157,7 @@ export default {
       if(userRole.value == 'buyer'){
         router.push('/buyer-listings');
       } else if (userRole.value == 'hawker') {
-        router.push('/hawker-dashboard')
+        router.push('/hawker-analytics')
       }
     };
 
