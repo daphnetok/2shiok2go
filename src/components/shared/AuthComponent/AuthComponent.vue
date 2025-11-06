@@ -42,15 +42,26 @@
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="Enter your password"
-            required
-            :disabled="loading"
-            minlength="6"
-          />
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Enter your password"
+              required
+              :disabled="loading"
+              minlength="6"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              @click="showPassword = !showPassword"
+              :disabled="loading"
+              tabindex="-1"
+            >
+              <i :class="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </button>
+          </div>
         </div>
         <div v-if='!isLogin' class="form-group">
           <label for="role">Role</label>
@@ -61,7 +72,7 @@
           </select>
         </div>
         <div class="button-group">
-          <button type="submit" class="btn btn-primary" :disabled="loading">
+          <button type="submit" class="btn btn-login" :disabled="loading">
             {{ loading ? 'Processing...' : (isLogin ? 'Log in' : 'Sign up') }}
           </button>
           <button type="button" @click="googleSignIn" class="btn btn-google" :disabled="loading">
@@ -99,12 +110,14 @@
         <h2>Role: {{ userRole || 'Loading...' }}</h2>
         <p>{{ user.email }}</p>
       </div>
-      <button @click="handleSignOut" class="btn btn-danger">
-        Sign Out
-      </button>
-      <button @click="handleRedirect" class="btn btn-primary" :disabled="!userRole">
-        {{ userRole === 'buyer' ? 'Start browsing now!' : 'Go to Dashboard' }}
-      </button>
+      <div class="signed-in-actions">
+        <button @click="handleSignOut" class="btn btn-danger">
+          Sign Out
+        </button>
+        <button @click="handleRedirect" class="btn btn-primary" :disabled="!userRole">
+          {{ userRole === 'buyer' ? 'Start browsing now!' : 'Go to Dashboard' }}
+        </button>
+      </div>
     </section>
   </div>
 </template>
@@ -115,194 +128,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.auth-component {
-  padding: 20px;
-  width: 75%;
-  margin: 0 auto;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-  box-sizing: border-box;
-}
-
-.modal-content h3 {
-  margin-bottom: 20px;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.modal-content button {
-  margin: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background: #4285f4;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.modal-content button:disabled {
-  background: #cccccc;
-}
-
-.user-info {
-  background: #f5f5f5;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-  text-align: center;
-}
-
-.user-info h3 {
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.user-info h2 {
-  font-size: 18px;
-  font-weight: 500;
-  color: #666;
-}
-
-.email-form {
-  margin-bottom: 0;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: #555;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #4285f4;
-}
-
-.button-group {
-  margin-top: 20px;
-}
-
-button {
-  margin: 10px 0;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-google {
-  background: white;
-  color: #444;
-  border: 1px solid #ddd;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 8px;
-  width: 100%;
-}
-
-.btn-primary {
-  background: #4285f4;
-  color: white;
-  box-shadow: none;
-  justify-content: center;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-  justify-content: center;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.error-message {
-  color: #dc3545;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: #f8d7da;
-  border-radius: 4px;
-}
-
-.success-message {
-  color: #28a745;
-  font-weight: 500;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: #d4edda;
-  border-radius: 4px;
-}
-
-.manual-toggle {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.toggle-auth p {
-  font-size: 14px;
-}
-
-.toggle-auth a {
-  color: #4285f4;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.toggle-auth a:hover {
-  text-decoration: underline;
-}
-
-p{
-  margin-bottom: 0;
-}
-
+<style>
+@import './AuthComponent.css';
 </style>
