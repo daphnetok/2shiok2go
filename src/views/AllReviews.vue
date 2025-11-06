@@ -60,7 +60,7 @@
                   <i class="fa-solid fa-user"></i>
                 </div>
                 <div>
-                  <div class="reviewer-name-large">User {{ (review.userId || review.userid || '').substring(0, 8) || 'Anonymous' }}</div>
+                  <div class="reviewer-name-large">{{ getUserDisplayName(review.userId || review.userid) || 'Anonymous' }}</div>
                   <div class="review-date-large">{{ formatDate(review.createdAt) }}</div>
                 </div>
               </div>
@@ -162,6 +162,7 @@ export default {
     const videoFullscreen = ref({});
     const videoDuration = ref({});
     const activeVideoRef = ref(null);
+    const userDisplayNames = ref({});
 
     // Computed properties
     const displayRating = computed(() => {
@@ -179,6 +180,34 @@ export default {
         return dateB - dateA;
       });
     });
+
+    // Fetch displayName for a user
+    const fetchUserDisplayName = async (userId) => {
+      if (!userId || userDisplayNames.value[userId]) {
+        return userDisplayNames.value[userId] || null;
+      }
+
+      try {
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const displayName = userData.displayName || null;
+          userDisplayNames.value[userId] = displayName;
+          return displayName;
+        }
+      } catch (error) {
+        console.error('Error fetching user displayName:', error);
+      }
+      return null;
+    };
+
+    // Get displayName for a user (from cache or fetch)
+    const getUserDisplayName = (userId) => {
+      if (!userId) return null;
+      return userDisplayNames.value[userId] || null;
+    };
 
     // Fetch hawker and reviews data
     const fetchData = async () => {
@@ -214,6 +243,17 @@ export default {
           reviews.value = hawker.value.reviews;
           allReviews.value = hawker.value.reviews.userRatings || [];
 
+          // Fetch displayNames for all reviewers
+          const userIds = new Set();
+          allReviews.value.forEach(review => {
+            const reviewUserId = review.userId || review.userid;
+            if (reviewUserId) {
+              userIds.add(reviewUserId);
+            }
+          });
+          
+          // Fetch all displayNames in parallel
+          await Promise.all(Array.from(userIds).map(reviewUserId => fetchUserDisplayName(reviewUserId)));
         }
       } catch (error) {
         console.error('Error fetching reviews:', error);
@@ -466,7 +506,8 @@ export default {
       isVideoFullscreen,
       updateVideoProgress,
       getVideoProgress,
-      seekVideo
+      seekVideo,
+      getUserDisplayName
     };
   }
 };
