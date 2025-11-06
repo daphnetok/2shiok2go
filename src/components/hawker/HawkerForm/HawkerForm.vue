@@ -3,13 +3,19 @@
         <div v-if="errorMsg" class="alert alert-danger">
             {{ errorMsg }}
         </div>
-        <div v-if="successMsg" class="alert alert-success">
-            {{ successMsg }}
+        
+        <!-- Toast Notification -->
+         <div v-if="showToast" class="toast-notification ">
+            <div class="toast-content">
+                <p class="toast-message">{{ successMsg }}</p>
+                <button class="btn btn-ok" @click="closeToast">OK</button>
+            </div>
         </div>
+
         <form @submit.prevent="handleSubmit">
             <div class="form-group">
                 <label class="form-label">Stall Image</label>
-                <div id="img-container" class="mb-3" v-show="selectedFile">
+                <div id="img-container" class="mb-3" v-show="previewSelectedFileSRC">
                     <img id="image" :src="previewSelectedFileSRC">
                     <span class="remove-btn" v-if="previewSelectedFileSRC" @click="removeFile">
                         <font-awesome-icon icon="remove" class="fa-lg icon-green" />
@@ -110,7 +116,7 @@
                             v-model="form.priceRange"
                             required
                         />
-                        <span>$20 + ($$$$)</span>
+                        <span>$20+ ($$$$)</span>
                     </label>
                 </div>
             </div>

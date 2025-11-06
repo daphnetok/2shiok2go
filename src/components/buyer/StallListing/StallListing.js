@@ -6,6 +6,9 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import ReviewsSection from '../ReviewsSection/ReviewsSection.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
+import StallStatus from '@/components/buyer/StallStatus/StallStatus.vue';
+import ItemModal from './ItemModal.vue';
+import ItemCard from '@/components/buyer/ItemCard/ItemCard.vue';
 import { getUserLocation, calculateDistance } from '@/assets/composables/useGeolocation';
 
 export default {
@@ -13,7 +16,10 @@ export default {
   components: {
     ReviewsSection,
     LoadingSpinner,
-    ImageWithLoader
+    ImageWithLoader,
+    StallStatus,
+    ItemModal,
+    ItemCard
   },
   props: {
     searchQuery: {
@@ -23,21 +29,21 @@ export default {
   },
   emits: ['search'],
   methods: {
+    // Check if discount is applied for an item (used by ItemModal)
     isDiscountApplied(item) {
-      if (!item || !item.discountTime) return false; // prevent crash
-
+      if (!item || !item.discountTime) return false;
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
-
       const [hours, minutes] = item.discountTime.split(':');
       const discountStart = parseInt(hours) * 60 + parseInt(minutes);
       return currentTime >= discountStart;
-    }
-,
-
+    },
+    
+    // Helper method to check if stall is open (still needed for conditional logic in template)
+    // Returns true if stall is open or closing soon (users can still order)
     isStallOpen() {
       if (!this.hawker || !this.hawker.openingTime || !this.hawker.closingTime) {
-        return true; // Default to open if no time specified
+        return false;
       }
       
       const now = new Date();
@@ -49,7 +55,31 @@ export default {
       const openingTimeInMinutes = openHour * 60 + openMin;
       const closingTimeInMinutes = closeHour * 60 + closeMin;
       
-      return currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes;
+      // Handle overnight stalls (e.g., 18:00 to 02:00)
+      if (closingTimeInMinutes < openingTimeInMinutes) {
+        // Stall operates overnight
+        if (currentTime >= openingTimeInMinutes || currentTime < closingTimeInMinutes) {
+          // Currently open - check if closing soon
+          let minutesUntilClose;
+          if (currentTime >= openingTimeInMinutes) {
+            minutesUntilClose = (24 * 60 - currentTime) + closingTimeInMinutes;
+          } else {
+            minutesUntilClose = closingTimeInMinutes - currentTime;
+          }
+          // Return true if open (even if closing soon, users can still order)
+          return minutesUntilClose > 0;
+        }
+        return false;
+      } else {
+        // Normal operating hours
+        if (currentTime >= openingTimeInMinutes && currentTime < closingTimeInMinutes) {
+          // Currently open - check if closing soon
+          const minutesUntilClose = closingTimeInMinutes - currentTime;
+          // Return true if open (even if closing soon, users can still order)
+          return minutesUntilClose > 0;
+        }
+        return false;
+      }
     },
   },
   setup(props, { emit }) {
@@ -71,8 +101,6 @@ export default {
     // Modal-related refs
     const showModal = ref(false);
     const selectedItem = ref(null);
-    const modalQuantity = ref(0);
-    const buyerNotes = ref('');
     
     // Listen for auth state changes
     onAuthStateChanged(auth, (user) => {
@@ -105,48 +133,25 @@ export default {
     // Modal functions
     const openItemModal = (item) => {
       selectedItem.value = item;
-      modalQuantity.value = item.count || 0;
-      buyerNotes.value = item.notes || '';
       showModal.value = true;
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
       console.log('Opening modal for item:', item.itemName, 'Image URL:', item.imageUrl);
-    };
-
-    const handleImageError = (event) => {
-      console.error('Image failed to load:', event.target.src);
-      event.target.src = 'https://via.placeholder.com/800x400?text=No+Image+Available';
     };
 
     const closeModal = () => {
       showModal.value = false;
       selectedItem.value = null;
-      modalQuantity.value = 0;
-      buyerNotes.value = '';
-      document.body.style.overflow = 'auto'; // Restore scrolling
     };
 
-    const incrementModal = () => {
-      if (selectedItem.value && modalQuantity.value < selectedItem.value.itemQty) {
-        modalQuantity.value++;
-      }
-    };
-
-    const decrementModal = () => {
-      if (modalQuantity.value > 0) {
-        modalQuantity.value--;
-      }
-    };
-
-    const addToCartFromModal = async () => {
-      if (!selectedItem.value || modalQuantity.value === 0) return;
+    const handleAddToCart = async (data) => {
+      if (!data || !data.item || data.quantity === 0) return;
 
       // Update the item's count and notes
-      selectedItem.value.count = modalQuantity.value;
-      selectedItem.value.notes = buyerNotes.value;
+      data.item.count = data.quantity;
+      data.item.notes = data.notes;
 
       // Save to cart
-      await saveToCart(selectedItem.value);
-      saveItemToList(selectedItem.value);
+      await saveToCart(data.item);
+      saveItemToList(data.item);
 
       // Show success message
       triggerToast();
@@ -299,8 +304,7 @@ export default {
             tags: data.tags || [],
             allergens: data.allergens || [],
             count: savedData.qty,
-            notes: savedData.notes,
-            hover: false
+            notes: savedData.notes
           };
           // Add to selectedItems if count > 0
           if (savedData.qty > 0) {
@@ -548,14 +552,9 @@ export default {
       // Modal
       showModal,
       selectedItem,
-      modalQuantity,
-      buyerNotes,
       openItemModal,
       closeModal,
-      incrementModal,
-      decrementModal,
-      addToCartFromModal,
-      handleImageError
+      handleAddToCart
     };
   }
 };

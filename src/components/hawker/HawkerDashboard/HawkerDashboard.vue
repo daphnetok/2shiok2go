@@ -97,6 +97,12 @@
             <span>Analytics</span>
           </router-link>
         </li>
+        <li class="tab-item">
+          <router-link to="/edit-form" class="tab-link">
+            <i class="fas fa-file-edit"></i>
+            <span>Edit Stall Info</span>
+          </router-link>
+        </li>
       </ul>
     </nav>
   </div>

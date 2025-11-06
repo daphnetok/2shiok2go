@@ -1,13 +1,7 @@
 <template>
   <div class="cart-page">
 
-      <div class="cart-header">
-        <button @click="goBack" class="back-btn">
-          <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <h1>Checkout</h1>
-        <div class="cart-count">{{ cartCount }} {{ cartCount === 1 ? 'item' : 'items' }}</div>
-      </div>
+      <CartHeader :cart-count="cartCount" @go-back="goBack" />
 
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
@@ -23,18 +17,7 @@
       </div>
 
       <!-- Empty cart -->
-      <div v-else-if="cartItems.length === 0" class="empty-cart">
-        <div class="empty-cart-icon">
-          <i class="fa-solid fa-basket-shopping"></i>
-        </div>
-        <h2>Your cart is empty</h2>
-        <p>Add some delicious food to get started!</p>
-        <router-link to="/buyer-listings" class="router">
-        <button class="continue-shopping-btn">
-          Continue Shopping
-        </button>
-        </router-link>
-      </div>
+      <EmptyCart v-else-if="cartItems.length === 0" />
 
       <!-- Cart content -->
       <div v-else class="cart-content">
@@ -87,10 +70,10 @@
                     />
                     <label :for="`checkbox-${item.itemId}`" class="checkbox-label"></label>
                   </div>
-                  <div class="item-image">
+                  <div class="item-image" @click="!editMode && openItemModal(item)" :class="{ 'clickable': !editMode }">
                     <img :src="item.imageUrl || require('../../assets/img/stall.jpg')" :alt="item.itemName"/>
                   </div>
-                  <div class="item-details">
+                  <div class="item-details" @click="!editMode && openItemModal(item)" :class="{ 'clickable': !editMode }">
                     <h3 class="item-name">
                       {{ item.itemName }}
                       <span v-if="item.isClosed || item.isSoldOut" class="closed-indicator">
@@ -104,8 +87,8 @@
                       </span>
                     </p>
                     <div class="item-pricing">
-                      <span class="original-price">${{ safeToFixed(parsePrice(item.itemPrice)) }}</span>
-                      <span class="discounted-price">${{ calculateItemTotal(item) }}</span>
+                      <span v-if="isDiscountApplied(item) && item.discount > 0" class="original-price">${{ safeToFixed(parsePrice(item.itemPrice)) }}</span>
+                      <span class="discounted-price">${{ safeToFixed(calculateDiscountedPrice(item)) }}</span>
                     </div>
                   </div>
                   <div class="item-controls">
@@ -157,8 +140,9 @@
               <span class="normal">
                 <i class="fa-solid fa-info-circle"></i> Unavailable items
               </span>
-              <!-- <span class="unavailable-amount">-${{ safeToFixed(unavailableTotal) }}</span> -->
               <span class="unavailable-amount">-${{ safeToFixed(closedStallsTotal) }}</span>
+              <!-- <span class="unavailable-amount">-${{ safeToFixed(unavailableTotal) }}</span> -->
+
             </div>
             <div v-if="availableTotal !== cartTotal" class="payment-row available-total">
               <span><b>Total Available for Purchase</b></span>
@@ -378,21 +362,43 @@
     </div>
 
     <!-- Validation / Error Modal -->
-    <div v-if="showValidationModal" class="cart-modal-overlay" @click="showValidationModal = false">
-      <div class="cart-modal-content payment-error-modal" @click.stop>
+    <ValidationModal 
+      :visible="showValidationModal" 
+      :message="validationMessage"
+      @close="showValidationModal = false"
+    />
+
+    <!-- Saved Cards Picker Modal -->
+    <div v-if="showSavedCardsModal" class="modal-overlay" @click="closeSavedCardsModal">
+      <div class="modal-content" @click.stop>
         <div class="modal-header">
           <div class="modal-header-content">
-            <i class="fa-solid fa-circle-exclamation modal-icon"></i>
-            <h2 class="modal-h2">Payment Error</h2>
+            <i class="fa-solid fa-credit-card modal-icon"></i>
+            <h2 class="modal-h2">Choose a saved card</h2>
           </div>
         </div>
         <div class="modal-body">
-          <p class="error-message" style="white-space: pre-line;">{{ validationMessage }}</p>
+          <div class="saved-card-list">
+            <div v-for="(card, index) in savedCards" :key="index" class="saved-card-row" :class="{ selected: selectedCardIndex === index }">
+              <div class="saved-card-left">
+                <input type="radio" :id="`modal-saved-${index}`" name="modal-saved-card" :value="index" v-model="selectedCardIndex" class="saved-radio">
+                <label :for="`modal-saved-${index}`" class="saved-card-label">
+                  <span class="brand visa" v-if="card.brand === 'visa'">VISA</span>
+                  <span class="brand mastercard" v-else-if="card.brand === 'mastercard'">MasterCard</span>
+                  <span class="saved-card-mask">•••• •••• •••• {{ card.lastFour }}</span>
+                  <span class="saved-card-name">{{ card.cardholderName }}</span>
+                  <span class="saved-card-exp">Exp {{ card.expiryDate }}</span>
+                </label>
+              </div>
+              <div class="saved-card-actions">
+                <button type="button" class="card-action delete" @click="deleteSavedCard(index)">Delete</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button class="modal-btn proceed-btn" @click="showValidationModal = false">
-            OK
-          </button>
+        <div class="modal-footer inline">
+          <button class="modal-btn proceed-btn" @click="applySavedCardSelection">Use This Card</button>
+          <button class="modal-btn cancel-btn" @click="closeSavedCardsModal">Cancel</button>
         </div>
       </div>
     </div>
@@ -430,8 +436,18 @@
       </div>
     </div>
 
+    <!-- Item Details Modal -->
+    <ItemModal
+      :visible="showItemModal"
+      :item="selectedCartItem"
+      :is-discount-applied="selectedCartItem ? isDiscountApplied(selectedCartItem) : false"
+      :is-stall-open="selectedCartItem ? !selectedCartItem.isClosed && !selectedCartItem.isSoldOut : false"
+      @close="closeItemModal"
+      @add-to-cart="handleCartItemUpdate"
+    />
+
 </template>
-zz
+
 <script src="./ShoppingCart.js"> </script>
 
 <style scoped>

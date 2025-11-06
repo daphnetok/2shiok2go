@@ -107,3 +107,14 @@
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
+
+.form-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin: 30px auto 30px;
+  width: 95%;
+  max-width: 1200px; /* Prevent touching screen edges */
+  box-sizing: border-box;
+}

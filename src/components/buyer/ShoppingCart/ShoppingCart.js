@@ -1,13 +1,21 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { db } from '/firebase/config';
 import { doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, collection, addDoc, orderBy, limit, setDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { updateStockAfterOrder } from '/firebase/firestore';
 import { runTransaction } from 'firebase/firestore';
+import ItemModal from '@/components/buyer/StallListing/ItemModal.vue';
+import CartHeader from './CartHeader/CartHeader.vue';
+import EmptyCart from './EmptyCart/EmptyCart.vue';
 
 export default {
   name: 'ShoppingCart',
+  components: {
+    ItemModal,
+    CartHeader,
+    EmptyCart
+  },
   setup() {
     const router = useRouter();
     const auth = getAuth();
@@ -29,6 +37,10 @@ export default {
     const deleteMode = ref(null); // 'single' | 'selected' | 'clear'
     const deleteTargetItem = ref(null);
 
+    // Item modal state
+    const showItemModal = ref(false);
+    const selectedCartItem = ref(null);
+
     
     // Card information state
     const savedCards = ref([]);
@@ -42,7 +54,7 @@ export default {
       expiryDate: '',
       cvv: ''
     });
-
+    
     // Card validation state
     const cardNumberError = ref(null);
     const fieldErrors = ref({
@@ -544,7 +556,17 @@ export default {
         const itemPrice = parsePrice(item.itemPrice);
         const discount = safeParseNumber(item.discount, 0);
         const qty = safeParseNumber(item.qty, 0);
-        const price = itemPrice * ((100 - discount) / 100);
+        
+        // Check if discount should be applied based on discount time
+        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+        
+        let price;
+        if (shouldApplyDiscount) {
+          price = itemPrice * ((100 - discount) / 100);
+        } else {
+          price = itemPrice;
+        }
+        
         const itemTotal = price * qty;
         const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
         return total + finalTotal;
@@ -572,7 +594,17 @@ export default {
         const itemPrice = parsePrice(item.itemPrice);
         const discount = safeParseNumber(item.discount, 0);
         const qty = safeParseNumber(item.qty, 0);
-        const price = itemPrice * ((100 - discount) / 100);
+        
+        // Check if discount should be applied based on discount time
+        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+        
+        let price;
+        if (shouldApplyDiscount) {
+          price = itemPrice * ((100 - discount) / 100);
+        } else {
+          price = itemPrice;
+        }
+        
         const itemTotal = price * qty;
         const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
         return total + finalTotal;
@@ -593,7 +625,17 @@ export default {
         const itemPrice = parsePrice(item.itemPrice);
         const discount = safeParseNumber(item.discount, 0);
         const qty = safeParseNumber(item.qty, 0);
-        const price = itemPrice * ((100 - discount) / 100);
+        
+        // Check if discount should be applied based on discount time
+        const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+        
+        let price;
+        if (shouldApplyDiscount) {
+          price = itemPrice * ((100 - discount) / 100);
+        } else {
+          price = itemPrice;
+        }
+        
         const itemTotal = price * qty;
         const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
         return total + finalTotal;
@@ -607,12 +649,38 @@ export default {
       return isNaN(result) || !isFinite(result) ? 0 : result;
     });
 
+    // Calculate discounted price for a single item (checking discount time)
+    const calculateDiscountedPrice = (item) => {
+      const itemPrice = parsePrice(item.itemPrice);
+      const discount = safeParseNumber(item.discount, 0);
+      
+      // Check if discount should be applied based on discount time
+      const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+      
+      if (shouldApplyDiscount) {
+        const discountedPrice = itemPrice * ((100 - discount) / 100);
+        return isNaN(discountedPrice) || !isFinite(discountedPrice) ? itemPrice : discountedPrice;
+      }
+      
+      return itemPrice;
+    };
+
     // Calculate individual item total
     const calculateItemTotal = (item) => {
       const itemPrice = parsePrice(item.itemPrice);
       const discount = safeParseNumber(item.discount, 0);
       const qty = safeParseNumber(item.qty, 0);
-      const price = itemPrice * ((100 - discount) / 100);
+      
+      // Check if discount should be applied based on discount time
+      const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+      
+      let price;
+      if (shouldApplyDiscount) {
+        price = itemPrice * ((100 - discount) / 100);
+      } else {
+        price = itemPrice;
+      }
+      
       const itemTotal = price * qty;
       const finalTotal = isNaN(itemTotal) || !isFinite(itemTotal) ? 0 : itemTotal;
       return finalTotal.toFixed(2);
@@ -800,6 +868,70 @@ export default {
       showClosedStallsModal.value = false;
     };
 
+    // Item modal functions
+    const openItemModal = (item) => {
+      if (editMode.value) return; // Don't open modal in edit mode
+      
+      // Convert cart item to format expected by ItemModal
+      const modalItem = {
+        id: item.itemId,
+        itemName: item.itemName,
+        itemPrice: item.itemPrice,
+        itemQty: item.itemQty || 0,
+        discount: item.discount || 0,
+        discountTime: item.discountTime || null,
+        imageUrl: item.imageUrl || '',
+        description: item.description || '',
+        count: item.qty || 0,
+        notes: item.notes || '',
+        isClosed: item.isClosed || false,
+        isSoldOut: item.isSoldOut || false
+      };
+      
+      selectedCartItem.value = modalItem;
+      showItemModal.value = true;
+    };
+
+    const closeItemModal = () => {
+      showItemModal.value = false;
+      selectedCartItem.value = null;
+    };
+
+    const handleCartItemUpdate = async (data) => {
+      if (!data || !data.item || data.quantity === 0) {
+        // If quantity is 0, remove from cart
+        const updatedItems = cartItems.value.filter(cartItem => cartItem.itemId !== data.item.id);
+        await updateCartInFirebase(updatedItems);
+        closeItemModal();
+        return;
+      }
+
+      // Update cart item with new quantity and notes
+      const updatedItems = cartItems.value.map(cartItem => {
+        if (cartItem.itemId === data.item.id) {
+          return {
+            ...cartItem,
+            qty: data.quantity,
+            notes: data.notes || ''
+          };
+        }
+        return cartItem;
+      });
+
+      await updateCartInFirebase(updatedItems);
+      closeItemModal();
+    };
+
+    // Check if discount is applied for an item (used by ItemModal)
+    const isDiscountApplied = (item) => {
+      if (!item || !item.discountTime) return false;
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      const [hours, minutes] = item.discountTime.split(':');
+      const discountStart = parseInt(hours) * 60 + parseInt(minutes);
+      return currentTime >= discountStart;
+    };
+
     const proceedWithAvailable = async () => {
       showClosedStallsModal.value = false;
       // Remove unavailable items from cart
@@ -969,7 +1101,17 @@ export default {
             const itemPrice = parsePrice(item.itemPrice);
             const discount = safeParseNumber(item.discount, 0);
             const qty = safeParseNumber(item.qty, 1);
-            const discountedPrice = itemPrice * ((100 - discount) / 100);
+            
+            // Check if discount should be applied based on discount time
+            const shouldApplyDiscount = isDiscountApplied(item) && discount > 0;
+            
+            let discountedPrice;
+            if (shouldApplyDiscount) {
+              discountedPrice = itemPrice * ((100 - discount) / 100);
+            } else {
+              discountedPrice = itemPrice;
+            }
+            
             const itemTotal = discountedPrice * qty;
             
             const safeItemPrice = isNaN(itemPrice) || !isFinite(itemPrice) ? 0 : itemPrice;
@@ -986,7 +1128,8 @@ export default {
               discountedPrice: safeDiscountedPrice,
               qty: safeQty,
               imageUrl: item.imageUrl || '',
-              itemTotal: safeItemTotal
+              itemTotal: safeItemTotal,
+              requirements: item.notes || ''
             };
           });
           
@@ -1060,6 +1203,18 @@ export default {
       }
     };
 
+    // Watch for modal visibility to lock/unlock body scroll
+    watch([showItemModal, showClosedStallsModal, showValidationModal, showSavedCardsModal, showDeleteModal], 
+      ([itemModal, closedModal, validationModal, savedCardsModal, deleteModal]) => {
+        const anyModalOpen = itemModal || closedModal || validationModal || savedCardsModal || deleteModal;
+        if (anyModalOpen) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = 'auto';
+        }
+      }
+    );
+
     // Initialize on mount
     onMounted(() => {
       console.log('ShoppingCart component mounted');
@@ -1096,6 +1251,9 @@ export default {
     
     // Cleanup on unmount
     onUnmounted(() => {
+      // Restore body scroll in case modal was still open
+      document.body.style.overflow = 'auto';
+      
       if (authUnsubscribe.value) {
         authUnsubscribe.value();
       }
@@ -1141,6 +1299,7 @@ export default {
       clearAllItems,
       checkout,
       calculateItemTotal,
+      calculateDiscountedPrice,
       formatPrice,
       parsePrice,
       validateQuantity,
@@ -1212,7 +1371,14 @@ export default {
       deleteMode,
       deleteTargetItem,
       confirmDelete,
-      cancelDelete
+      cancelDelete,
+      // Item modal
+      showItemModal,
+      selectedCartItem,
+      openItemModal,
+      closeItemModal,
+      handleCartItemUpdate,
+      isDiscountApplied
     };
   }
 };

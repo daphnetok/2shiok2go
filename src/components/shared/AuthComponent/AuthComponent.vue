@@ -251,11 +251,13 @@ button:disabled {
   background: #4285f4;
   color: white;
   box-shadow: none;
+  justify-content: center;
 }
 
 .btn-secondary {
   background: #6c757d;
   color: white;
+  justify-content: center;
 }
 
 .btn-danger {
