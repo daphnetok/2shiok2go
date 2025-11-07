@@ -1,5 +1,5 @@
 <template>
-  <div class="nav-container">
+  <div class="hawker-dashboard-container">
     <div>
       <div class="container-fluid px-3 px-md-4">
         <!-- Navigation Tabs -->
@@ -120,6 +120,7 @@ const handleStallUpdated = () => {
 <style scoped>
 @import '@/assets/css/HawkerDashboard.css';
 
+
 .edit-form-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 35%, #a7f3d0 65%, #6ee7b7 100%);
@@ -162,4 +163,5 @@ const handleStallUpdated = () => {
   color: #666;
   font-size: 1rem;
 }
+
 </style>
