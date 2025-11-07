@@ -125,7 +125,7 @@
         </div>
 
         <div v-else class="row">
-          <div v-for="item in filteredFoodItems" :key="item.id" class="col-md-4 col-sm-6 col-12 ">
+          <div v-for="item in filteredFoodItems" :key="item.id" class="col-xl-3 col-md-4 col-sm-6 col-12 ">
             <ItemCard
               :item="item"
               :is-stall-open="isStallOpen()"
