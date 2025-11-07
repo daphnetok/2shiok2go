@@ -11,6 +11,7 @@ import {
   userListings,
   activeListings,
   inactiveListings,
+  findListingByHawkerAndName,
 } from '@/components/hawker/useSharedListings';
 import AIFoodDescription from './AIFoodDescription.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
@@ -354,13 +355,45 @@ export default {
           showAlert('error', 'Please set a discount start time first.');
           return;
         }
-        const listingsToUpdate =
-          selectAll.value
-            ? userListings.value // if "All My Listings" is checked
-            : userListings.value.filter(l => selectedListings.value.includes(l.id));
 
-        for (const listing of listingsToUpdate) {
-          await updateListing(listing.id, { discountTime: form.discountTime });
+        const listingsPool = selectAll.value
+          ? userListings.value
+          : userListings.value.filter(l => selectedListings.value.includes(l.id));
+
+        if (!listingsPool.length) {
+          showAlert('error', 'Please select at least one listing.');
+          return;
+        }
+
+        const seenKeys = new Set();
+        let updatesPerformed = 0;
+
+        for (const listing of listingsPool) {
+          const itemName = listing?.itemName;
+          const hawkerName = listing?.hawkerName;
+
+          if (!itemName || !hawkerName) {
+            continue;
+          }
+
+          const key = `${String(hawkerName).trim().toLowerCase()}::${String(itemName).trim().toLowerCase()}`;
+          if (seenKeys.has(key)) {
+            continue;
+          }
+          seenKeys.add(key);
+
+          const match = findListingByHawkerAndName(itemName, hawkerName);
+          if (!match?.id) {
+            continue;
+          }
+
+          await updateListing(match.id, { discountTime: form.discountTime });
+          updatesPerformed += 1;
+        }
+
+        if (updatesPerformed === 0) {
+          showAlert('error', 'No matching listings found for the selected items.');
+          return;
         }
 
         showAlert('success', 'Discount start time successfully applied!');

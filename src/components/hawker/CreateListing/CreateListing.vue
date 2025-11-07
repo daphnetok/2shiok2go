@@ -83,7 +83,16 @@
                   <i class="fas fa-plus"></i>
                   <span>Create Another Listing</span>
                 </button>
-              </div>
+                   <div class="d-flex justify-content-end mt-3">
+                     <button
+                       type="button"
+                       class="apply-discount-btn"
+                       @click="applyDiscountTime"
+                     >
+                       Apply to Selected Listings
+                     </button>
+                   </div>
+                 </div>
             </div>
           </div>
         </div>

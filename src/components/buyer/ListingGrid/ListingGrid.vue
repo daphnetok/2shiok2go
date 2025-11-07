@@ -68,6 +68,26 @@
             </div>
           </div>
         </div>
+        <div v-else-if="!searchQuery && hawker.dietaryMatchingItems && hawker.dietaryMatchingItems.length > 0" class="matching-items">
+          <div class="matching-items-header">
+            <span class="matching-items-label">Dietary-friendly items:</span>
+          </div>
+          <div class="matching-items-grid">
+            <div 
+              v-for="(item, idx) in hawker.dietaryMatchingItems" 
+              :key="idx" 
+              class="matching-item"
+            >
+              <img 
+                :src="item.imageUrl" 
+                :alt="item.itemName"
+                class="matching-item-image"
+                @error="handleImageError"
+              />
+              <span class="matching-item-name">{{ item.itemName }}</span>
+            </div>
+          </div>
+        </div>
       </div>
       </div>
     </div>
