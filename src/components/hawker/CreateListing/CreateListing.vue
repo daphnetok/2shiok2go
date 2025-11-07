@@ -125,9 +125,9 @@
 
         <!-- Images Section -->
          <div class="p-2 section-card">
-          <h3 class="section-title">Images</h3>
+          <h3 class="section-title">Food Details</h3>
           <div class="row mb-3 px-md-5">
-            <div class="col-md-5 p-0 p-md-4">
+            <div class="col-md-6 p-0 p-md-4">
               <div class="uploader-card">
                 <div class="uploader-drop" 
                   @click="$refs.fileInput.click()" 
@@ -170,7 +170,7 @@
               </div>
             </div>
               
-            <div class="col-md-7 p-0">
+            <div class="col-md-6 p-0">
               <!-- Item Name field -->
               <div class="mb-3">
                 <label for="itemName" class="form-label">Item Name</label>
@@ -295,7 +295,7 @@
         <!-- Quantity field -->
          <!-- Inventory & Tags Section -->
          <div class="p-2 section-card">
-           <h3 class="section-title heading-strong">Inventory & Tags</h3>
+           <h3 class="section-title">Inventory & Tags</h3>
            <div class="row mb-3 px-md-5">
              <label class="form-label">Quantity</label>
             <div class="col-md-6 p-0 p-md-2">

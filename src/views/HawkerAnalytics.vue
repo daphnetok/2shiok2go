@@ -208,7 +208,7 @@
                 :class="globalFilter === 'custom' ? 'btn-success' : 'btn-outline-success'"
                 @click="toggleDatePicker"
                 style="border-radius: 10px; transition: all 0.3s ease; font-size: 0.875rem; white-space: nowrap;">
-                <i class="fas fa-calendar-range me-1"></i>
+                <i class="fas fa-calendar me-1"></i>
                 <span class="d-none d-sm-inline">{{ customDateLabel }}</span>
               </button>
               

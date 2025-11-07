@@ -33,7 +33,7 @@
 
         <!-- Message Section -->
         <div class="alert-message-section">
-          <h3 class="alert-title">{{ alert.actionType }}</h3>
+          <!-- <h3 class="alert-title">{{ alert.actionType }}</h3> -->
           <p class="alert-message">{{ alert.message }}</p>
         </div>
 
