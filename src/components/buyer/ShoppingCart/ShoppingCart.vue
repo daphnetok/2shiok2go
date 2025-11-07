@@ -87,8 +87,8 @@
                       </span>
                     </p>
                     <div class="item-pricing">
-                      <span v-if="isDiscountApplied(item) && item.discount > 0" class="original-price">${{ safeToFixed(parsePrice(item.itemPrice)) }}</span>
-                      <span class="discounted-price">${{ safeToFixed(calculateDiscountedPrice(item)) }}</span>
+                      <span v-if="(isDiscountApplied(item) && item.discount > 0) || (item.isClosed || item.isSoldOut)" class="original-price">${{ safeToFixed(parsePrice(item.itemPrice)) }}</span>
+                      <span v-if="!(item.isClosed || item.isSoldOut)" class="discounted-price">${{ safeToFixed(calculateDiscountedPrice(item)) }}</span>
                     </div>
                   </div>
                   <div class="item-controls">

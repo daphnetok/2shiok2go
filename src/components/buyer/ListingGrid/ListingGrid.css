@@ -19,6 +19,14 @@
   opacity: 0.7;
 }
 
+.header-with-location h2 {
+  margin-bottom: 0;
+  color: #333;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 10px;
+}
+
 h2 {
   margin-bottom: 0;
   color: #333;

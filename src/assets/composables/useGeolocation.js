@@ -23,7 +23,7 @@ export const calculateDistance = (lat1, lon1, lat2, lon2) => {
 export const reverseGeocode = async (latitude, longitude) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   if(!apiKey){
-    console.error('Google Maps API key not found');
+    console.error('Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file');
     return 'Location detected';
   }
 
@@ -31,15 +31,43 @@ export const reverseGeocode = async (latitude, longitude) => {
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
     );
+    
+    if (!response.ok) {
+      console.error('Geocoding API request failed:', response.status, response.statusText);
+      return 'Location detected';
+    }
+    
     const data = await response.json();
-    console.log(data);
-    if(data.status === 'OK' && data.results.length > 0) {
+    
+    // Handle API error responses
+    if (data.status !== 'OK') {
+      console.error('Geocoding API error:', data.status, data.error_message || '');
+      
+      switch(data.status) {
+        case 'REQUEST_DENIED':
+          console.error('API key is invalid or Geocoding API is not enabled in Google Cloud Console');
+          break;
+        case 'OVER_QUERY_LIMIT':
+          console.error('Geocoding API quota exceeded');
+          break;
+        case 'INVALID_REQUEST':
+          console.error('Invalid request parameters');
+          break;
+        case 'ZERO_RESULTS':
+          return 'Unknown location';
+        default:
+          console.error('Unknown geocoding error:', data.status);
+      }
+      return 'Location detected';
+    }
+    
+    if(data.results && data.results.length > 0) {
       // find first result that isn't a plus code
       const addressResult = data.results.find(
         result => !result.formatted_address.includes('+') &&
-        result.types.includes('street_address') ||
+        (result.types.includes('street_address') ||
         result.types.includes('route') || 
-        result.types.includes('premise')
+        result.types.includes('premise'))
       );
 
       // fallback to second result if first is a plus code, use first if there is no better match
