@@ -6,14 +6,17 @@
         </div>
   </div>
 
-  <!-- Floating Cart Button -->
-  <FloatingCartButton />
+<!-- Floating Cart Button -->
+<FloatingCartButton v-if="showCartButton" />
 
 </template>
 
 <script>
 import StallListing from '../components/buyer/StallListing/StallListing.vue';
 import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '/firebase/config';
 
 export default { 
   name: "BuyerListings",
@@ -23,12 +26,45 @@ export default {
   },
   data() {
     return {
-      searchQuery: ''
+      searchQuery: '',
+      currentUser: null,
+      userRole: '',
+      roleCheckComplete: false,
+      unsubscribeAuth: null
     };
+  },
+  computed: {
+    showCartButton() {
+      return this.roleCheckComplete && this.userRole !== 'hawker';
+    }
   },
   methods: {
     handleSearch(query) {
       this.searchQuery = query;
+    }
+  },
+  created() {
+    this.unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      this.currentUser = user;
+
+      try {
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          this.userRole = userDoc.exists() ? userDoc.data().role || '' : '';
+        } else {
+          this.userRole = '';
+        }
+      } catch (error) {
+        console.error('Error determining user role for buyer view:', error);
+        this.userRole = '';
+      } finally {
+        this.roleCheckComplete = true;
+      }
+    });
+  },
+  beforeUnmount() {
+    if (typeof this.unsubscribeAuth === 'function') {
+      this.unsubscribeAuth();
     }
   }
 };

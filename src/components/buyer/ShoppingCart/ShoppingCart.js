@@ -1017,6 +1017,102 @@ export default {
       return { day, date, time };
     };
 
+    const revalidateStockLevels = async (itemsToCheck) => {
+      if (!itemsToCheck || itemsToCheck.length === 0) {
+        return { success: true };
+      }
+
+      const updatedItems = cartItems.value.map(item => ({ ...item }));
+      const outOfStockItems = [];
+      const adjustedItems = [];
+
+      await Promise.all(itemsToCheck.map(async (item) => {
+        try {
+          const itemRef = doc(db, 'itemListings', item.itemId);
+          const itemSnap = await getDoc(itemRef);
+          const cartIndex = updatedItems.findIndex(cartItem => cartItem.itemId === item.itemId);
+
+          if (cartIndex === -1) {
+            return;
+          }
+
+          if (!itemSnap.exists()) {
+            outOfStockItems.push(item.itemName);
+            updatedItems[cartIndex] = {
+              ...updatedItems[cartIndex],
+              itemQty: 0,
+              qty: 0,
+              isSoldOut: true
+            };
+            return;
+          }
+
+          const itemData = itemSnap.data();
+          const currentQty = parseInt(itemData.itemQty ?? 0, 10);
+          const safeCurrentQty = isNaN(currentQty) ? 0 : currentQty;
+
+          updatedItems[cartIndex] = {
+            ...updatedItems[cartIndex],
+            itemQty: safeCurrentQty,
+            itemPrice: itemData.itemPrice ?? updatedItems[cartIndex].itemPrice,
+            discount: itemData.discount ?? updatedItems[cartIndex].discount,
+            discountedPrice: itemData.discountedPrice ?? updatedItems[cartIndex].discountedPrice
+          };
+
+          if (safeCurrentQty <= 0) {
+            outOfStockItems.push(item.itemName);
+            updatedItems[cartIndex] = {
+              ...updatedItems[cartIndex],
+              qty: 0,
+              isSoldOut: true
+            };
+            return;
+          }
+
+          updatedItems[cartIndex] = {
+            ...updatedItems[cartIndex],
+            isSoldOut: false
+          };
+
+          const currentQtyInCart = safeParseNumber(updatedItems[cartIndex].qty, 0);
+          if (currentQtyInCart > safeCurrentQty) {
+            adjustedItems.push({
+              name: item.itemName,
+              available: safeCurrentQty
+            });
+            updatedItems[cartIndex] = {
+              ...updatedItems[cartIndex],
+              qty: safeCurrentQty
+            };
+          }
+        } catch (err) {
+          console.error(`Error revalidating stock for item ${item.itemId}:`, err);
+        }
+      }));
+
+      const hasChanges = outOfStockItems.length > 0 || adjustedItems.length > 0;
+      if (hasChanges) {
+        await updateCartInFirebase(updatedItems);
+        cartItems.value = updatedItems;
+      }
+
+      if (outOfStockItems.length > 0) {
+        const message = outOfStockItems.length === 1
+          ? `Sorry, ${outOfStockItems[0]} is now out of stock. We've updated your cart.`
+          : `Sorry, the following items are now out of stock: ${outOfStockItems.join(', ')}. We've updated your cart.`;
+        return { success: false, message };
+      }
+
+      if (adjustedItems.length > 0) {
+        const message = adjustedItems.length === 1
+          ? `${adjustedItems[0].name} only has ${adjustedItems[0].available} left. We've updated your cart.`
+          : `Some item quantities have been updated based on current stock. Please review your cart before checking out.`;
+        return { success: false, message };
+      }
+
+      return { success: true };
+    };
+
     // Checkout
     const checkout = async () => {
       if (cartItems.value.length === 0) {
@@ -1037,10 +1133,26 @@ export default {
       }
       
       // Filter out unavailable items
-      const availableItems = cartItems.value.filter(item => !item.isClosed && !item.isSoldOut);
+      let availableItems = cartItems.value.filter(item => !item.isClosed && !item.isSoldOut);
       
       if (availableItems.length === 0) {
         validationMessage.value = 'No available items to order. Please check back when stalls are open.';
+        showValidationModal.value = true;
+        return;
+      }
+
+      const stockCheck = await revalidateStockLevels(availableItems);
+      if (!stockCheck.success) {
+        validationMessage.value = stockCheck.message || 'Stock levels have changed. Please review your cart before placing the order.';
+        showValidationModal.value = true;
+        return;
+      }
+
+      // Refresh available items in case quantities changed
+      availableItems = cartItems.value.filter(item => !item.isClosed && !item.isSoldOut && safeParseNumber(item.qty, 0) > 0);
+
+      if (availableItems.length === 0) {
+        validationMessage.value = 'All selected items are now unavailable. Please review your cart.';
         showValidationModal.value = true;
         return;
       }
