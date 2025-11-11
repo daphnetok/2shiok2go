@@ -84,7 +84,9 @@ export default {
 }
 
 .tab-item {
-  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .tab-link {
