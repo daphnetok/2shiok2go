@@ -19,6 +19,14 @@ body.dark-mode .stall-listing .container {
   color: #e2e8f0;
 }
 
+body.dark-mode .small-search-box {
+  background: rgba(248, 250, 252, 0.95);
+}
+
+body.dark-mode .small-search-input {
+  color: #000000;
+}
+
 /* Loading and Error States */
 .text-center {
   text-align: center;
