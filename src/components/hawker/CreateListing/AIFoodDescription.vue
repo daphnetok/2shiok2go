@@ -166,23 +166,28 @@ const generateDescription = async () => {
       base64Image = await convertToBase64(props.selectedFile);
     } else if (props.imageUrl) {
       try {
-        const storage = getStorage();
-        const path = props.imageUrl.includes("/o/")
-          ? decodeURIComponent(props.imageUrl.split("/o/")[1].split("?")[0])
-          : props.imageUrl;
+        let blob;
 
-        const imageRef = storageRef(storage, path);
+        if (props.imageUrl.startsWith('https://firebasestorage.googleapis.com')) {
+          // Firebase-hosted URL (convert to storage path)
+          const storage = getStorage();
+          const path = decodeURIComponent(props.imageUrl.split('/o/')[1].split('?')[0]);
+          const imageRef = storageRef(storage, path);
+          blob = await withTimeout(getBlob(imageRef), 10000);
+        } else {
+          // Public URL (fetch directly)
+          const response = await withTimeout(fetch(props.imageUrl), 10000);
+          blob = await response.blob();
+        }
 
-        // ⏳ Attempt to fetch image with timeout
-        const blob = await withTimeout(getBlob(imageRef), 10000);
         base64Image = await convertToBase64(blob);
       } catch (err) {
         if (err.message === "timeout") {
           console.warn("⏰ Image fetch timed out after 8s — using text-only mode");
         } else {
-          console.warn("⚠️ Could not load image from Firebase Storage:", err);
+          console.warn("⚠️ Could not load image from URL:", err);
         }
-        base64Image = null; // fall back to text-only
+        base64Image = null; // fallback
       }
     }
 

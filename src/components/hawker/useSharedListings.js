@@ -132,16 +132,27 @@ export const deleteListingWithImage = async (listingId, imagePath) => {
   if (!confirmed) return;
 
   try {
-    if (imagePath) {
-      await deleteImage(imagePath);
-    }
+    // Check if other listings still use this same image
+    const stillUsed = allListings.value.some(
+      l => l.imagePath === imagePath && l.id !== listingId
+    );
+
     await deleteListing(listingId);
+
+    if (imagePath && !stillUsed) {
+      await deleteImage(imagePath);
+      console.log(`Image deleted from storage: ${imagePath}`);
+    } else if (stillUsed) {
+      console.log(`Image retained, still used by other listings.`);
+    }
+
     showAlert('success', 'Listing deleted successfully!');
   } catch (error) {
     console.error("Error deleting listing: ", error);
     showAlert('error', 'Error deleting listing: ' + error.message);
   }
 };
+
 
 export const editModalVisible = ref(false);
 export const listingToEdit = ref(null);
@@ -189,6 +200,12 @@ export const duplicateListing = async (listing) => {
       hawkerName: listing.hawkerName,
       userId: listing.userId
     };
+    
+    // Clean up undefined or null fields
+    Object.keys(duplicateData).forEach((key) => {
+      if (duplicateData[key] === undefined) delete duplicateData[key];
+    });
+
     await createListing(duplicateData);
     showAlert('success', 'Listing duplicated successfully!');
   } catch (error) {

@@ -34,8 +34,8 @@ export default {
       discountTime: "",
     });
 
-    // Images state (max 5), with drag-sort and main image selection
-    const images = ref([]); // [{ file, previewUrl, main: boolean }]
+    const imageFile = ref(null);
+    const imagePreviewUrl = ref("");
     const imageError = ref("");
     const isSubmitting = ref(null);
     const errorMsg = ref("");
@@ -76,76 +76,38 @@ export default {
       );
     });
 
-    const mainImageFile = computed(() => {
-      const main = images.value.find(i => i.main);
-      return main?.file || images.value[0]?.file || null;
-    });
+   const onFileSelected = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    const processFiles = (files) => {
-      imageError.value = "";
-      if (!files || !files.length) return;
-      const availableSlots = Math.max(0, 5 - images.value.length);
-      const filesToAdd = Array.from(files).slice(0, availableSlots);
-      if (files.length > availableSlots) {
-        imageError.value = "You can upload up to 5 photos.";
-      }
-      for (const file of filesToAdd) {
-        const previewUrl = URL.createObjectURL(file);
-        images.value.push({ file, previewUrl, main: false });
-      }
-      // If no main image yet, set the first as main
-      if (!images.value.some(img => img.main) && images.value.length > 0) {
-        images.value[0].main = true;
-      }
-    };
+    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      imageError.value = "Only JPG and PNG formats are allowed.";
+      return;
+    }
 
-    const onFileSelected = (event) => {
-      processFiles(event.target.files);
-      // Reset input value to allow re-uploading the same file name
-      if (fileInput.value) fileInput.value.value = "";
-    };
+    // Revoke previous preview
+    if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value);
 
-    const onFileDrop = (event) => {
-      event.preventDefault();
-      const files = event.dataTransfer?.files;
-      if (files) {
-        processFiles(files);
-      }
-    };
+    imageFile.value = file;
+    imagePreviewUrl.value = URL.createObjectURL(file);
+    imageError.value = "";
+    if (fileInput.value) fileInput.value.value = "";
+  };
 
-    const removeImageAt = (index) => {
-      const img = images.value[index];
-      if (img?.previewUrl) URL.revokeObjectURL(img.previewUrl);
-      images.value.splice(index, 1);
-      // Ensure there is still a main image
-      if (!images.value.some(i => i.main) && images.value.length > 0) {
-        images.value[0].main = true;
-      }
-    };
+  const removeImage = () => {
+    if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value);
+    imageFile.value = null;
+    imagePreviewUrl.value = "";
+  };
 
-    const setMainImage = (index) => {
-      images.value.forEach((img, i) => { img.main = i === index; });
-    };
-
-    // Drag and drop sorting
-    const dragIndex = ref(null);
-    const onDragStart = (index) => { dragIndex.value = index; };
-    const onDragOver = (event) => { event.preventDefault(); };
-    const onDrop = (event, index) => {
-      event.preventDefault();
-      if (dragIndex.value === null || dragIndex.value === index) return;
-      const moved = images.value.splice(dragIndex.value, 1)[0];
-      images.value.splice(index, 0, moved);
-      dragIndex.value = null;
-    };
 
     const onSubmit = async () => {
     const errors = [];
     priceError.value = '';
     discountError.value = '';
     qtyError.value = '';
-    if (images.value.length === 0) {
-      errors.push("Please upload at least one photo (max 5).");
+    if (!imageFile.value) {
+      errors.push("Please upload one image.");
     }
     if (form.itemPrice < 0) {
       priceError.value = "Price cannot be negative.";
@@ -178,33 +140,21 @@ export default {
     isSubmitting.value = true;
     try {
       // Upload images to Firebase Storage
-      const uploaded = [];
-      for (const [idx, img] of images.value.entries()) {
-        const imageData = await uploadImage(img.file, 'itemListings');
-        uploaded.push({
-          url: imageData.url,
-          name: imageData.name,
-          path: imageData.path,
-          main: !!img.main,
-          order: idx
-        });
-      }
-      // Ensure at least one main image
-      if (!uploaded.some(u => u.main) && uploaded.length > 0) {
-        uploaded[0].main = true;
-      }
+      let uploadedImage = null;
+        if (imageFile.value) {
+          uploadedImage = await uploadImage(imageFile.value, 'itemListings');
+        }
       
       const listingData = {
         ...form,
         discountedPrice: parseFloat(discountedPrice.value),
-        images: uploaded,
-        primaryImageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '',
-        imageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '', // Keep for backward compatibility
+        imageUrl: uploadedMain.url || '',
+        imageName: uploadedMain.name || '',
+        imagePath: uploadedMain.path || '',
+        primaryImageUrl: uploadedImage?.url || '',
         orders: 0,
         hawkerName: currentUser.value.displayName,
         userId: currentUser.value.uid,
-        description: form.description,
-        discountTime: form.discountTime
       };
       
       await createListing(listingData);
@@ -222,19 +172,17 @@ export default {
   };
 
     const resetForm = () => {
-      form.itemName = "";
+      form.itemName = '';
       form.itemPrice = null;
       form.discount = null;
       form.itemQty = null;
       form.allergens = [];
       form.tags = [];
       form.makeActive = false;
-      images.value.forEach(img => { if (img.previewUrl) URL.revokeObjectURL(img.previewUrl); });
-      images.value = [];
-      form.description = "";
-      if (fileInput.value) {
-        fileInput.value.value = "";
-      }
+      form.description = '';
+      imageFile.value = null;
+      imagePreviewUrl.value = '';
+      if (fileInput.value) fileInput.value.value = '';
     };
 
     // Live validation
@@ -255,7 +203,6 @@ export default {
       if (unsubscribe) {
         unsubscribe();
       }
-      images.value.forEach(img => { if (img.previewUrl) URL.revokeObjectURL(img.previewUrl); });
     });
 
     const close = () => {
@@ -427,7 +374,9 @@ export default {
 
     return {
       form,
-      images,
+      imageFile,
+      imagePreviewUrl,
+      removeImage,
       imageError,
       isSubmitting,
       discountedPrice,
@@ -436,14 +385,7 @@ export default {
       errorMsg,
       fileInput,
       onFileSelected,
-      onFileDrop,
-      removeImageAt,
-      setMainImage,
-      onDragStart,
-      onDragOver,
-      onDrop,
       onSubmit,
-      mainImageFile,
         priceError,
         discountError,
         qtyError,

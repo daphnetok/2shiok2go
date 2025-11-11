@@ -28,10 +28,14 @@ export default {
     const allergenOptions = ['Eggs', 'Dairy', 'Fish', 'Soy', 'Peanuts', 'Sesame'];
     const tagOptions = ['Halal', 'Vegetarian', 'Seafood', 'Dairy-free'];
 
-    // Images state (max 5), with drag-sort and main image selection
-    const images = ref([]); // [{ file, previewUrl, main: boolean, existing: boolean, existingData: {url, name, path} }]
+    // Image handling (single image)
+    const imageFile = ref(null);
+    const imagePreviewUrl = ref('');
     const imageError = ref('');
     const fileInput = ref(null);
+    const existingImageUrl = ref('');
+    const existingImageName = ref('');
+    const existingImagePath = ref('');
     const isSubmitting = ref(false);
     const errorMessage = ref('');
 
@@ -63,36 +67,7 @@ export default {
         }
       };
 
-    const mainImageFile = computed(() => {
-      const main = images.value.find(i => i.main);
-      return main?.file || images.value.find(i => !i.existing)?.file || null;
-    });
 
-    const mainImageUrl = computed(() => {
-      const main = images.value.find(i => i.main);
-      if (main) {
-        return main.existing ? main.existingData.url : main.previewUrl;
-      }
-      return images.value[0] ? (images.value[0].existing ? images.value[0].existingData.url : images.value[0].previewUrl) : '';
-    });
-
-    const processFiles = (files) => {
-      imageError.value = "";
-      if (!files || !files.length) return;
-      const availableSlots = Math.max(0, 5 - images.value.length);
-      const filesToAdd = Array.from(files).slice(0, availableSlots);
-      if (files.length > availableSlots) {
-        imageError.value = "You can upload up to 5 photos.";
-      }
-      for (const file of filesToAdd) {
-        const previewUrl = URL.createObjectURL(file);
-        images.value.push({ file, previewUrl, main: false, existing: false });
-      }
-      // If no main image yet, set the first as main
-      if (!images.value.some(img => img.main) && images.value.length > 0) {
-        images.value[0].main = true;
-      }
-    };
 
     const allListings = useLoadListings();
 
@@ -125,136 +100,115 @@ export default {
           discountTime: l.discountTime,
         });
         
-        // Load existing images
-        images.value = [];
-        if (l.images && Array.isArray(l.images) && l.images.length > 0) {
-          // Multiple images exist
-          l.images.forEach((img, idx) => {
-            images.value.push({
-              existing: true,
-              existingData: {
-                url: img.url || img.path || img,
-                name: img.name,
-                path: img.path
-              },
-              main: img.main === true || idx === 0,
-              previewUrl: img.url || img.path || img
-            });
-          });
-        } else if (l.imageUrl) {
-          // Single image (backward compatibility)
-          images.value.push({
-            existing: true,
-            existingData: {
-              url: l.imageUrl,
-              name: l.imageName,
-              path: l.imagePath
-            },
-            main: true,
-            previewUrl: l.imageUrl
-          });
+        if (l.imageUrl) {
+          existingImageUrl.value = l.imageUrl;
+          existingImageName.value = l.imageName || '';
+          existingImagePath.value = l.imagePath || '';
+          imagePreviewUrl.value = l.imageUrl;
         }
       }
     }, { immediate: true });
 
     const onFileSelected = (event) => {
-      processFiles(event.target.files);
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+        imageError.value = 'Only JPG and PNG formats are allowed.';
+        return;
+      }
+
+      if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value);
+      imageFile.value = file;
+      imagePreviewUrl.value = URL.createObjectURL(file);
+      imageError.value = '';
       if (fileInput.value) fileInput.value.value = '';
     };
 
-    const onFileDrop = (event) => {
-      event.preventDefault();
-      const files = event.dataTransfer?.files;
-      if (files) {
-        processFiles(files);
-      }
-    };
-
-    const removeImageAt = (index) => {
-      const img = images.value[index];
-      if (img?.previewUrl && !img.existing) {
-        URL.revokeObjectURL(img.previewUrl);
-      }
-      images.value.splice(index, 1);
-      // Ensure there is still a main image
-      if (!images.value.some(i => i.main) && images.value.length > 0) {
-        images.value[0].main = true;
-      }
-    };
-
-    const setMainImage = (index) => {
-      images.value.forEach((img, i) => { img.main = i === index; });
-    };
-
-    // Drag and drop sorting
-    const dragIndex = ref(null);
-    const onDragStart = (index) => { dragIndex.value = index; };
-    const onDragOver = (event) => { event.preventDefault(); };
-    const onDrop = (event, index) => {
-      event.preventDefault();
-      if (dragIndex.value === null || dragIndex.value === index) return;
-      const moved = images.value.splice(dragIndex.value, 1)[0];
-      images.value.splice(index, 0, moved);
-      dragIndex.value = null;
+    const removeImage = () => {
+      if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value);
+      imageFile.value = null;
+      imagePreviewUrl.value = '';
     };
 
     const closeModal = () => emit('close');
 
     const handleSubmit = async () => {
+
+      errorMessage.value = '';
+      isSubmitting.value = true;
+      const errors = [];
+
+      if (!imageFile.value && !existingImageUrl.value) {
+        errors.push('Please upload one image.');
+      }
+
+      if (editForm.itemPrice == null || editForm.itemPrice < 0) {
+        errors.push('Price cannot be negative or empty.');
+      }
+
+      if (editForm.itemQty == null || editForm.itemQty < 0) {
+        errors.push('Quantity cannot be negative or empty.');
+      }
+
+      if (editForm.discount == null || editForm.discount < 0 || editForm.discount > 100) {
+        errors.push('Discount must be between 0 and 100.');
+      }
+
+      if (!editForm.itemName || editForm.itemName.trim() === '') {
+        errors.push('Item name cannot be empty.');
+      }
+
+      if (!editForm.discountTime) {
+        errors.push('Please set a discount start time.');
+      }
+
+      if (errors.length > 0) {
+        errorMessage.value = errors.join('\n');
+        isSubmitting.value = false;
+        return;
+      }
+
       try {
-        isSubmitting.value = true;
-        
-        if (images.value.length === 0) {
-          errorMessage.value = 'Please upload at least one photo.';
-          isSubmitting.value = false;
-          return;
+        let uploadedImage = null;
+
+        if (imageFile.value) {
+          uploadedImage = await uploadImage(imageFile.value, 'itemListings');
         }
 
-        // Upload new images and prepare image data
-        const uploaded = [];
-        for (const [idx, img] of images.value.entries()) {
-          if (img.existing) {
-            // Use existing image
-            uploaded.push({
-              url: img.existingData.url,
-              name: img.existingData.name,
-              path: img.existingData.path,
-              main: !!img.main,
-              order: idx
-            });
-          } else {
-            // Upload new image
-            const imageData = await uploadImage(img.file, 'itemListings');
-            uploaded.push({
-              url: imageData.url,
-              name: imageData.name,
-              path: imageData.path,
-              main: !!img.main,
-              order: idx
-            });
-          }
-        }
-        
-        // Ensure at least one main image
-        if (!uploaded.some(u => u.main) && uploaded.length > 0) {
-          uploaded[0].main = true;
-        }
+        const discountedPrice = parseFloat(
+          (
+            editForm.itemPrice -
+            (editForm.itemPrice * (editForm.discount || 0)) / 100
+          ).toFixed(2)
+        );
 
-        await updateListing(props.listing.id, {
+        const updateData = {
           ...editForm,
-          discountedPrice: parseFloat(calculatedDiscountedPrice.value),
-          images: uploaded,
-          primaryImageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '',
-          imageUrl: uploaded.find(i => i.main)?.url || uploaded[0]?.url || '', // Keep for backward compatibility
-          selectedListings: selectedListings.value,
+          discountedPrice,
           description: editForm.description,
-          discountTime: editForm.discountTime
+          discountTime: editForm.discountTime,
+          imageUrl: uploadedImage?.url || existingImageUrl.value || '',
+          primaryImageUrl: uploadedImage?.url || existingImageUrl.value || '',
+          imageName: uploadedImage?.name || existingImageName.value || '',
+          imagePath: uploadedImage?.path || existingImagePath.value || '',
+        };
+        // Prevent Firestore "undefined" errors
+        Object.keys(updateData).forEach(key => {
+          if (updateData[key] === undefined) updateData[key] = '';
         });
+
+        await updateListing(props.listing.id, updateData);
+
+        // Apply discount time to other selected listings
+        if (editForm.discountTime !== props.listing.discountTime) {
+          await applyDiscountTime();
+        }
 
         emit('saved');
         closeModal();
       } catch (err) {
-        console.error(err);
+        console.error('Error saving listing:', err);
         errorMessage.value = err.message;
       } finally {
         isSubmitting.value = false;
@@ -313,21 +267,16 @@ export default {
 
     // Cleanup on unmount
     onBeforeUnmount(() => {
-      images.value.forEach(img => {
-        if (img.previewUrl && !img.existing) {
-          URL.revokeObjectURL(img.previewUrl);
-        }
-      });
     });
 
     return {
       editForm, allergenOptions, tagOptions,
-      images, imageError, fileInput,
+      imageFile, existingImageUrl,
+      imagePreviewUrl,
+      imageError, fileInput,
       isSubmitting, errorMessage, calculatedDiscountedPrice,
       userListings, selectAll, selectedListings,
-      toggleSelectAll, onFileSelected, onFileDrop,
-      removeImageAt, setMainImage, onDragStart, onDragOver, onDrop,
-      mainImageFile, mainImageUrl,
+      toggleSelectAll, onFileSelected, removeImage,
       closeModal, handleSubmit,
       toggleSelectAllActive,
       toggleSelectAllInactive,
@@ -335,6 +284,7 @@ export default {
       inactiveListings,
       selectAllActive,
       selectAllInactive,
+      applyDiscountTime
     };
   }
 };
