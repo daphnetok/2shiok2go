@@ -234,6 +234,7 @@ export default {
             hawkerItemMap.get(userId).push({
               itemName: item.itemName,
               imageUrl: item.imageUrl || '',
+              tags: Array.isArray(item.tags) ? item.tags : [],
               score: score
             });
             
@@ -358,22 +359,58 @@ export default {
         console.log(`📊 After price filter: ${list.length} hawkers remaining`);
       }
 
-      // Filter by dietaryRestriction (string) if any selected
+      // Filter by dietary preferences based on item tags
       if (props.dietary.length) {
         console.log('🍽️ Dietary filter active:', props.dietary);
-        list = list.filter(h => {
-          const tag = getDietary(h);
-          const normalizedFilters = props.dietary.map(d => d.toString().toLowerCase().trim());
-          const matches = normalizedFilters.includes(tag);
-          
-          if (!matches) {
-            console.log(`❌ Hawker "${h.name || h.hawkerName}" dietary="${tag}" doesn't match filters:`, normalizedFilters);
-          } else {
-            console.log(`✅ Hawker "${h.name || h.hawkerName}" dietary="${tag}" MATCHES!`);
-          }
-          
-          return matches;
-        });
+        const normalizedFilters = props.dietary
+          .map(d => d?.toString().toLowerCase().trim())
+          .filter(Boolean);
+
+        const allItemsList = itemListings.value || [];
+
+        list = list
+          .map(h => {
+            const hawkerItems = allItemsList.filter(item => item.userId === h.userId && item.makeActive === true);
+            const matchedItems = hawkerItems.filter(item => {
+              const itemTags = Array.isArray(item.tags)
+                ? item.tags.map(tag => tag?.toString().toLowerCase().trim()).filter(Boolean)
+                : [];
+              return normalizedFilters.every(filterTag => itemTags.includes(filterTag));
+            });
+
+            if (!matchedItems.length) {
+              console.log(`❌ Hawker "${h.name || h.hawkerName}" has no items matching dietary filters:`, normalizedFilters);
+              return null;
+            }
+
+            const matchedItemSummaries = matchedItems.map(item => ({
+              id: item.id,
+              itemName: item.itemName,
+              imageUrl: item.imageUrl || item.primaryImageUrl || '',
+              tags: Array.isArray(item.tags) ? item.tags : []
+            }));
+
+            const matchedItemNames = new Set(matchedItems.map(item => item.itemName));
+            const existingMatches = Array.isArray(h.matchingItems)
+              ? h.matchingItems.filter(mi => matchedItemNames.has(mi.itemName))
+              : null;
+
+            const updatedHawker = {
+              ...h,
+              dietaryMatchingItems: matchedItemSummaries
+            };
+
+            if (props.searchQuery) {
+              updatedHawker.matchingItems = existingMatches ?? [];
+            } else {
+              updatedHawker.matchingItems = matchedItemSummaries;
+            }
+
+            console.log(`✅ Hawker "${h.name || h.hawkerName}" has ${matchedItems.length} items matching dietary filters.`);
+            return updatedHawker;
+          })
+          .filter(Boolean);
+
         console.log(`📊 After dietary filter: ${list.length} hawkers remaining`);
       }
 

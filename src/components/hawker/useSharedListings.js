@@ -192,9 +192,11 @@ export const duplicateListing = async (listing) => {
       itemQty: listing.itemQty,
       allergens: listing.allergens,
       tags: listing.tags,
-      imageUrl: listing.imageUrl,
-      imageName: listing.imageName,
-      imagePath: listing.imagePath,
+      imageUrl: listing.imageUrl ?? null,
+      imageName: listing.imageName ?? null,
+      imagePath: listing.imagePath ?? null,
+      description: listing.description ?? '',
+      discountTime: listing.discountTime ?? '',
       makeActive: false,
       orders: 0,
       hawkerName: listing.hawkerName,
@@ -240,3 +242,18 @@ const getOrderCountForListing = (listingName) => {
 };
 
 export { getOrderCountForListing };
+
+export const findListingByHawkerAndName = (itemName, hawkerName) => {
+  if (!itemName || !hawkerName) return null;
+
+  const normalizedItem = String(itemName).trim().toLowerCase();
+  const normalizedHawker = String(hawkerName).trim().toLowerCase();
+
+  return (
+    allListings.value.find(listing => {
+      const listingItem = String(listing?.itemName ?? '').trim().toLowerCase();
+      const listingHawker = String(listing?.hawkerName ?? '').trim().toLowerCase();
+      return listingItem === normalizedItem && listingHawker === normalizedHawker;
+    }) || null
+  );
+};

@@ -503,7 +503,10 @@ export default {
       hawkerName: 'Loading...',
       hawkerOpeningHours: 'Loading...',
       hawkerRating: 0,
-      hawkerReviewCount: 0
+      hawkerReviewCount: 0,
+
+      // Add flag to track if this is the initial load
+      isInitialLoad: true
     }
   },
   computed: {
@@ -526,7 +529,6 @@ export default {
     // Filter orders based on time period
     filteredOrders() {
       const now = new Date()
-      now.setHours(0, 0, 0, 0) // Reset to start of day for accurate comparison
       
       const filtered = this.allOrders.filter(order => {
         const orderDate = this.getOrderDate(order)
@@ -535,15 +537,22 @@ export default {
           // Compare dates without time component
           const orderDateOnly = new Date(orderDate)
           orderDateOnly.setHours(0, 0, 0, 0)
-          const nowDateOnly = new Date()
-          nowDateOnly.setHours(0, 0, 0, 0)
-          return orderDateOnly.getTime() === nowDateOnly.getTime()
+          const todayDateOnly = new Date(now)
+          todayDateOnly.setHours(0, 0, 0, 0)
+          return orderDateOnly.getTime() === todayDateOnly.getTime()
         } else if (this.globalFilter === 'week') {
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-          return orderDate >= weekAgo && orderDate <= now
+          const weekAgo = new Date(now)
+          weekAgo.setDate(now.getDate() - 7)
+          weekAgo.setHours(0, 0, 0, 0)
+          const todayEnd = new Date(now)
+          todayEnd.setHours(23, 59, 59, 999)
+          return orderDate >= weekAgo && orderDate <= todayEnd
         } else if (this.globalFilter === 'month') {
-          return orderDate.getMonth() === now.getMonth() && 
-                 orderDate.getFullYear() === now.getFullYear()
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+          monthStart.setHours(0, 0, 0, 0)
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+          monthEnd.setHours(23, 59, 59, 999)
+          return orderDate >= monthStart && orderDate <= monthEnd
         } else if (this.globalFilter === 'custom') {
           // Custom date range filtering
           if (!this.customStartDate || !this.customEndDate) {
@@ -562,11 +571,10 @@ export default {
         return true
       })
       
-      // If the selected filter returns no results, fall back to showing all orders
-      // (this prevents charts from rendering "no data" on first load when there are
-      // orders but none match today's filter). Keep the console trace for debugging.
-      if (filtered.length === 0 && this.allOrders.length > 0) {
-        console.log(`📊 Filter: ${this.globalFilter}, Total Orders: ${this.allOrders.length}, Filtered: 0 -> falling back to allOrders (${this.allOrders.length})`)
+      // Only fall back to all orders on initial load with month filter (to prevent empty charts on first visit)
+      // For day/week filters or after initial load, show actual filtered results even if empty
+      if (filtered.length === 0 && this.allOrders.length > 0 && this.isInitialLoad && this.globalFilter === 'month') {
+        console.log(`📊 Initial load with month filter, showing all orders (${this.allOrders.length})`)
         return this.allOrders
       }
 
@@ -703,13 +711,13 @@ export default {
       const orders = this.filteredOrders
       const periods = { Breakfast: 0, Lunch: 0, Dinner: 0 }
       
-      orders.forEach((order, index) => {
+      orders.forEach((order) => {
         if (!order.items || !Array.isArray(order.items)) {
           console.warn('Order has no items:', order)
           return
         }
         
-        // Parse the order date - handle both Firestore Timestamp and string dates
+        // Parse the order date - handle both Firestore Timestamp and regular dates
         const orderDate = this.getOrderDate(order)
         const hour = orderDate.getHours()
         
@@ -721,12 +729,15 @@ export default {
           return sum + itemTotal
         }, 0)
         
-        // Categorize by time period
-        if (hour >= 6 && hour < 11) {
+        // Categorize by time period - only 3 categories
+        if (hour >= 5 && hour < 11) {
+          // 5AM - 11AM: Breakfast
           periods.Breakfast += orderTotal
         } else if (hour >= 11 && hour < 15) {
+          // 11AM - 3PM: Lunch
           periods.Lunch += orderTotal
-        } else if (hour >= 17 && hour < 21) {
+        } else {
+          // 3PM onwards until closing (covers dinner and late night orders): Dinner
           periods.Dinner += orderTotal
         }
       })
@@ -749,13 +760,29 @@ export default {
         }
       })
       
-      console.log('Sales by period:', periods)
+      console.log('Sales by period (3 categories only):', {
+        periods,
+        filteredOrdersCount: orders.length,
+        hasData: labels.length > 0
+      })
+      
+      // If no data at all, show a placeholder
+      if (labels.length === 0) {
+        return {
+          labels: ['No Sales Data'],
+          datasets: [{
+            data: [1],
+            backgroundColor: ['#e5e7eb'],
+            borderWidth: 0
+          }]
+        }
+      }
       
       return {
-        labels: labels.length > 0 ? labels : ['No Data'],
+        labels,
         datasets: [{
-          data: data.length > 0 ? data : [1],
-          backgroundColor: colors.length > 0 ? colors : ['#e5e7eb'],
+          data,
+          backgroundColor: colors,
           borderWidth: 0
         }]
       }
@@ -764,33 +791,44 @@ export default {
     peakHoursData() {
       const orders = this.filteredOrders
       
-      // Initialize hour buckets (8AM to 7PM)
-      const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+      // Initialize hour buckets (6AM to 9PM for full hawker hours)
+      const hours = Array.from({ length: 16 }, (_, i) => i + 6) // 6 to 21
       const hourCounts = {}
       hours.forEach(h => hourCounts[h] = 0)
       
-      // Count orders by hour (rounded to nearest hour)
+      // Count orders by exact hour (no rounding)
       orders.forEach(order => {
         const orderDate = this.getOrderDate(order)
         const hour = orderDate.getHours()
-        const minutes = orderDate.getMinutes()
-        
-        // Round to nearest hour (e.g., 11:45 -> 12, 11:20 -> 11)
-        const roundedHour = minutes >= 30 ? hour + 1 : hour
         
         // Only count if within our business hours
-        if (hourCounts[roundedHour] !== undefined) {
-          hourCounts[roundedHour]++
+        if (hourCounts[hour] !== undefined) {
+          hourCounts[hour]++
         }
       })
       
-      console.log('Peak hours data:', hourCounts)
+      // Filter to only show hours that have data OR are within reasonable business hours
+      const minHour = Math.min(...Object.keys(hourCounts).filter(h => hourCounts[h] > 0).map(Number))
+      const maxHour = Math.max(...Object.keys(hourCounts).filter(h => hourCounts[h] > 0).map(Number))
+      
+      // If we have data, show from min-1 to max+1 (with padding), otherwise show 8AM-7PM
+      let displayHours
+      if (orders.length > 0 && minHour !== Infinity) {
+        const startHour = Math.max(6, minHour - 1)
+        const endHour = Math.min(21, maxHour + 1)
+        displayHours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour)
+      } else {
+        // Default business hours if no orders
+        displayHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+      }
+      
+      console.log('Peak hours data:', { hourCounts, displayHours, totalOrders: orders.length })
       
       return {
-        labels: hours.map(h => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`),
+        labels: displayHours.map(h => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`),
         datasets: [{
           label: 'Orders',
-          data: hours.map(h => hourCounts[h]),
+          data: displayHours.map(h => hourCounts[h] || 0),
           borderColor: '#f59e0b',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
@@ -802,16 +840,72 @@ export default {
     },
 
     customerTypeData() {
-      const orders = this.filteredOrders
-      const buyerOrders = {}
+      const filteredOrders = this.filteredOrders
+      const allOrders = this.allOrders
       
-      orders.forEach(order => {
-        const buyerId = order.buyerId
-        buyerOrders[buyerId] = (buyerOrders[buyerId] || 0) + 1
+      console.log('🔍 Analyzing customer types...')
+      console.log('Sample order structure:', filteredOrders.length > 0 ? filteredOrders[0] : 'No orders')
+      
+      // First, build a map of ALL orders by buyer (to determine if they're truly repeat customers)
+      const allBuyerOrderCounts = {}
+      allOrders.forEach(order => {
+        // Try multiple possible field names for buyer ID
+        const buyerId = order.buyerId || order.userId || order.customerId || order.buyer_id
+        if (buyerId) {
+          allBuyerOrderCounts[buyerId] = (allBuyerOrderCounts[buyerId] || 0) + 1
+        } else {
+          console.warn('⚠️ Order missing buyerId:', order.id)
+        }
       })
       
-      const firstTime = Object.values(buyerOrders).filter(count => count === 1).length
-      const repeat = Object.values(buyerOrders).filter(count => count > 1).length
+      console.log('📊 All buyer order counts:', allBuyerOrderCounts)
+      
+      // Now categorize buyers in the filtered period
+      const buyersInPeriod = new Set()
+      filteredOrders.forEach(order => {
+        // Try multiple possible field names for buyer ID
+        const buyerId = order.buyerId || order.userId || order.customerId || order.buyer_id
+        if (buyerId) {
+          buyersInPeriod.add(buyerId)
+        }
+      })
+      
+      console.log('👥 Unique buyers in filtered period:', buyersInPeriod.size)
+      
+      // Count how many are first-time vs repeat based on their TOTAL order history
+      let firstTime = 0
+      let repeat = 0
+      
+      buyersInPeriod.forEach(buyerId => {
+        const totalOrdersByBuyer = allBuyerOrderCounts[buyerId] || 0
+        if (totalOrdersByBuyer === 1) {
+          firstTime++
+        } else if (totalOrdersByBuyer > 1) {
+          repeat++
+        }
+      })
+      
+      console.log('Customer type analysis:', {
+        filteredOrdersCount: filteredOrders.length,
+        uniqueBuyersInPeriod: buyersInPeriod.size,
+        firstTime,
+        repeat,
+        totalCategorized: firstTime + repeat
+      })
+      
+      // If no buyers could be identified, show a message
+      if (firstTime === 0 && repeat === 0) {
+        console.warn('⚠️ No buyers identified - check buyerId field in orders')
+        return {
+          labels: ['No Customer Data'],
+          datasets: [{
+            label: 'Customers',
+            data: [1],
+            backgroundColor: ['#e5e7eb'],
+            borderRadius: 8
+          }]
+        }
+      }
       
       return {
         labels: ['First-time Buyers', 'Repeat Customers'],
@@ -973,16 +1067,26 @@ export default {
         const orderDate = this.getOrderDate(order)
         
         if (this.globalFilter === 'day') {
-          const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-          return orderDate.toDateString() === yesterday.toDateString()
+          const yesterday = new Date(now)
+          yesterday.setDate(now.getDate() - 1)
+          yesterday.setHours(0, 0, 0, 0)
+          const yesterdayEnd = new Date(yesterday)
+          yesterdayEnd.setHours(23, 59, 59, 999)
+          return orderDate >= yesterday && orderDate <= yesterdayEnd
         } else if (this.globalFilter === 'week') {
-          const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-          const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          const twoWeeksAgo = new Date(now)
+          twoWeeksAgo.setDate(now.getDate() - 14)
+          twoWeeksAgo.setHours(0, 0, 0, 0)
+          const oneWeekAgo = new Date(now)
+          oneWeekAgo.setDate(now.getDate() - 7)
+          oneWeekAgo.setHours(0, 0, 0, 0)
           return orderDate >= twoWeeksAgo && orderDate < oneWeekAgo
         } else if (this.globalFilter === 'month') {
           const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-          return orderDate.getMonth() === lastMonth.getMonth() && 
-                 orderDate.getFullYear() === lastMonth.getFullYear()
+          lastMonth.setHours(0, 0, 0, 0)
+          const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+          lastMonthEnd.setHours(23, 59, 59, 999)
+          return orderDate >= lastMonth && orderDate <= lastMonthEnd
         }
         return false
       })
@@ -1076,6 +1180,10 @@ export default {
     setGlobalFilter(filter) {
       this.globalFilter = filter
       this.showDatePicker = false
+      // Mark that we're no longer on initial load after first filter change
+      if (this.isInitialLoad) {
+        this.isInitialLoad = false
+      }
     },
     
     toggleDatePicker() {

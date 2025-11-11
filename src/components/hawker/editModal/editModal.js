@@ -2,7 +2,7 @@ import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue';
 import { uploadImage } from '/firebase/storage';
 import { updateListing, useLoadListings } from '/firebase/firestore';
 import AIFoodDescription from '../CreateListing/AIFoodDescription.vue';
-import { userListings, activeListings, inactiveListings } from '@/components/hawker/useSharedListings';
+import { userListings, activeListings, inactiveListings, findListingByHawkerAndName } from '@/components/hawker/useSharedListings';
 
 export default {
   name: 'EditModal',
@@ -51,16 +51,42 @@ export default {
             errorMessage.value = 'Please set a discount start time first.';
             return;
           }
-          const listingsToUpdate =
-            selectAll.value
-              ? userListings.value // if "All My Listings" is checked
-              : userListings.value.filter(l => selectedListings.value.includes(l.id));
-  
-          for (const listing of listingsToUpdate) {
-            await updateListing(listing.id, { discountTime: editForm.discountTime });
+
+          const listingsPool = selectAll.value
+            ? userListings.value
+            : userListings.value.filter(l => selectedListings.value.includes(l.id));
+
+          if (!listingsPool.length) {
+            errorMessage.value = 'Please select at least one listing.';
+            return;
           }
-  
-          errorMessage.value = ''; // Clear any previous errors
+
+          const seenKeys = new Set();
+          let updatesPerformed = 0;
+
+          for (const listing of listingsPool) {
+            const itemName = listing?.itemName;
+            const hawkerName = listing?.hawkerName;
+
+            if (!itemName || !hawkerName) continue;
+
+            const key = `${String(hawkerName).trim().toLowerCase()}::${String(itemName).trim().toLowerCase()}`;
+            if (seenKeys.has(key)) continue;
+            seenKeys.add(key);
+
+            const match = findListingByHawkerAndName(itemName, hawkerName);
+            if (!match?.id) continue;
+
+            await updateListing(match.id, { discountTime: editForm.discountTime ?? '' });
+            updatesPerformed += 1;
+          }
+
+          if (updatesPerformed === 0) {
+            errorMessage.value = 'No matching listings found for the selected items.';
+            return;
+          }
+
+          errorMessage.value = '';
         } catch (error) {
           console.error('Error updating listings:', error);
           errorMessage.value = 'Failed to apply discount time. Please try again.';
@@ -96,8 +122,8 @@ export default {
           allergens: [...(l.allergens || [])],
           tags: [...(l.tags || [])],
           makeActive: l.makeActive,
-          description: l.description,
-          discountTime: l.discountTime,
+          description: l.description ?? '',
+          discountTime: l.discountTime ?? '',
         });
         
         if (l.imageUrl) {
@@ -185,9 +211,9 @@ export default {
 
         const updateData = {
           ...editForm,
-          discountedPrice,
-          description: editForm.description,
-          discountTime: editForm.discountTime,
+          discountedPrice: parseFloat(calculatedDiscountedPrice.value),
+          description: editForm.description ?? '',
+          discountTime: editForm.discountTime ?? '',
           imageUrl: uploadedImage?.url || existingImageUrl.value || '',
           primaryImageUrl: uploadedImage?.url || existingImageUrl.value || '',
           imageName: uploadedImage?.name || existingImageName.value || '',

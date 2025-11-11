@@ -367,24 +367,88 @@
    RESPONSIVE DESIGN
    ======================================== */
 
-@media (max-width: 768px) {
-  /* Stall Info Section */
+/* Small devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .container {
+    padding: 15px;
+  }
+
   .stall-info {
-    padding: 20px;
+    padding: 15px;
+    flex-wrap: wrap !important;
   }
 
   .stall-listing .stallImg {
-    height: 300px;
+    height: 250px;
+    margin-bottom: 20px;
+  }
+
+  .stall-info .col-md-6.col-12:last-child {
+    min-height: auto;
   }
 
   .stall-header h1 {
-    font-size: 1.8em;
+    font-size: 1.5em;
   }
 
   .stall-address,
-  .stall-distance,
-  .stall-status {
-    font-size: 0.95em;
+  .stall-distance {
+    font-size: 0.85em;
+  }
+
+  .map-toggle-btn {
+    padding: 5px 10px;
+    font-size: 0.8em;
+  }
+
+  .heart-container-overlay {
+    top: 15px;
+    right: 15px;
+    padding: 8px;
+  }
+
+  .heart-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stall-listing .toast-notification {
+    bottom: 20px !important;
+    left: 20px !important;
+    right: auto !important;
+    transform: none !important;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Small to Medium devices (tablets, 576px to 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .container {
+    padding: 18px;
+  }
+
+  .stall-info {
+    padding: 20px;
+    flex-wrap: wrap !important;
+  }
+
+  .stall-listing .stallImg {
+    height: 280px;
+    margin-bottom: 20px;
+  }
+
+  .stall-info .col-md-6.col-12:last-child {
+    min-height: auto;
+  }
+
+  .stall-header h1 {
+    font-size: 1.7em;
+  }
+
+  .stall-address,
+  .stall-distance {
+    font-size: 0.9em;
   }
 
   .heart-container-overlay {
@@ -392,13 +456,9 @@
     right: 20px;
   }
 
-  /* Food Items Layout */
-  .stall-listing .col-md-4 {
-    padding: 10px 0;
-  }
-
   /* Search Bar */
   .d-flex.justify-content-between.align-items-center {
+    flex-direction: column;
     align-items: flex-start !important;
   }
 
@@ -410,49 +470,140 @@
   .small-search-box {
     width: 100%;
   }
-
-
-  .tag {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
 }
 
-@media (max-width: 480px) {
+/* Medium devices (tablets, 768px to 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
   .container {
-    padding: 15px;
+    padding: 20px;
   }
 
   .stall-info {
-    padding: 15px;
+    padding: 25px;
+    flex-wrap: nowrap !important;
   }
 
   .stall-listing .stallImg {
-    height: 250px;
+    height: 350px;
+  }
+
+  .stall-info .col-md-6.col-12:last-child {
+    min-height: 350px;
   }
 
   .stall-header h1 {
-    font-size: 1.5em;
+    font-size: 1.9em;
   }
 
   .stall-address,
-  .stall-distance,
-  .stall-status {
-    font-size: 0.85em;
+  .stall-distance {
+    font-size: 0.95em;
+  }
+
+  .small-search-box {
+    width: 220px;
+  }
+
+  .heart-container-overlay {
+    top: 25px;
+    right: 25px;
+  }
+}
+
+/* Large devices (desktops, 992px to 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .container {
+    padding: 20px;
+    max-width: 1140px;
+  }
+
+  .stall-info {
+    padding: 30px;
+    margin-bottom: 45px;
+  }
+
+  .stall-listing .stallImg {
+    height: 400px;
+  }
+
+  .stall-info .col-md-6.col-12:last-child {
+    min-height: 400px;
+  }
+
+  .stall-header h1 {
+    font-size: 2.2em;
+  }
+
+  .stall-address,
+  .stall-distance {
+    font-size: 1em;
+  }
+
+  .small-search-box {
+    width: 250px;
+  }
+
+  .heart-container-overlay {
+    top: 30px;
+    right: 30px;
+  }
+
+  .stall-listing .row.mt-4 h4 {
+    font-size: 1.9em;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .container {
+    padding: 20px;
+    max-width: 1320px;
+  }
+
+  .stall-info {
+    padding: 35px;
+    margin-bottom: 50px;
+  }
+
+  .stall-listing .stallImg {
+    height: 450px;
+  }
+
+  .stall-info .col-md-6.col-12:last-child {
+    min-height: 450px;
+  }
+
+  .stall-header h1 {
+    font-size: 2.4em;
+  }
+
+  .stall-address,
+  .stall-distance {
+    font-size: 1.05em;
+  }
+
+  .small-search-box {
+    width: 280px;
+  }
+
+  .heart-container-overlay {
+    top: 35px;
+    right: 35px;
+    padding: 12px;
+  }
+
+  .heart-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stall-listing .row.mt-4 h4 {
+    font-size: 2em;
+    margin-bottom: 30px;
   }
 
   .map-toggle-btn {
-    padding: 5px 10px;
-    font-size: 0.8em;
-  }
-
-
-  .stall-listing .toast-notification {
-    bottom: 20px !important;
-    left: 20px !important;
-    right: auto !important;
-    transform: none !important;
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 7px 16px;
+    font-size: 0.95em;
   }
 }

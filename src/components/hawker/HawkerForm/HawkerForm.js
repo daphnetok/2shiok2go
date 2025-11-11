@@ -1,7 +1,6 @@
 import { reactive, ref, onBeforeUnmount, watch, nextTick, onMounted, computed } from 'vue';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete.vue';
 import { createHawker, updateHawker } from '/firebase/firestore';
-import { createListing } from '/firebase/firestore';
 import { uploadImage } from '/firebase/storage';
 import { auth } from '/firebase/config';
 
@@ -64,178 +63,6 @@ export default {
     // Multiple images state (for edit mode)
     const images = ref([]); // [{ file, previewUrl, main: boolean, existing: boolean, existingData: {url, name, path} }]
     const imageError = ref('');
-
-    // Multilisting state
-    const listings = ref([]);
-    const listingFileInputs = ref({});
-    const allergenOptions = ['Eggs', 'Dairy', 'Fish', 'Soy', 'Peanuts', 'Sesame'];
-    const tagOptions = ['Halal', 'Vegetarian', 'Seafood', 'Dairy-free'];
-
-    // Initialize with one empty listing
-    const addListing = () => {
-      listings.value.push({
-        itemName: '',
-        itemPrice: null,
-        discount: 0,
-        itemQty: null,
-        allergens: [],
-        tags: [],
-        description: '',
-        makeActive: false,
-        selectedFile: null,
-        previewUrl: '',
-        imageError: ''
-      });
-    };
-
-    const removeListing = (index) => {
-      const listing = listings.value[index];
-      // Clean up preview URL
-      if (listing.previewUrl && listing.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(listing.previewUrl);
-      }
-      listings.value.splice(index, 1);
-    };
-
-    const triggerFileInput = (index) => {
-      if (listingFileInputs.value[index]) {
-        listingFileInputs.value[index].click();
-      }
-    };
-
-    const onListingFileSelected = (event, index) => {
-      const file = event.target.files[0];
-      if (file) {
-        const listing = listings.value[index];
-        listing.selectedFile = file;
-        listing.previewUrl = URL.createObjectURL(file);
-        listing.imageError = '';
-      }
-    };
-
-    const removeListingImage = (index) => {
-      const listing = listings.value[index];
-      if (listing.previewUrl && listing.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(listing.previewUrl);
-      }
-      listing.previewUrl = '';
-      listing.selectedFile = null;
-      listing.imageError = '';
-      if (listingFileInputs.value[index]) {
-        listingFileInputs.value[index].value = '';
-      }
-    };
-
-    const handleMultilistingSubmit = async () => {
-      loading.value = true;
-      errorMsg.value = '';
-      successMsg.value = '';
-
-      try {
-        // Validate listings
-        const validListings = [];
-        for (let i = 0; i < listings.value.length; i++) {
-          const listing = listings.value[i];
-          const errors = [];
-
-          if (!listing.itemName || listing.itemName.trim() === '') {
-            errors.push(`Listing ${i + 1}: Item name is required`);
-          }
-          if (!listing.selectedFile && !listing.previewUrl) {
-            errors.push(`Listing ${i + 1}: Image is required`);
-          }
-          if (listing.itemPrice === null || listing.itemPrice < 0) {
-            errors.push(`Listing ${i + 1}: Valid price is required`);
-          }
-          if (listing.itemQty === null || listing.itemQty < 0) {
-            errors.push(`Listing ${i + 1}: Valid quantity is required`);
-          }
-          if (listing.discount < 0 || listing.discount > 100) {
-            errors.push(`Listing ${i + 1}: Discount must be between 0 and 100`);
-          }
-
-          if (errors.length > 0) {
-            errorMsg.value = errors.join('\n');
-            loading.value = false;
-            return;
-          }
-
-          validListings.push(listing);
-        }
-
-        if (validListings.length === 0) {
-          errorMsg.value = 'Please add at least one valid listing.';
-          loading.value = false;
-          return;
-        }
-
-        // Upload images and create listings
-        const createdListings = [];
-        for (const listing of validListings) {
-          if (!listing.selectedFile) {
-            errorMsg.value = 'All listings must have an image uploaded.';
-            loading.value = false;
-            return;
-          }
-
-          // Upload image
-          const imageData = await uploadImage(listing.selectedFile, 'itemListings');
-
-          // Calculate discounted price
-          const discountedPrice = listing.itemPrice - (listing.itemPrice * (listing.discount || 0)) / 100;
-
-          // Create listing data
-          const listingData = {
-            itemName: listing.itemName.trim(),
-            itemPrice: parseFloat(listing.itemPrice),
-            discount: parseFloat(listing.discount || 0),
-            discountedPrice: parseFloat(discountedPrice.toFixed(2)),
-            itemQty: parseInt(listing.itemQty),
-            allergens: listing.allergens || [],
-            tags: listing.tags || [],
-            description: listing.description.trim() || '',
-            makeActive: listing.makeActive || false,
-            imageUrl: imageData.url,
-            imageName: imageData.name,
-            imagePath: imageData.path,
-            images: [{
-              url: imageData.url,
-              name: imageData.name,
-              path: imageData.path,
-              main: true,
-              order: 0
-            }],
-            primaryImageUrl: imageData.url,
-            orders: 0,
-            hawkerName: auth.currentUser?.displayName || form.stallName,
-            userId: auth.currentUser.uid
-          };
-
-          // Create listing in Firebase
-          const docRef = await createListing(listingData);
-          createdListings.push(docRef.id);
-        }
-
-        successMsg.value = `Successfully created ${createdListings.length} listing${createdListings.length !== 1 ? 's' : ''}!`;
-        showToast.value = true;
-
-        // Reset multilisting form
-        listings.value.forEach(listing => {
-          if (listing.previewUrl && listing.previewUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(listing.previewUrl);
-          }
-        });
-        listings.value = [];
-        addListing(); // Add one empty listing for next use
-
-        emit('listingsCreated', createdListings);
-      } catch (error) {
-        console.error('Error creating listings:', error);
-        errorMsg.value = error.message || 'Failed to create listings. Please try again.';
-      } finally {
-        loading.value = false;
-      }
-    };
 
     // prepopulate form when hawkerData prop changes
     watch (() => props.hawkerData, async (data) => {
@@ -528,9 +355,6 @@ export default {
             }
           });
           images.value = [];
-          if (multiFileInput.value) {
-            multiFileInput.value.value = '';
-          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -576,10 +400,6 @@ export default {
 
     onMounted(() => {
       document.addEventListener('click', handleClickOutside);
-      // Initialize with one empty listing
-      if (props.mode === 'create') {
-        addListing();
-      }
     });
 
     onBeforeUnmount(() => {
@@ -595,12 +415,6 @@ export default {
       images.value.forEach(img => {
         if (img.previewUrl && !img.existing && img.previewUrl.startsWith('blob:')) {
           URL.revokeObjectURL(img.previewUrl);
-        }
-      });
-      // Clean up listing preview URLs
-      listings.value.forEach(listing => {
-        if (listing.previewUrl && listing.previewUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(listing.previewUrl);
         }
       });
     })
@@ -635,18 +449,7 @@ export default {
       priceOptions,
       selectedPriceText,
       toggleDropdown,
-      selectOption,
-      // Multilisting
-      listings,
-      listingFileInputs,
-      allergenOptions,
-      tagOptions,
-      addListing,
-      removeListing,
-      triggerFileInput,
-      onListingFileSelected,
-      removeListingImage,
-      handleMultilistingSubmit
+      selectOption
     };
   }
 };
