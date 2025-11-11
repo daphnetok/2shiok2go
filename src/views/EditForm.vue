@@ -138,6 +138,12 @@ const handleStallUpdated = () => {
   box-shadow: 0 4px 16px rgba(12, 133, 12, 0.2);
 }
 
+body.dark-mode .dashboard-header {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(15, 118, 110, 0.6) 100%);
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+}
+
 .header-content {
   display: flex;
   justify-content: space-between;
