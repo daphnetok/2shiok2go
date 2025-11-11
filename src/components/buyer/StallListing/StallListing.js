@@ -543,7 +543,7 @@ export default {
       try {
         const hawkerRef = collection(db, 'hawkerListings');
         const q = query(hawkerRef, where('userId', '==', userIdToCheck));
-        const querySnapshot = await getDoc(q);
+        const querySnapshot = await getDocs(q);
         hasRegisteredStall.value = !querySnapshot.empty;
         console.log('Has registered stall: ', hasRegisteredStall.value);
       } catch (error) {
@@ -555,11 +555,16 @@ export default {
     // onMounted lifecycle hook to fetch hawker data and food items
     onMounted(async () => {
       syncSearchQuery();
-      await checkStallRegistration(userId.value);
-      if(hasRegisteredStall.value ===false) {
-        errorMsg.value = 'No stall created yet, please register your stall to view your listing.';
-        loading.value = false
-        return;
+       while (!authReady.value) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      if(userId.value && route.params.userId === userId.value) {
+        await checkStallRegistration(userId.value);
+        if(hasRegisteredStall.value ===false) {
+          errorMsg.value = 'No stall created yet, please register your stall to view your listing.';
+          loading.value = false
+          return;
+        }
       }
       await getHawkerData();
       if (hawker.value) {
