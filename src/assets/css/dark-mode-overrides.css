@@ -47,12 +47,20 @@ body.dark-mode .payment-row span {
   color: #f8fafc;
 }
 
+body.dark-mode .cart-item .item-pricing .original-price {
+  color: #000000;
+}
+
+body.dark-mode .summary-item-row .original-price {
+  color: black;
+}
+
 body.dark-mode .payment-row.unavailable-items span {
   color: #f87171;
 }
 
 body.dark-mode .payment-row.saved-message span {
-  color: #fde68a;
+  color: #b45309;
 }
 
 body.dark-mode .item-controls .quantity-control input.quantity {
@@ -100,7 +108,7 @@ body.dark-mode .modal-btn.proceed-btn {
 
 body.dark-mode .modal-btn.cancel-btn {
   background: rgba(239, 68, 68, 0.18);
-  color: #fecaca;
+  color: #000000;
 }
 
 body.dark-mode .saved-card-row.selected {

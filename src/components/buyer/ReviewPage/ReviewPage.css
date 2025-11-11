@@ -15,14 +15,20 @@
 }
 
 .do-it-later-link {
-  color: #666;
+  color: #15803d;
   text-decoration: none;
   font-size: 0.9rem;
-  transition: color 0.2s;
+  transition: all 0.2s;
+  border: 1px solid rgba(21, 128, 61, 0.25);
+  border-radius: 20px;
+  padding: 6px 14px;
+  background: rgba(220, 252, 231, 0.45);
 }
 
 .do-it-later-link:hover {
-  color: #333;
+  color: #0f5132;
+  border-color: rgba(21, 128, 61, 0.45);
+  background: rgba(187, 247, 208, 0.6);
 }
 
 /* Main Container */
