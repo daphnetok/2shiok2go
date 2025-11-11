@@ -286,6 +286,7 @@ import { db } from '../../firebase/config'
 import { getOrdersByUser, cancelOrder as cancelOrderService } from '@/services/orderService'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue'
+import { setThemePreference, syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme'
 
 export default {
   name: 'BuyerRecentOrders',
@@ -623,9 +624,7 @@ export default {
     // Theme toggle
     const toggleTheme = () => {
       isDarkMode.value = !isDarkMode.value
-      document.body.classList.toggle('dark-mode', isDarkMode.value)
-      document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
-      localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
+      setThemePreference(BUYER_THEME_KEY, isDarkMode.value)
     }
 
     // Check if review exists for an order
@@ -722,13 +721,7 @@ export default {
 
     // Initialize
     onMounted(() => {
-      // Check saved theme
-      const savedTheme = localStorage.getItem('buyer-theme')
-      if (savedTheme === 'dark') {
-        isDarkMode.value = true
-        document.body.classList.add('dark-mode')
-        document.documentElement.setAttribute('data-bs-theme', 'dark')
-      }
+      isDarkMode.value = syncThemeFromStorage(BUYER_THEME_KEY)
 
       // Listen for auth changes
       onAuthStateChanged(auth, (user) => {

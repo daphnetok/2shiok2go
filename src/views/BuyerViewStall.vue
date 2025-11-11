@@ -17,6 +17,7 @@ import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '/firebase/config';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 export default { 
   name: "BuyerListings",
@@ -66,6 +67,9 @@ export default {
     if (typeof this.unsubscribeAuth === 'function') {
       this.unsubscribeAuth();
     }
+  },
+  mounted() {
+    syncThemeFromStorage(BUYER_THEME_KEY, { respectExisting: true });
   }
 };
 </script>

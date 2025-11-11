@@ -161,7 +161,6 @@
             </div>
           </div>
           <br>
-          <p class="text-muted mb-0">Collection time: <span class="fw-semibold text-success">7:00 pm</span></p>
         </div>
         
         <!-- Map -->
@@ -303,6 +302,7 @@ import { db } from '/firebase/config';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import jsPDF from 'jspdf';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 const router = useRouter();
 const route = useRoute();
@@ -644,6 +644,7 @@ const fetchHawkerDetails = async (hawkerId) => {
 let authUnsubscribe = null;
 
 onMounted(() => {
+  syncThemeFromStorage(BUYER_THEME_KEY);
   // Wait for auth state to be ready
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {

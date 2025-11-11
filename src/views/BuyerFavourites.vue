@@ -79,6 +79,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFavourites } from '/firebase/firestore'
 import ListingCard from '@/components/buyer/ListingCard/ListingCard.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import { setThemePreference, syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme'
 
 export default {
   name: 'BuyerFavourites',
@@ -171,20 +172,12 @@ export default {
     // Theme toggle
     const toggleTheme = () => {
       isDarkMode.value = !isDarkMode.value
-      document.body.classList.toggle('dark-mode', isDarkMode.value)
-      document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
-      localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
+      setThemePreference(BUYER_THEME_KEY, isDarkMode.value)
     }
 
     // Initialize
     onMounted(() => {
-      // Check saved theme
-      const savedTheme = localStorage.getItem('buyer-theme')
-      if (savedTheme === 'dark') {
-        isDarkMode.value = true
-        document.body.classList.add('dark-mode')
-        document.documentElement.setAttribute('data-bs-theme', 'dark')
-      }
+      isDarkMode.value = syncThemeFromStorage(BUYER_THEME_KEY)
 
       // Fetch favourites if user is already authenticated
       if (userId.value) {
@@ -194,6 +187,7 @@ export default {
 
     // Refresh when page is activated (navigated back to)
     onActivated(() => {
+      isDarkMode.value = syncThemeFromStorage(BUYER_THEME_KEY)
       if (userId.value) {
         fetchFavoritedHawkers()
       }

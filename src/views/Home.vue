@@ -39,6 +39,8 @@ export default {
     
     // Check if user is logged in and log them out when visiting home page
     onMounted(() => {
+      document.body.classList.remove('dark-mode');
+      document.documentElement.setAttribute('data-bs-theme', 'light');
       // Check current auth state immediately
       authUnsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {

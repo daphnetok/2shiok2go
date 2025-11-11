@@ -508,6 +508,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
+import { setThemePreference, syncThemeFromStorage, HAWKER_THEME_KEY } from '@/utils/theme'
 
 export default {
   name: 'HawkerAnalytics',
@@ -1243,9 +1244,7 @@ export default {
     },
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme
-      document.body.classList.toggle('dark-mode', this.isDarkTheme)
-      document.documentElement.setAttribute('data-bs-theme', this.isDarkTheme ? 'dark' : 'light')
-      localStorage.setItem('hawker-theme', this.isDarkTheme ? 'dark' : 'light')
+      setThemePreference(HAWKER_THEME_KEY, this.isDarkTheme)
     },
     
     handleClickOutside(event) {
@@ -1258,13 +1257,7 @@ export default {
   mounted() {
     console.log('🎬 HawkerAnalytics component mounted')
     
-    // Load theme preference
-    const savedTheme = localStorage.getItem('hawker-theme')
-    if (savedTheme === 'dark') {
-      this.isDarkTheme = true
-      document.body.classList.add('dark-mode')
-      document.documentElement.setAttribute('data-bs-theme', 'dark')
-    }
+    this.isDarkTheme = syncThemeFromStorage(HAWKER_THEME_KEY)
 
     // Get current hawker and fetch orders
     console.log('🔐 Setting up authentication listener...')

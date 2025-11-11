@@ -10,6 +10,15 @@
   margin: 0 auto;
 }
 
+body.dark-mode .stall-listing {
+  background: radial-gradient(circle at 20% 15%, #0b1324 0%, #060b18 55%, #020409 100%);
+  color: #e2e8f0;
+}
+
+body.dark-mode .stall-listing .container {
+  color: #e2e8f0;
+}
+
 /* Loading and Error States */
 .text-center {
   text-align: center;
@@ -606,4 +615,26 @@
     padding: 7px 16px;
     font-size: 0.95em;
   }
+}
+
+/* Dark mode overrides */
+body.dark-mode .stall-info {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.55);
+  color: #f8fafc;
+}
+
+body.dark-mode .stall-header h1 {
+  color: #f8fafc;
+}
+
+body.dark-mode .stall-address,
+body.dark-mode .stall-distance {
+  color: #cbd5f5;
+}
+
+body.dark-mode .stall-listing .row.mt-4 h4 {
+  color: #f8fafc;
+  border-bottom-color: #22c55e;
 }

@@ -81,12 +81,14 @@ import { auth } from '/firebase/config';
 import { getHawkersByUserId } from '/firebase/firestore';
 import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue';
 import { onAuthStateChanged } from 'firebase/auth';
+import { syncThemeFromStorage, HAWKER_THEME_KEY } from '@/utils/theme';
 
 const hawkerData = ref(null);
 const loading = ref(true);
 const errorMsg = ref('');
 
 onMounted(() => {
+  syncThemeFromStorage(HAWKER_THEME_KEY);
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       errorMsg.value = 'Please log in to edit your stall';

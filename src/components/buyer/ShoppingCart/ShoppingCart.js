@@ -8,6 +8,7 @@ import { runTransaction } from 'firebase/firestore';
 import ItemModal from '@/components/buyer/StallListing/ItemModal.vue';
 import CartHeader from './CartHeader/CartHeader.vue';
 import EmptyCart from './EmptyCart/EmptyCart.vue';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: 'ShoppingCart',
@@ -1345,6 +1346,7 @@ export default {
     // Initialize on mount
     onMounted(() => {
       console.log('ShoppingCart component mounted');
+      syncThemeFromStorage(BUYER_THEME_KEY);
       
       const currentUser = auth.currentUser;
       if (currentUser) {

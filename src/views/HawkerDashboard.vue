@@ -28,6 +28,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import HawkerListings from '@/components/hawker/HawkerDashboard/HawkerDashboard.vue';
 import HawkerStallForm from '@/components/hawker/HawkerForm/HawkerForm.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { syncThemeFromStorage, HAWKER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: "HawkerDashboard",
@@ -50,6 +51,7 @@ export default {
     };
 
     onMounted(() => {
+      syncThemeFromStorage(HAWKER_THEME_KEY);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           checkStallRegistration(user);

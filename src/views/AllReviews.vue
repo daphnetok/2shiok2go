@@ -146,6 +146,7 @@ import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: 'AllReviews',
@@ -476,6 +477,7 @@ export default {
     };
 
     onMounted(() => {
+      syncThemeFromStorage(BUYER_THEME_KEY, { respectExisting: true });
       fetchData();
     });
 
@@ -960,5 +962,59 @@ export default {
   .review-rating-large {
     align-self: flex-start;
   }
+}
+
+/* Dark mode */
+body.dark-mode .all-reviews-page {
+  background: radial-gradient(circle at 25% 15%, #0b162f 0%, #050a18 60%, #01030a 100%);
+  color: #e2e8f0;
+}
+
+body.dark-mode .header-section .page-title {
+  color: #f8fafc;
+}
+
+body.dark-mode .back-link {
+  color: #38bdf8;
+}
+
+body.dark-mode .back-link:hover {
+  color: #0ea5e9;
+}
+
+body.dark-mode .reviews-content {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid #1f2937;
+  box-shadow: 0 18px 46px rgba(2, 6, 23, 0.6);
+}
+
+body.dark-mode .rating-number-large,
+body.dark-mode .reviewer-name-large,
+body.dark-mode .review-text-large {
+  color: #f8fafc;
+}
+
+body.dark-mode .total-ratings-large,
+body.dark-mode .rating-label-large,
+body.dark-mode .rating-count-large,
+body.dark-mode .review-date-large {
+  color: #94a3b8;
+}
+
+body.dark-mode .rating-bar-container-large {
+  background-color: rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .rating-bar-fill-large {
+  background-color: #4ade80;
+}
+
+body.dark-mode .review-item-large {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .reviewer-avatar-large {
+  background: rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
 }
 </style>

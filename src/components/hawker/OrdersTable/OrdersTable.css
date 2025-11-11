@@ -1065,3 +1065,166 @@
     width: 100%;
   }
 }
+
+/* Dark mode overrides */
+body.dark-mode .hawker-dashboard-container {
+  background: linear-gradient(180deg, #0f172a 0%, #0b1120 55%, #020617 100%);
+}
+
+body.dark-mode .orders-header {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(15, 118, 110, 0.6) 100%);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 20px 40px rgba(6, 182, 212, 0.25);
+}
+
+body.dark-mode .page-title {
+  color: #f8fafc;
+}
+
+body.dark-mode .stat-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #334155;
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.6);
+}
+
+body.dark-mode .stat-label {
+  color: #e2e8f0;
+}
+
+body.dark-mode .tabs-container {
+  background: rgba(17, 24, 39, 0.95);
+  border: 1px solid #1f2937;
+}
+
+body.dark-mode .tab-btn {
+  color: #cbd5f5;
+}
+
+body.dark-mode .tab-btn:hover:not(.active) {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+body.dark-mode .tab-btn.active {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: #f8fafc;
+}
+
+body.dark-mode .tab-badge {
+  background: #22d3ee;
+  color: #0f172a;
+}
+
+body.dark-mode .actions-bar {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #1f2937;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.65);
+}
+
+body.dark-mode .filter-btn {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .filter-btn:hover {
+  background: #1e293b;
+  border-color: #22d3ee;
+  color: #22d3ee;
+}
+
+body.dark-mode .filter-btn.active {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  border: none;
+  color: #0f172a;
+}
+
+body.dark-mode .filter-dropdown-content {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.75);
+}
+
+body.dark-mode .filter-option {
+  color: #e2e8f0;
+}
+
+body.dark-mode .filter-option:hover {
+  background: rgba(30, 41, 59, 0.85);
+}
+
+body.dark-mode .checkbox-custom {
+  border-color: #475569;
+}
+
+body.dark-mode .orders-grid {
+  background: rgba(10, 18, 31, 0.85);
+  border: 1px solid #1f2937;
+}
+
+body.dark-mode .order-card {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  color: #e2e8f0;
+  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.65);
+}
+
+body.dark-mode .order-card.selected {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4), 0 18px 44px rgba(34, 197, 94, 0.18);
+}
+
+body.dark-mode .order-card:hover {
+  box-shadow: 0 24px 52px rgba(2, 6, 23, 0.75);
+}
+
+body.dark-mode .order-details label,
+body.dark-mode .order-summary label {
+  color: #94a3b8;
+}
+
+body.dark-mode .order-details span,
+body.dark-mode .order-summary span {
+  color: #f8fafc;
+}
+
+body.dark-mode .order-id,
+body.dark-mode .col-id {
+  color: #f0fdfa;
+}
+
+body.dark-mode .select-text,
+body.dark-mode .filter-dropdown .select-text {
+  color: #e2e8f0;
+}
+
+body.dark-mode .date-label {
+  color: #f8fafc;
+}
+
+body.dark-mode .date-input {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .date-input:hover,
+body.dark-mode .date-input:focus {
+  border-color: #22d3ee;
+  background: rgba(14, 116, 144, 0.2);
+}
+
+body.dark-mode .order-select .checkmark-small {
+  border-color: #475569;
+}
+
+body.dark-mode .order-select input[type="checkbox"]:checked ~ .checkmark-small {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  border-color: #22c55e;
+}
+
+body.dark-mode .emptyState {
+  background: rgba(15, 23, 42, 0.95);
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.68);
+}

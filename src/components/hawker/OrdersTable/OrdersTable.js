@@ -15,6 +15,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import ImageWithLoader from '@/components/shared/ImageWithLoader.vue';
 import HawkerNavTabs from '@/components/shared/HawkerNavTabs.vue';
+import { syncThemeFromStorage, HAWKER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: 'OrdersManagement',
@@ -464,6 +465,7 @@ export default {
 
     //  Wait for Firebase Auth to load
     onMounted(() => {
+      syncThemeFromStorage(HAWKER_THEME_KEY);
       onAuthStateChanged(auth, (user) => {
         if (user) {
           hawkerId.value = user.uid;

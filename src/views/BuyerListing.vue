@@ -38,6 +38,7 @@ import FilterBar from '../components/buyer/FilterBar/FilterBar.vue';
 import SearchBar from '../components/shared/SearchBar.vue';
 import BackToTop from '../components/buyer/BackToTop/BackToTop.vue'
 import ListingGrid from '@/components/buyer/ListingGrid/ListingGrid.vue';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 export default { 
   name: "BuyerListings",
@@ -67,6 +68,9 @@ export default {
       this.filters = { ...this.filters, ...payload };
       console.log('📦 BuyerListing updated filters:', this.filters);
     }
+  },
+  mounted() {
+    syncThemeFromStorage(BUYER_THEME_KEY);
   }
 };
 </script>

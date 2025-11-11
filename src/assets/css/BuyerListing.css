@@ -40,3 +40,30 @@ body {
     padding-right: 0;
   }
 }
+
+/* Dark mode overrides */
+body.dark-mode,
+body.dark-mode #app,
+body.dark-mode .main-content {
+  background: radial-gradient(circle at 20% 20%, #0f172a 0%, #020617 55%, #000000 100%) !important;
+  color: #e2e8f0 !important;
+  min-height: 100vh;
+}
+
+body.dark-mode .row {
+  gap: 0;
+}
+
+body.dark-mode .col-lg-3,
+body.dark-mode .col-md-4 {
+  border-right: 1px solid rgba(45, 55, 72, 0.8);
+}
+
+body.dark-mode .col-lg-9,
+body.dark-mode .col-md-8 {
+  padding-left: 32px;
+}
+
+body.dark-mode .container {
+  color: #e2e8f0;
+}

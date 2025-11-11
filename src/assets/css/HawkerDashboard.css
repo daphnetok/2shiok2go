@@ -121,3 +121,47 @@
   max-width: 1200px; /* Prevent touching screen edges */
   box-sizing: border-box;
 }
+
+/* Dark mode overrides */
+body.dark-mode .hawker-dashboard-container {
+  background: linear-gradient(180deg, #0f172a 0%, #0b1120 65%, #020617 100%);
+  color: #e2e8f0;
+  border-color: rgba(15, 23, 42, 0.6);
+}
+
+body.dark-mode .tabs-nav {
+  background: #1e293b;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
+  border: 1px solid #334155;
+}
+
+body.dark-mode .tab-link {
+  color: #cbd5f5;
+  background: transparent;
+}
+
+body.dark-mode .tab-link:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: #22c55e;
+}
+
+body.dark-mode .tab-item.active .tab-link,
+body.dark-mode .tab-link.active {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: #ecfdf5;
+}
+
+body.dark-mode .form-container {
+  background: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+  color: #e2e8f0;
+}
+
+body.dark-mode .form-container h2 {
+  color: #f8fafc;
+}
+
+body.dark-mode .form-container .text-muted {
+  color: #cbd5f5;
+}

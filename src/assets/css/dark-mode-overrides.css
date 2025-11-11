@@ -1,0 +1,324 @@
+body.dark-mode {
+  background-color: #020617;
+  color: #e2e8f0;
+}
+
+body.dark-mode a {
+  color: #38bdf8;
+}
+
+body.dark-mode a:hover {
+  color: #22d3ee;
+}
+
+/* Shopping Cart */
+body.dark-mode .cart-page {
+  background: radial-gradient(circle at top, #0f172a 0%, #020617 60%, #000000 100%);
+  color: #e2e8f0;
+}
+
+body.dark-mode .summary-card,
+body.dark-mode .payment-details-card,
+body.dark-mode .cart-item,
+body.dark-mode .card-info-section,
+body.dark-mode .saved-card-row,
+body.dark-mode .modal-content,
+body.dark-mode .alert.alert-warning,
+body.dark-mode .alert.alert-danger,
+body.dark-mode .delete-modal-body,
+body.dark-mode .cart-modal-content,
+body.dark-mode .loading-state,
+body.dark-mode .empty-state,
+body.dark-mode .error-state {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  color: #f1f5f9;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.55);
+}
+
+body.dark-mode .cart-item.edit-mode {
+  border-color: #334155;
+}
+
+body.dark-mode .cart-item .item-name,
+body.dark-mode .cart-item .item-hawker,
+body.dark-mode .cart-item .item-pricing span,
+body.dark-mode .payment-row span {
+  color: #f8fafc;
+}
+
+body.dark-mode .payment-row.unavailable-items span {
+  color: #f87171;
+}
+
+body.dark-mode .payment-row.saved-message span {
+  color: #fde68a;
+}
+
+body.dark-mode .item-controls .quantity-control input.quantity {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .item-controls .qty-btn {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  color: #22d3ee;
+}
+
+body.dark-mode .card-info-section h3,
+body.dark-mode .saved-title,
+body.dark-mode .new-card-option label {
+  color: #f8fafc;
+}
+
+body.dark-mode .checkout-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #052e16;
+  box-shadow: 0 18px 34px rgba(34, 197, 94, 0.25);
+}
+
+body.dark-mode .checkout-btn:hover:not(:disabled) {
+  box-shadow: 0 22px 42px rgba(34, 197, 94, 0.35);
+}
+
+body.dark-mode .modal-overlay,
+body.dark-mode .cart-modal-overlay {
+  background: rgba(2, 6, 23, 0.75);
+}
+
+body.dark-mode .modal-btn {
+  border: 1px solid #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .modal-btn.proceed-btn {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  color: #0f172a;
+}
+
+body.dark-mode .modal-btn.cancel-btn {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
+body.dark-mode .saved-card-row.selected {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+}
+
+body.dark-mode .saved-card-mask,
+body.dark-mode .saved-card-name,
+body.dark-mode .saved-card-exp {
+  color: #94a3b8;
+}
+
+body.dark-mode .alert-btn {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .alert-btn.alert-btn-primary {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  color: #0f172a;
+}
+
+body.dark-mode .alert-btn.alert-btn-danger {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  color: #fff5f5;
+}
+
+/* Order Receipt */
+body.dark-mode .order-switcher .btn {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  color: #e2e8f0;
+}
+
+body.dark-mode .order-switcher .btn.active {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  color: #0f172a;
+  border-color: transparent;
+}
+
+body.dark-mode .order-status-box {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #1f2937 !important;
+  color: #e2e8f0;
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.55);
+}
+
+body.dark-mode .order-item {
+  border-bottom-color: #1f2937 !important;
+  color: #f8fafc;
+}
+
+body.dark-mode .order-item .item-name {
+  color: #f1f5f9;
+}
+
+body.dark-mode .receipt-page {
+  background: radial-gradient(circle at 25% 15%, #0b162f 0%, #050a18 60%, #01030a 100%) !important;
+  color: #e2e8f0;
+}
+
+body.dark-mode .receipt-card {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid #1f2937;
+  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.6);
+  color: #f1f5f9;
+}
+
+body.dark-mode .receipt-card .text-muted,
+body.dark-mode .receipt-card .text-secondary {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode .order-status-box {
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+
+body.dark-mode .order-status-text.preparing {
+  background-color: rgba(37, 99, 235, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: #bfdbfe;
+}
+
+body.dark-mode .order-status-text.collected {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
+body.dark-mode .order-status-box .text-dark {
+  color: #f8fafc !important;
+}
+
+body.dark-mode .collection-details {
+  background: rgba(17, 24, 39, 0.85) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #e2e8f0;
+}
+
+body.dark-mode .collection-details .text-success {
+  color: #4ade80 !important;
+}
+
+body.dark-mode .collection-details p {
+  color: #cbd5f5;
+}
+
+body.dark-mode .order-ready-text,
+body.dark-mode .order-status-box .text-muted {
+  color: #a5b4fc !important;
+}
+
+/* Review Pages */
+body.dark-mode .review-page,
+body.dark-mode .review-page .review-card,
+body.dark-mode .review-page .media-card,
+body.dark-mode .review-page .modal-content,
+body.dark-mode .review-page .alert.alert-warning,
+body.dark-mode .review-page .alert.alert-danger {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  color: #f1f5f9;
+}
+
+body.dark-mode .review-page .badge,
+body.dark-mode .review-page .chip,
+body.dark-mode .review-page .rating-chip {
+  background: rgba(34, 197, 94, 0.2);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+}
+
+body.dark-mode .review-page textarea,
+body.dark-mode .review-page input,
+body.dark-mode .review-page select {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .review-page .do-it-later-link {
+  color: #f8fafc;
+}
+
+/* All Reviews */
+body.dark-mode .all-reviews-container,
+body.dark-mode .review-card,
+body.dark-mode .review-card .media-container,
+body.dark-mode .review-card .review-meta,
+body.dark-mode .modal-image-container {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid #1f2937;
+  color: #f8fafc;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.55);
+}
+
+body.dark-mode .review-card .review-text-large {
+  color: #e2e8f0;
+}
+
+/* Hawker navigation tabs (fallback) */
+body.dark-mode .nav-item {
+  color: #cbd5f5;
+}
+
+body.dark-mode .nav-item.active {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  color: #052e16;
+}
+
+/* Buttons */
+body.dark-mode .btn {
+  border-color: #334155;
+}
+
+/* Buyer listing header */
+body.dark-mode .header-with-location h2,
+body.dark-mode .header-with-location .location-text {
+  color: #f8fafc;
+}
+
+body.dark-mode .header-with-location .location-text.loading {
+  color: #94a3b8;
+}
+
+/* Stall listing headings */
+body.dark-mode .stall-info {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  color: #f1f5f9;
+}
+
+body.dark-mode .stall-header h1,
+body.dark-mode .stall-address,
+body.dark-mode .stall-distance {
+  color: #f8fafc;
+}
+
+body.dark-mode .stall-listing .row.mt-4 h4,
+body.dark-mode #reviews h4 {
+  color: #f8fafc;
+  border-bottom-color: #22c55e;
+}
+
+/* Reviews section */
+body.dark-mode .reviews-card {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+}
+
+body.dark-mode .reviews-card h4,
+body.dark-mode .reviews-card .rating-number,
+body.dark-mode .reviews-card .total-ratings,
+body.dark-mode .reviews-card .rating-label,
+body.dark-mode .reviews-card .rating-count,
+body.dark-mode .reviews-card .review-text {
+  color: #e2e8f0;
+}
+

@@ -296,6 +296,7 @@ import { db } from '../../firebase/config'
 import Card from '@/components/shared/Card.vue'
 import ChartCard from '@/components/dashboard/ChartCard.vue'
 import PetPlayground from '@/components/dashboard/buyer/PetPlayground.vue'
+import { setThemePreference, syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme'
 
 export default {
   name: 'BuyerDashboard',
@@ -1379,9 +1380,7 @@ export default {
     // Theme Toggle
     const toggleTheme = () => {
       isDarkMode.value = !isDarkMode.value
-      document.body.classList.toggle('dark-mode', isDarkMode.value)
-      document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
-      localStorage.setItem('buyer-theme', isDarkMode.value ? 'dark' : 'light')
+      setThemePreference(BUYER_THEME_KEY, isDarkMode.value)
     }
 
     // Pet Functions
@@ -1486,12 +1485,7 @@ export default {
     }
 
     onMounted(() => {
-      const savedTheme = localStorage.getItem('buyer-theme')
-      if (savedTheme === 'dark') {
-        isDarkMode.value = true
-        document.body.classList.add('dark-mode')
-        document.documentElement.setAttribute('data-bs-theme', 'dark')
-      }
+      isDarkMode.value = syncThemeFromStorage(BUYER_THEME_KEY)
     })
 
     return {

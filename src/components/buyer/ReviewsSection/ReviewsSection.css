@@ -151,8 +151,12 @@
 
 .reviewer-name {
   font-weight: 600;
-  color: #343a40;
+  color:black;
   font-size: 0.95rem;
+}
+
+body.dark-mode .reviewer-name {
+  color: #f8fafc;
 }
 
 .review-date {
@@ -192,6 +196,25 @@
   color: #495057;
   line-height: 1.6;
   margin-bottom: 0.75rem;
+}
+
+/* Dark mode overrides */
+body.dark-mode #reviews h4 {
+  color: #f8fafc;
+}
+
+body.dark-mode .reviews-card {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  color: #f8fafc;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.55);
+}
+
+body.dark-mode .overall-rating .rating-number,
+body.dark-mode .rating-label,
+body.dark-mode .rating-count,
+body.dark-mode .total-ratings {
+  color: #e2e8f0;
 }
 
 .review-media {

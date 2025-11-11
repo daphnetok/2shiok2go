@@ -248,6 +248,7 @@ import { db, storage } from '/firebase/config';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
+import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: 'ReviewPage',
@@ -931,6 +932,7 @@ export default {
     }, { immediate: false });
 
     onMounted(() => {
+      syncThemeFromStorage(BUYER_THEME_KEY);
       fetchOrderData();
     });
 

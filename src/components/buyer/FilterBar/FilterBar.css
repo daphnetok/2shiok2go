@@ -437,3 +437,110 @@
   opacity: 0;
 }
 
+/* Dark mode overrides */
+body.dark-mode .filter-container {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #1f2937;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.55);
+}
+
+body.dark-mode .filter-header-main {
+  border-bottom: 2px solid rgba(59, 130, 246, 0.25);
+}
+
+body.dark-mode .filter-header-main h2 {
+  color: #22d3ee;
+}
+
+body.dark-mode .btn-clear-all {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+body.dark-mode .btn-clear-all:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+body.dark-mode .filter-section {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid #1f2937;
+}
+
+body.dark-mode .filter-section-header {
+  color: #f8fafc;
+}
+
+body.dark-mode .filter-section-header.active {
+  background-color: rgba(15, 118, 110, 0.2);
+}
+
+body.dark-mode .filter-title i {
+  color: #22d3ee;
+}
+
+body.dark-mode .filter-option-btn {
+  background: rgba(17, 24, 39, 0.9);
+  border: 1px solid #334155;
+  color: #cbd5f5;
+}
+
+body.dark-mode .filter-option-btn:hover {
+  border-color: #22d3ee;
+  color: #22d3ee;
+  background: rgba(30, 41, 59, 0.75);
+}
+
+body.dark-mode .filter-option-btn.active {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  border-color: #22d3ee;
+  color: #0f172a;
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.25);
+}
+
+body.dark-mode .filter-content {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .slider-label {
+  color: #cbd5f5;
+}
+
+body.dark-mode .checkbox-option {
+  color: #e2e8f0;
+}
+
+body.dark-mode .checkbox-option:hover {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+body.dark-mode .checkbox-custom {
+  border-color: #475569;
+}
+
+body.dark-mode .checkbox-option input[type="checkbox"]:checked ~ .checkbox-custom {
+  background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+  border-color: #22d3ee;
+}
+
+body.dark-mode .filter-term {
+  color: #e2e8f0;
+}
+
+body.dark-mode .status-open {
+  color: #22c55e;
+}
+
+body.dark-mode .status-closed {
+  color: #f87171;
+}
+
+body.dark-mode .status-soon {
+  color: #38bdf8;
+}
+
+body.dark-mode .status-closing {
+  color: #facc15;
+}
+
