@@ -93,6 +93,7 @@ export default {
     const selectedItems = ref([]);
     const localSearchQuery = ref('');
     let debounceTimer = null;
+    const hasRegisteredStall = ref(null);
 
     const auth = getAuth();
     const userId = ref(null);
@@ -538,9 +539,28 @@ export default {
       });
     });
 
+    const checkStallRegistration = async (userIdToCheck) => {
+      try {
+        const hawkerRef = collection(db, 'hawkerListings');
+        const q = query(hawkerRef, where('userId', '==', userIdToCheck));
+        const querySnapshot = await getDoc(q);
+        hasRegisteredStall.value = !querySnapshot.empty;
+        console.log('Has registered stall: ', hasRegisteredStall.value);
+      } catch (error) {
+        console.error('Error checking stall registration: ', error);
+        hasRegisteredStall.value = false;
+      }
+    } 
+
     // onMounted lifecycle hook to fetch hawker data and food items
     onMounted(async () => {
       syncSearchQuery();
+      await checkStallRegistration(userId.value);
+      if(hasRegisteredStall.value ===false) {
+        errorMsg.value = 'No stall created yet, please register your stall to view your listing.';
+        loading.value = false
+        return;
+      }
       await getHawkerData();
       if (hawker.value) {
         await fetchItemListings();
