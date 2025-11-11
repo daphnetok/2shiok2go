@@ -277,6 +277,8 @@ export default {
           discountTime: editForm.discountTime ?? ''
         });
 
+        await applyDiscountTime();
+
         emit('saved');
         closeModal();
       } catch (err) {
