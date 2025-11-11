@@ -18,18 +18,19 @@
           </button>
 
           <!-- Icon Section -->
-          <div class="alert-icon-section">
+          <!-- <div class="alert-icon-section">
             <div class="alert-icon-circle" :class="alert.type">
               <i 
                 class="fas" 
                 :class="{
-                  'fa-check': alert.type === 'success' || alert.type === 'redirect',
+                  'fa-check': alert.type === 'success' ,
+                  'fa-check': alert.type === 'redirect' ,
                   'fa-exclamation-triangle': alert.type === 'error',
                   'fa-question': alert.type === 'confirmation'
                 }"
               ></i>
             </div>
-          </div>
+          </div> -->
 
           <!-- Message Section -->
           <div class="alert-message-section">
