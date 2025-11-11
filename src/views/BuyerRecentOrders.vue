@@ -107,11 +107,7 @@
               <p class="mb-0 mt-2 text-muted">Track your food rescue orders</p>
             </div>
             <div class="col-12 col-lg-4 text-center text-lg-end">
-              <button class="btn btn-outline-secondary no-print" style="border-radius: 8px;" @click="toggleTheme">
-                <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
-                <span class="d-none d-sm-inline">{{ isDarkMode ? 'Light' : 'Dark' }} Mode</span>
-                <span class="d-sm-none">Theme</span>
-              </button>
+              <div class="theme-placeholder"></div>
             </div>
           </div>
         </div>
@@ -622,11 +618,6 @@ export default {
     }
 
     // Theme toggle
-    const toggleTheme = () => {
-      isDarkMode.value = !isDarkMode.value
-      setThemePreference(BUYER_THEME_KEY, isDarkMode.value)
-    }
-
     // Check if review exists for an order
     const checkReviewExists = async (order) => {
       try {
@@ -745,7 +736,6 @@ export default {
       filterStatus,
       sortBy,
       filteredOrders,
-      toggleTheme,
       cancelOrder,
       viewOrderDetails,
       contactSupport,
