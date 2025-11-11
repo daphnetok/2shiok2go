@@ -494,7 +494,6 @@ export default {
       isLoading,
       hawkerListings,
       selectedListing,
-      applyDiscountTime,
       toggleSelectAll,
       userListings,
       activeListings,
