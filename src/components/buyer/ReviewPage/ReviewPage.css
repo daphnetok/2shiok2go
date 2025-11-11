@@ -15,20 +15,20 @@
 }
 
 .do-it-later-link {
-  color: #15803d;
+  color: #ffffff;
   text-decoration: none;
   font-size: 0.9rem;
   transition: all 0.2s;
-  border: 1px solid rgba(21, 128, 61, 0.25);
+  border: 1px solid rgba(21, 128, 61, 0.35);
   border-radius: 20px;
   padding: 6px 14px;
-  background: rgba(220, 252, 231, 0.45);
+  background: rgb(43, 158, 83);
 }
 
 .do-it-later-link:hover {
   color: #0f5132;
   border-color: rgba(21, 128, 61, 0.45);
-  background: rgba(187, 247, 208, 0.6);
+  background: rgb(34, 139, 72);
 }
 
 /* Main Container */

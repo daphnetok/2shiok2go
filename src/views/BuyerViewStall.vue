@@ -17,7 +17,7 @@ import FloatingCartButton from '../components/shared/FloatingCartButton.vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '/firebase/config';
-import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
+import { syncThemeFromStorage, BUYER_THEME_KEY, HAWKER_THEME_KEY } from '@/utils/theme';
 
 export default { 
   name: "BuyerListings",
@@ -42,6 +42,13 @@ export default {
   methods: {
     handleSearch(query) {
       this.searchQuery = query;
+    },
+    applyThemeForRole() {
+      if (this.userRole === 'hawker') {
+        syncThemeFromStorage(HAWKER_THEME_KEY);
+      } else {
+        syncThemeFromStorage(BUYER_THEME_KEY);
+      }
     }
   },
   created() {
@@ -59,6 +66,7 @@ export default {
         console.error('Error determining user role for buyer view:', error);
         this.userRole = '';
       } finally {
+        this.applyThemeForRole();
         this.roleCheckComplete = true;
       }
     });

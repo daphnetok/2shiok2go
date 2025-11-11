@@ -98,7 +98,7 @@ body.dark-mode .cart-modal-overlay {
 
 body.dark-mode .modal-btn {
   border: 1px solid #334155;
-  color: #f8fafc;
+  color: black;
 }
 
 body.dark-mode .modal-btn.proceed-btn {
@@ -233,6 +233,14 @@ body.dark-mode .review-page .alert.alert-danger {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid #1f2937;
   color: #f1f5f9;
+}
+
+body.dark-mode .review-page .do-it-later-link {
+  color: darkgreen;
+}
+
+body.dark-mode .ai-description-container .form-label {
+  color: #000000;
 }
 
 body.dark-mode .review-page .badge,

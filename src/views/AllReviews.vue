@@ -141,12 +141,14 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { db } from '/firebase/config';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
-import { syncThemeFromStorage, BUYER_THEME_KEY } from '@/utils/theme';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '/firebase/config';
+import { syncThemeFromStorage, BUYER_THEME_KEY, HAWKER_THEME_KEY } from '@/utils/theme';
 
 export default {
   name: 'AllReviews',
@@ -164,6 +166,8 @@ export default {
     const videoDuration = ref({});
     const activeVideoRef = ref(null);
     const userDisplayNames = ref({});
+    const userRole = ref('');
+    const unsubscribeAuth = ref(null);
 
     // Computed properties
     const displayRating = computed(() => {
@@ -476,9 +480,40 @@ export default {
       video.currentTime = percentage * video.duration;
     };
 
+    const applyThemeForRole = (role) => {
+      if (role === 'hawker') {
+        syncThemeFromStorage(HAWKER_THEME_KEY);
+      } else {
+        syncThemeFromStorage(BUYER_THEME_KEY, { respectExisting: true });
+      }
+    };
+
     onMounted(() => {
+      unsubscribeAuth.value = onAuthStateChanged(auth, async (user) => {
+        let resolvedRole = '';
+
+        try {
+          if (user) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            resolvedRole = userDoc.exists() ? userDoc.data().role || '' : '';
+          }
+        } catch (error) {
+          console.error('Error determining user role for all reviews:', error);
+          resolvedRole = '';
+        } finally {
+          userRole.value = resolvedRole;
+          applyThemeForRole(resolvedRole);
+        }
+      });
+
       syncThemeFromStorage(BUYER_THEME_KEY, { respectExisting: true });
       fetchData();
+    });
+
+    onUnmounted(() => {
+      if (typeof unsubscribeAuth.value === 'function') {
+        unsubscribeAuth.value();
+      }
     });
 
     return {
