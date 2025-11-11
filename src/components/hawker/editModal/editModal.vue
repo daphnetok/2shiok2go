@@ -191,7 +191,7 @@
                        />
                        <label class="form-check-label" :for="listing.id">{{ listing.itemName }}</label>
                      </div>
-                      <div class="d-flex justify-content-end mt-3">
+                      <!-- <div class="d-flex justify-content-end mt-3">
                         <button
                           type="button"
                           class="modal-btn modal-btn-primary"
@@ -199,7 +199,7 @@
                         >
                           Apply to Selected Listings
                         </button>
-                      </div>
+                      </div> -->
                     </div>
                   </div>
                 </div>

@@ -452,7 +452,8 @@ export default {
       selectAllActive,
       selectAllInactive,
       goBack,
-      itemNameError
+      itemNameError,
+      applyDiscountTime
     };
   },
   components : {AIFoodDescription}
